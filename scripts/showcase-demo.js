@@ -59,11 +59,12 @@ async function runShowcase() {
   };
 
   // ==================================================================
-  // SLIDE 1: Executive Cover Slide with Metric Cards & Rich Notes
-  // ==================================================================
-  console.log('🎨 Generating Slide 1: Executive Dark Theme Cover with Shadows...');
+  // SLIDE 1: Executive Cover Slide (Dark Theme)
+  // -------------------------------------------------------------
+  console.log('🎨 Generating Slide 1: Executive Dark Theme Cover with Shadows & Transitions...');
   const slide1 = pres.addSlide();
-  slide1.setBackground('0F172A');
+  slide1.setTransition('fade', { durationMs: 600, throughBlack: true });
+  slide1.setBackground('0B1120');
   slide1.setNotes([
     {
       runs: [
@@ -196,10 +197,11 @@ async function runShowcase() {
   addDisclaimer(slide1, true);
 
   // ==================================================================
-  // SLIDE 2: Modular Architecture & Geometric Shapes Gallery
-  // ==================================================================
+  // SLIDE 2: Modular Architecture & Shape Gallery
+  // -------------------------------------------------------------
   console.log('📐 Generating Slide 2: Modular Architecture & Geometry Gallery...');
   const slide2 = pres.addSlide();
+  slide2.setTransition('wipe', { direction: 'right', speed: 'fast' });
   slide2.setBackground('F8FAFC');
 
   slide2.addText('Modular Architecture & Shape Presets', {
@@ -330,10 +332,11 @@ async function runShowcase() {
   addDisclaimer(slide2, false);
 
   // ==================================================================
-  // SLIDE 3: Performance & Compatibility Benchmarks Table
-  // ==================================================================
+  // SLIDE 3: Multi-Style Enterprise Data Table
+  // -------------------------------------------------------------
   console.log('📊 Generating Slide 3: Multi-Style Enterprise Data Table...');
   const slide3 = pres.addSlide();
+  slide3.setTransition('push', { direction: 'up', speed: 'med' });
   slide3.setBackground('FFFFFF');
 
   slide3.addText('Runtime Performance & Memory Benchmarks', {
@@ -446,11 +449,12 @@ async function runShowcase() {
   addDisclaimer(slide3, false);
 
   // ==================================================================
-  // SLIDE 4: Type-Safe Units & Formula Matrix
-  // ==================================================================
+  // SLIDE 4: Deep Multilevel Hierarchies & Inline Modifiers
+  // -------------------------------------------------------------
   console.log('📑 Generating Slide 4: Deep Multilevel Hierarchies & Inline Modifiers...');
   const slide4 = pres.addSlide();
-  slide4.setBackground('0F172A'); // Dark theme
+  slide4.setTransition('split', { direction: 'in', speed: 'fast' });
+  slide4.setBackground('F8FAFC');
 
   slide4.addText('Type-Safe Nominal Units & Coordinate System', {
     bold: true,
@@ -522,11 +526,12 @@ async function runShowcase() {
   addDisclaimer(slide4, true);
 
   // ==================================================================
-  // SLIDE 5: Decoupled Three-Tier Architecture Cards
-  // ==================================================================
+  // SLIDE 5: Floating Microservice Architecture Cards
+  // -------------------------------------------------------------
   console.log('🏗️ Generating Slide 5: Floating Microservice Architecture Cards...');
   const slide5 = pres.addSlide();
-  slide5.setBackground('F8FAFC');
+  slide5.setTransition('cover', { direction: 'left', speed: 'fast' });
+  slide5.setBackground('0F172A');
 
   slide5.addText('Three-Tier Decoupled Platform Architecture', {
     bold: true,
@@ -623,11 +628,12 @@ async function runShowcase() {
   addDisclaimer(slide5, false);
 
   // ==================================================================
-  // SLIDE 6: Isomorphic Media & High-Fidelity Image Embedding
-  // ==================================================================
+  // SLIDE 6: High-Fidelity Image Embedding & Media Gallery
+  // -------------------------------------------------------------
   console.log('🖼️ Generating Slide 6: High-Fidelity Image Embedding & Media Gallery...');
   const slide6 = pres.addSlide();
-  slide6.setBackground('F8FAFC');
+  slide6.setTransition('fade', { speed: 'med' });
+  slide6.setBackground('FFFFFF');
 
   slide6.addText('Isomorphic Media & High-Fidelity Image Embedding', {
     bold: true,
@@ -767,11 +773,12 @@ async function runShowcase() {
   addDisclaimer(slide6, false);
 
   // ==================================================================
-  // SLIDE 7: Deep Multilevel Bullet Matrix & Nested Outlines
-  // ==================================================================
+  // SLIDE 7: Deep Multilevel Bullet Matrix
+  // -------------------------------------------------------------
   console.log('📑 Generating Slide 7: Deep Multilevel Bullet Matrix...');
   const slide7 = pres.addSlide();
-  slide7.setBackground('0F172A'); // Dark theme
+  slide7.setTransition('push', { direction: 'left', speed: 'fast' });
+  slide7.setBackground('F8FAFC');
 
   slide7.addText('Complex Multi-Level Outlining & Hierarchy Matrix', {
     bold: true,
@@ -904,11 +911,12 @@ async function runShowcase() {
   addDisclaimer(slide7, true);
 
   // ==================================================================
-  // SLIDE 8: Connectors, Process Flow Pipelines & Composite Groups
-  // ==================================================================
+  // SLIDE 8: Connectors & Composite Group Pipelines
+  // -------------------------------------------------------------
   console.log('🔄 Generating Slide 8: Connectors & Composite Group Pipelines...');
   const slide8 = pres.addSlide();
-  slide8.setBackground('F8FAFC');
+  slide8.setTransition('pull', { direction: 'right', speed: 'fast' });
+  slide8.setBackground('0F172A');
 
   slide8.addText('Flow Connectors & Composite Group Architecture', {
     bold: true,
@@ -1102,10 +1110,11 @@ async function runShowcase() {
 
   // ==================================================================
   // SLIDE 9: Native OpenXML Charts & Visual Analytics
-  // ==================================================================
+  // -------------------------------------------------------------
   console.log('📊 Generating Slide 9: Native OpenXML Charts & Visual Analytics...');
   const slide9 = pres.addSlide();
-  slide9.setBackground('0F172A'); // Dark theme
+  slide9.setTransition('wheel', { spokes: 4, speed: 'med' });
+  slide9.setBackground('FFFFFF');
 
   slide9.addText('Native OpenXML Charts & Visual Analytics', {
     bold: true,
@@ -1247,11 +1256,12 @@ async function runShowcase() {
   addDisclaimer(slide9, true);
 
   // ==================================================================
-  // SLIDE 10: Multi-Topology Chart Gallery (Line, Doughnut, Horizontal Bar)
-  // ==================================================================
+  // SLIDE 10: Multi-Topology Chart Gallery
+  // -------------------------------------------------------------
   console.log('📈 Generating Slide 10: Multi-Topology Chart Gallery...');
   const slide10 = pres.addSlide();
-  slide10.setBackground('F8FAFC'); // Light theme
+  slide10.setTransition('blinds', { direction: 'horz', speed: 'fast' });
+  slide10.setBackground('F8FAFC');
 
   slide10.addText('Multi-Topology Chart Gallery', {
     bold: true,
@@ -1415,10 +1425,11 @@ async function runShowcase() {
 
   // ==================================================================
   // SLIDE 11: Specialized Analytical Topologies (Area, Pie, Radar)
-  // ==================================================================
+  // -------------------------------------------------------------
   console.log('🎯 Generating Slide 11: Specialized Analytical Topologies (Area, Pie, Radar)...');
   const slide11 = pres.addSlide();
-  slide11.setBackground('0F172A'); // Dark Executive Theme
+  slide11.setTransition('checker', { direction: 'vert', speed: 'fast' });
+  slide11.setBackground('FFFFFF');
 
   slide11.addText('Specialized Analytical Topologies', {
     bold: true,
@@ -1600,10 +1611,11 @@ async function runShowcase() {
 
   // ==================================================================
   // SLIDE 12: Live Benchmark Matrix (Performance & Bundle Size)
-  // ==================================================================
+  // -------------------------------------------------------------
   console.log('⚡ Generating Slide 12: Live Benchmark Matrix (Performance & Bundle Size)...');
   const slide12 = pres.addSlide();
-  slide12.setBackground('F8FAFC');
+  slide12.setTransition('zoom', { direction: 'in', speed: 'med' });
+  slide12.setBackground('0F172A');
 
   slide12.addText('Engine Performance & Bundle Size Matrix', {
     bold: true,
