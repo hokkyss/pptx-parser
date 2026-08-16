@@ -31,13 +31,15 @@ jobs:
   release:
     name: Build, Changelog, Release & Publish (OIDC Trusted Publishing)
     runs-on: ubuntu-latest
+    # Security Guard: Restrict release execution strictly to repository owner / authorized maintainer
+    if: github.actor == github.repository_owner || github.actor == 'hokkyss'
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_PAT || secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
