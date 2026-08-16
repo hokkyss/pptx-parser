@@ -10,6 +10,7 @@ export default defineConfig({
       tanstackQuery: false,
       tanstackRouter: false,
       tsconfigRootDir: import.meta.dirname,
+      tsconfigPath: ['tsconfig.json', 'tsconfig.test.json'],
     }),
   ],
   ignores: ['dist/**'],

@@ -148,4 +148,48 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
     expect(relsXml).toContain('TargetMode="External"');
     expect(relsXml).toContain('Target="slide2.xml"');
   });
+
+  it('neutralizes dangerous javascript: and vbscript: URIs from writer relationships', async () => {
+    const doc: PptxDocument = {
+      media: [],
+      metadata: {},
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          elements: [
+            {
+              elementType: 'shape',
+              hyperlink: 'javascript:alert(1)',
+              id: '2',
+              position: { cx: emu(2000000), cy: emu(1000000), x: emu(0), y: emu(0) },
+              shapeType: 'rect',
+              type: 'shape',
+            },
+            {
+              elementType: 'shape',
+              hyperlink: {
+                tooltip: 'Dangerous\r\nTooltip\0Breakout',
+                url: 'file:///C:/Windows/System32/cmd.exe',
+              },
+              id: '3',
+              position: { cx: emu(2000000), cy: emu(1000000), x: emu(0), y: emu(0) },
+              shapeType: 'rect',
+              type: 'shape',
+            },
+          ],
+          slideId: 'rId2',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    const buffer = await writePptx(doc);
+    const zip = await createZipReader(buffer);
+
+    const relsXml = zip.getFileText('ppt/slides/_rels/slide1.xml.rels') || '';
+    expect(relsXml).not.toContain('javascript:');
+    expect(relsXml).not.toContain('file:///');
+  });
 });

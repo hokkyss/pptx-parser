@@ -1,9 +1,15 @@
 import type { PptxHyperlink, PptxHyperlinkAction, RelationshipResolver } from '@hokkyss/pptx-core';
+import {
+  sanitizeHyperlinkAction,
+  sanitizeHyperlinkTooltip,
+  sanitizeHyperlinkUrl,
+  sanitizeSlideIndex,
+} from '@hokkyss/pptx-core';
 
 /**
  * Parses an OpenXML DrawingML `<a:hlinkClick>` node into a typed `PptxHyperlink` AST element.
  *
- * Resolves external URLs, target slide indexes, navigation actions, and tooltip screentips.
+ * Resolves and sanitizes external URLs, target slide indexes, navigation actions, and tooltip screentips.
  * @param hlinkNode Raw XML object node for `<a:hlinkClick>`.
  * @param relationshipResolver Optional RelationshipResolver to map `r:id` to external/internal targets.
  * @returns Parsed `PptxHyperlink` or `undefined` if no valid hyperlink data.
@@ -15,53 +21,55 @@ export function parseHyperlink(
   if (!hlinkNode || typeof hlinkNode !== 'object') return undefined;
 
   const rId = (hlinkNode['@_r:id'] || hlinkNode['@_id']) as string | undefined;
-  const action = hlinkNode['@_action'] as string | undefined;
-  const tooltip = hlinkNode['@_tooltip'] as string | undefined;
-  const invalidUrl = hlinkNode['@_invalidUrl'] as string | undefined;
+  const rawAction = hlinkNode['@_action'] as string | undefined;
+  const rawTooltip = hlinkNode['@_tooltip'] as string | undefined;
+  const rawInvalidUrl = hlinkNode['@_invalidUrl'] as string | undefined;
 
-  let url: string | undefined = invalidUrl;
+  let url: string | undefined = sanitizeHyperlinkUrl(rawInvalidUrl);
   let slideIndex: number | undefined;
   let normalizedAction: PptxHyperlinkAction | undefined;
 
   if (rId && relationshipResolver) {
     const rel = relationshipResolver.getRelationship(rId);
-    if (rel) {
+    if (rel && rel.target) {
       if (
         rel.targetMode === 'External'
         || rel.target.startsWith('http://')
         || rel.target.startsWith('https://')
         || rel.target.startsWith('mailto:')
       ) {
-        url = rel.target;
-      } else if (rel.target.includes('slide')) {
-        const match = rel.target.match(/slide(\d+)\.xml/);
+        url = sanitizeHyperlinkUrl(rel.target);
+      } else {
+        const match = rel.target.match(/(?:^|\/)slide(\d+)\.xml$/);
         if (match) {
-          slideIndex = parseInt(match[1], 10);
+          slideIndex = sanitizeSlideIndex(match[1]);
         }
       }
     }
   }
 
-  if (action) {
-    if (action.includes('nextslide') || action.includes('nextSlide')) {
+  if (rawAction) {
+    if (rawAction.includes('nextslide') || rawAction.includes('nextSlide')) {
       normalizedAction = 'nextSlide';
     } else if (
-      action.includes('prevslide')
-      || action.includes('prevSlide')
-      || action.includes('previousslide')
-      || action.includes('previousSlide')
+      rawAction.includes('prevslide')
+      || rawAction.includes('prevSlide')
+      || rawAction.includes('previousslide')
+      || rawAction.includes('previousSlide')
     ) {
       normalizedAction = 'previousSlide';
-    } else if (action.includes('firstslide') || action.includes('firstSlide')) {
+    } else if (rawAction.includes('firstslide') || rawAction.includes('firstSlide')) {
       normalizedAction = 'firstSlide';
-    } else if (action.includes('lastslide') || action.includes('lastSlide')) {
+    } else if (rawAction.includes('lastslide') || rawAction.includes('lastSlide')) {
       normalizedAction = 'lastSlide';
-    } else if (action.includes('endshow') || action.includes('endShow')) {
+    } else if (rawAction.includes('endshow') || rawAction.includes('endShow')) {
       normalizedAction = 'endShow';
-    } else if (!action.includes('hlinksldjump')) {
-      normalizedAction = action;
+    } else if (!rawAction.includes('hlinksldjump')) {
+      normalizedAction = sanitizeHyperlinkAction(rawAction);
     }
   }
+
+  const tooltip = sanitizeHyperlinkTooltip(rawTooltip);
 
   const result: PptxHyperlink = {
     action: normalizedAction,

@@ -162,4 +162,28 @@ describe('Hyperlink Parser (@hokkyss/pptx-reader)', () => {
       url: 'https://github.com',
     });
   });
+
+  it('neutralizes malicious XSS and traversal targets during relationship parsing', () => {
+    const relsXml = `
+      <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rIdX1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="javascript:alert(1)" TargetMode="External"/>
+        <Relationship Id="rIdX2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="../../etc/passwd"/>
+      </Relationships>
+    `;
+    const resolver = createRelationshipResolver(relsXml, 'ppt/slides/slide1.xml');
+
+    const maliciousNode1 = {
+      '@_r:id': 'rIdX1',
+      '@_tooltip': 'Malicious\r\nScreenTip\0Attack',
+    };
+    const parsed1 = parseHyperlink(maliciousNode1, resolver);
+    expect(parsed1?.url).toBeUndefined();
+    expect(parsed1?.tooltip).toBe('MaliciousScreenTipAttack');
+
+    const maliciousNode2 = {
+      '@_r:id': 'rIdX2',
+    };
+    const parsed2 = parseHyperlink(maliciousNode2, resolver);
+    expect(parsed2?.slideIndex).toBeUndefined();
+  });
 });

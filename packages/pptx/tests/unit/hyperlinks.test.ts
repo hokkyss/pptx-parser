@@ -108,4 +108,45 @@ describe('Fluent Hyperlinks (@hokkyss/pptx)', () => {
       tooltip: 'Return Home',
     });
   });
+
+  it('safely neutralizes dangerous protocol injection in fluent SDK', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addText('Safe Link', {
+      hyperlink: 'https://example.com',
+    });
+
+    slide.addText('Malicious Script Link', {
+      hyperlink: 'javascript:alert(document.cookie)',
+    });
+
+    slide.addShape('roundRect', {
+      h: 1,
+      hyperlink: {
+        tooltip: 'Malicious\r\nTooltip\0Breakout',
+        url: 'file:///etc/passwd',
+      },
+      w: 2,
+      x: 1,
+      y: 1,
+    });
+
+    const buffer = await pres.toBuffer();
+    const reloaded = await Presentation.load(buffer);
+
+    const elements = reloaded.slides[0].getElements();
+    expect(elements).toHaveLength(3);
+
+    // Safe link preserved
+    expect(elements[0].hyperlink).toMatchObject({
+      url: 'https://example.com',
+    });
+
+    // Malicious javascript link stripped
+    expect(elements[1].hyperlink).toBeUndefined();
+
+    // Malicious file link stripped, tooltip sanitized
+    expect(elements[2].hyperlink).toBeUndefined();
+  });
 });

@@ -8,6 +8,11 @@ import type {
   PptxTextBody,
   PptxTextBodyProperties,
 } from '@hokkyss/pptx-core';
+import {
+  sanitizeHyperlinkAction,
+  sanitizeHyperlinkTooltip,
+  sanitizeSlideIndex,
+} from '@hokkyss/pptx-core';
 import { sanitizeXmlText } from '../xml/xml-builder';
 
 const ALIGNMENT_MAP: Record<string, string> = {
@@ -135,12 +140,14 @@ export function serializeHyperlink(
     hlinkNode['@_r:id'] = rId;
   }
 
-  if (hyperlink.tooltip) {
-    hlinkNode['@_tooltip'] = hyperlink.tooltip;
+  const cleanTooltip = sanitizeHyperlinkTooltip(hyperlink.tooltip);
+  if (cleanTooltip) {
+    hlinkNode['@_tooltip'] = cleanTooltip;
   }
 
-  if (hyperlink.action) {
-    switch (hyperlink.action) {
+  const cleanAction = sanitizeHyperlinkAction(hyperlink.action);
+  if (cleanAction) {
+    switch (cleanAction) {
       case 'endShow':
         hlinkNode['@_action'] = 'ppaction://hlinkshowjump?jump=endshow';
         break;
@@ -157,10 +164,13 @@ export function serializeHyperlink(
         hlinkNode['@_action'] = 'ppaction://hlinkshowjump?jump=previousslide';
         break;
       default:
-        hlinkNode['@_action'] = hyperlink.action;
+        hlinkNode['@_action'] = cleanAction;
     }
-  } else if (hyperlink.slideIndex && !hlinkNode['@_action']) {
-    hlinkNode['@_action'] = 'ppaction://hlinksldjump';
+  } else {
+    const cleanSlideIndex = sanitizeSlideIndex(hyperlink.slideIndex);
+    if (cleanSlideIndex && !hlinkNode['@_action']) {
+      hlinkNode['@_action'] = 'ppaction://hlinksldjump';
+    }
   }
 
   return Object.keys(hlinkNode).length > 0 ? hlinkNode : undefined;

@@ -7,7 +7,7 @@
   "license": "ISC",
   "scripts": {
     "build": "pnpm --filter @hokkyss/pptx-core build && pnpm --filter @hokkyss/pptx-reader build && pnpm --filter @hokkyss/pptx-writer build && pnpm --filter @hokkyss/pptx build",
-    "test": "pnpm --filter @hokkyss/pptx-reader test && pnpm --filter @hokkyss/pptx-writer test && pnpm --filter @hokkyss/pptx test",
+    "test": "pnpm --filter @hokkyss/pptx-core test && pnpm --filter @hokkyss/pptx-reader test && pnpm --filter @hokkyss/pptx-writer test && pnpm --filter @hokkyss/pptx test",
     "lint": "pnpm -r --if-present lint",
     "boil": "node packages/cli/bin/index.js",
     "demo": "node scripts/showcase-demo.js",
