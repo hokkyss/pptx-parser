@@ -1615,14 +1615,14 @@ async function runShowcase() {
   addDisclaimer(slide11, true);
 
   // ==================================================================
-  // SLIDE 12: Live Benchmark Matrix (Performance & Bundle Size)
+  // SLIDE 12: Native Hyperlinks & Interactive Presentation Navigation
   // ==================================================================
-  console.log('⚡ Generating Slide 12: Live Benchmark Matrix (Performance & Bundle Size)...');
+  console.log('🔗 Generating Slide 12: Native Hyperlinks & Interactive Navigation System...');
   const slide12 = pres.addSlide();
-  slide12.setTransition('zoom', { direction: 'in', speed: 'med' });
+  slide12.setTransition('fade', { durationMs: 400 });
   slide12.setBackground('F8FAFC');
 
-  slide12.addText('Engine Performance & Bundle Size Matrix', {
+  slide12.addText('Native Hyperlinks & Interactive Navigation System', {
     bold: true,
     color: '0F172A',
     font: '+mj-lt',
@@ -1633,7 +1633,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide12.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
+  slide12.addText('OpenXML DrawingML <a:hlinkClick> external URLs, slide navigation jumps, hover ScreenTips, and presentation controls', {
     color: '64748B',
     fontSize: points(14),
     h: inches(0.4),
@@ -1642,7 +1642,7 @@ async function runShowcase() {
     y: inches(1.4),
   });
 
-  // Table Card (Left)
+  // Left Card: Interactive Slide Navigation Hub
   slide12.addShape('roundRect', {
     fill: 'FFFFFF',
     h: inches(4.9),
@@ -1653,7 +1653,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide12.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
+  slide12.addText('🧭 Interactive Presentation Jump Hub', {
     bold: true,
     color: '0F172A',
     fontSize: points(13),
@@ -1663,15 +1663,263 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide12.addTable(
+  slide12.addText('Click any card below during slide show mode to immediately jump to that section:', {
+    color: '64748B',
+    fontSize: points(10.5),
+    h: inches(0.3),
+    w: inches(5.3),
+    x: inches(1.0),
+    y: inches(2.55),
+  });
+
+  const jumpTiles = [
+    {
+      desc: 'Four decoupled packages & DrawingML presets',
+      fill: 'F0F9FF',
+      line: '0284C7',
+      slideIdx: 2,
+      textColor: '0369A1',
+      title: '📐 Slide 2: Modular Architecture',
+      y: 2.95,
+    },
+    {
+      desc: 'Formatted headers, zebra fills & metric cells',
+      fill: 'EEF2FF',
+      line: '6366F1',
+      slideIdx: 3,
+      textColor: '4338CA',
+      title: '📊 Slide 3: Enterprise Data Tables',
+      y: 3.9,
+    },
+    {
+      desc: 'Clustered bar & line dual-series analytics',
+      fill: 'ECFDF5',
+      line: '10B981',
+      slideIdx: 9,
+      textColor: '047857',
+      title: '📈 Slide 9: OpenXML Charts & Graphs',
+      y: 4.85,
+    },
+    {
+      desc: 'Empirical throughput & bundle size matrix',
+      fill: 'FFFBEB',
+      line: 'F59E0B',
+      slideIdx: 13,
+      textColor: 'B45309',
+      title: '⚡ Slide 13: Engine Benchmark Matrix',
+      y: 5.8,
+    },
+  ];
+
+  for (const tile of jumpTiles) {
+    slide12.addShape('roundRect', {
+      fill: tile.fill,
+      h: inches(0.82),
+      hyperlink: { slideIndex: tile.slideIdx, tooltip: `Jump directly to Slide ${tile.slideIdx}` },
+      line: { color: tile.line, width: inches(0.015) },
+      text: [
+        { bold: true, color: tile.textColor, fontSize: points(11), text: `${tile.title} ➔\n` },
+        { color: '64748B', fontSize: points(9.5), text: tile.desc },
+      ],
+      w: inches(5.3),
+      x: inches(1.0),
+      y: inches(tile.y),
+    });
+  }
+
+  // Right Top Card: External Endpoints & Rich Text Hyperlinks
+  slide12.addShape('roundRect', {
+    fill: 'FFFFFF',
+    h: inches(2.6),
+    line: { color: 'E2E8F0', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.08 },
+    w: inches(5.7),
+    x: inches(6.8),
+    y: inches(2.0),
+  });
+
+  slide12.addText('🔗 External Web & Ecosystem Endpoints', {
+    bold: true,
+    color: '0F172A',
+    fontSize: points(13),
+    h: inches(0.35),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(2.2),
+  });
+
+  slide12.addText([
+    {
+      level: 0,
+      runs: [
+        { text: '• ' },
+        {
+          bold: true,
+          color: '0284C7',
+          hyperlink: { tooltip: 'View GitHub Repository & Source Code', url: 'https://github.com/hokkyss/pptx-parser' },
+          text: 'GitHub Repository (hokkyss/pptx-parser)',
+          underline: true,
+        },
+        { text: ' — Star & contribute.' },
+      ],
+    },
+    {
+      level: 0,
+      runs: [
+        { text: '• ' },
+        {
+          bold: true,
+          color: '6366F1',
+          hyperlink: { tooltip: 'Inspect NPM Package Registry', url: 'https://www.npmjs.com/package/@hokkyss/pptx' },
+          text: 'NPM Package Registry (@hokkyss/pptx)',
+          underline: true,
+        },
+        { text: ' — Published release.' },
+      ],
+    },
+    {
+      level: 0,
+      runs: [
+        { text: '• ' },
+        {
+          bold: true,
+          color: '10B981',
+          hyperlink: { tooltip: 'Contact Developer Email', url: 'mailto:support@hokkyss.dev' },
+          text: 'Direct Developer Contact (support@hokkyss.dev)',
+          underline: true,
+        },
+        { text: ' — Support.' },
+      ],
+    },
+  ], {
+    h: inches(1.8),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(2.6),
+  });
+
+  // Right Bottom Card: Slide Show Action Controls
+  slide12.addShape('roundRect', {
+    fill: 'FFFFFF',
+    h: inches(2.1),
+    line: { color: 'E2E8F0', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.08 },
+    w: inches(5.7),
+    x: inches(6.8),
+    y: inches(4.8),
+  });
+
+  slide12.addText('🎮 Native Slide Show Action Controls', {
+    bold: true,
+    color: '0F172A',
+    fontSize: points(13),
+    h: inches(0.35),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(5.0),
+  });
+
+  slide12.addText('OpenXML action jump commands executed directly inside PowerPoint Presentation Mode:', {
+    color: '64748B',
+    fontSize: points(10),
+    h: inches(0.3),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(5.35),
+  });
+
+  const actionButtons = [
+    { action: 'firstSlide', fill: '0F172A', label: '⏮ First', tip: 'Jump to Slide 1', x: 7.0 },
+    { action: 'previousSlide', fill: '475569', label: '◀ Prev', tip: 'Jump to Slide 11', x: 8.35 },
+    { action: 'nextSlide', fill: '0284C7', label: 'Next ▶', tip: 'Jump to Slide 13', x: 9.7 },
+    { action: 'endShow', fill: 'EF4444', label: '⏹ End', tip: 'End Slide Show', x: 11.05 },
+  ];
+
+  for (const btn of actionButtons) {
+    slide12.addShape('roundRect', {
+      fill: btn.fill,
+      h: inches(0.65),
+      hyperlink: { action: btn.action, tooltip: btn.tip },
+      text: btn.label,
+      textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10.5) },
+      w: inches(1.2),
+      x: inches(btn.x),
+      y: inches(5.95),
+    });
+  }
+
+  slide12.setNotes([
+    {
+      runs: [
+        { text: 'Hyperlinks & Slide Navigation Keynote: ', bold: true },
+        { text: 'Interactive OpenXML Actions & Relationships', underline: true },
+      ],
+    },
+    { bullet: true, level: 0, text: 'Full support for external web links, mailto targets, and hover tooltips.' },
+    { bullet: true, level: 0, text: 'Internal slide jumping using strongly typed slideIndex referencing.' },
+    { bullet: true, level: 0, text: 'Built-in slide show control actions: firstSlide, lastSlide, nextSlide, previousSlide, endShow.' },
+  ]);
+
+  addDisclaimer(slide12, false);
+
+  // ==================================================================
+  // SLIDE 13: Live Benchmark Matrix (Performance & Bundle Size)
+  // ==================================================================
+  console.log('⚡ Generating Slide 13: Live Benchmark Matrix (Performance & Bundle Size)...');
+  const slide13 = pres.addSlide();
+  slide13.setTransition('zoom', { direction: 'in', speed: 'med' });
+  slide13.setBackground('0F172A');
+
+  slide13.addText('Engine Performance & Bundle Size Matrix', {
+    bold: true,
+    color: 'FFFFFF',
+    font: '+mj-lt',
+    fontSize: points(24),
+    h: inches(0.6),
+    w: inches(11.73),
+    x: inches(0.8),
+    y: inches(0.8),
+  });
+
+  slide13.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
+    color: '94A3B8',
+    fontSize: points(14),
+    h: inches(0.4),
+    w: inches(11.73),
+    x: inches(0.8),
+    y: inches(1.4),
+  });
+
+  // Table Card (Left)
+  slide13.addShape('roundRect', {
+    fill: '1E293B',
+    h: inches(4.9),
+    line: { color: '334155', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '000000', opacity: 0.3 },
+    w: inches(5.7),
+    x: inches(0.8),
+    y: inches(2.0),
+  });
+
+  slide13.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
+    bold: true,
+    color: 'FFFFFF',
+    fontSize: points(13),
+    h: inches(0.35),
+    w: inches(5.3),
+    x: inches(1.0),
+    y: inches(2.2),
+  });
+
+  slide13.addTable(
     (tbl) => {
       // Header Row
       tbl.addRow({
         cells: [
-          { bold: true, color: 'FFFFFF', fill: '0F172A', fontSize: points(10), text: 'Workload Scenario' },
-          { bold: true, color: 'FFFFFF', fill: '0F172A', fontSize: points(10), text: 'Ops / Sec', align: 'right' },
-          { bold: true, color: 'FFFFFF', fill: '0F172A', fontSize: points(10), text: 'Avg Latency', align: 'right' },
-          { bold: true, color: 'FFFFFF', fill: '0F172A', fontSize: points(10), text: 'Category', align: 'center' },
+          { bold: true, color: 'FFFFFF', fill: '0284C7', fontSize: points(10), text: 'Workload Scenario' },
+          { bold: true, color: 'FFFFFF', fill: '0284C7', fontSize: points(10), text: 'Ops / Sec', align: 'right' },
+          { bold: true, color: 'FFFFFF', fill: '0284C7', fontSize: points(10), text: 'Avg Latency', align: 'right' },
+          { bold: true, color: 'FFFFFF', fill: '0284C7', fontSize: points(10), text: 'Category', align: 'center' },
         ],
         h: inches(0.38),
       });
@@ -1686,13 +1934,13 @@ async function runShowcase() {
       ];
 
       rows.forEach((r, idx) => {
-        const bg = idx % 2 === 0 ? 'F8FAFC' : 'FFFFFF';
+        const bg = idx % 2 === 0 ? '1E293B' : '0F172A';
         tbl.addRow({
           cells: [
-            { bold: true, color: '0F172A', fill: bg, fontSize: points(9.5), text: r.scenario },
-            { bold: true, color: '0284C7', fill: bg, fontSize: points(9.5), text: r.ops, align: 'right' },
+            { bold: true, color: 'FFFFFF', fill: bg, fontSize: points(9.5), text: r.scenario },
+            { bold: true, color: '38BDF8', fill: bg, fontSize: points(9.5), text: r.ops, align: 'right' },
             { bold: true, color: '10B981', fill: bg, fontSize: points(9.5), text: r.lat, align: 'right' },
-            { bold: true, color: '64748B', fill: bg, fontSize: points(9), text: r.badge, align: 'center' },
+            { bold: true, color: '94A3B8', fill: bg, fontSize: points(9), text: r.badge, align: 'center' },
           ],
           h: inches(0.36),
         });
@@ -1707,19 +1955,19 @@ async function runShowcase() {
   );
 
   // Bundle Size Card (Right)
-  slide12.addShape('roundRect', {
-    fill: 'FFFFFF',
+  slide13.addShape('roundRect', {
+    fill: '1E293B',
     h: inches(4.9),
-    line: { color: 'E2E8F0', width: inches(0.015) },
-    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.08 },
+    line: { color: '334155', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '000000', opacity: 0.3 },
     w: inches(5.7),
     x: inches(6.8),
     y: inches(2.0),
   });
 
-  slide12.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
+  slide13.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
     bold: true,
-    color: '0F172A',
+    color: 'FFFFFF',
     fontSize: points(13),
     h: inches(0.35),
     w: inches(5.3),
@@ -1727,7 +1975,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide12.addChart({
+  slide13.addChart({
     axisColor: '94A3B8',
     categories: ['@pptx-core', '@pptx-reader', '@pptx-writer', 'Full SDK'],
     chartType: 'column',
@@ -1735,7 +1983,7 @@ async function runShowcase() {
     legend: { position: 'bottom' },
     series: [
       {
-        color: '0284C7',
+        color: '38BDF8',
         name: 'Gzip Size (KB)',
         values: [0.44, 25.83, 31.69, 48.93],
       },
@@ -1746,26 +1994,26 @@ async function runShowcase() {
       },
     ],
     showGridlines: true,
-    textColor: '334155',
+    textColor: 'CBD5E1',
     w: inches(5.3),
     x: inches(7.0),
     y: inches(2.65),
   });
 
-  slide12.addShape('roundRect', {
+  slide13.addShape('roundRect', {
     fill: '0284C7',
     h: inches(0.45),
-    hyperlink: { action: 'firstSlide', tooltip: 'Return to Title (Slide 1)' },
+    hyperlink: { slideIndex: 12, tooltip: 'Return to Hyperlinks Hub (Slide 12)' },
     line: { color: '38BDF8', width: inches(0.015) },
     shadow: { blur: inches(0.15), color: '0284C7', direction: degrees(90), distance: inches(0.03), opacity: 0.3 },
-    text: '⬅ Return to Title',
+    text: '⬅ Back to Nav Hub',
     textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10) },
-    w: inches(2.2),
-    x: inches(10.1),
+    w: inches(2.4),
+    x: inches(10.0),
     y: inches(0.8),
   });
 
-  slide12.setNotes([
+  slide13.setNotes([
     {
       runs: [
         { text: 'Empirical Benchmark Keynote: ', bold: true },
@@ -1777,7 +2025,7 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Total bundle size under 49 KB gzipped with full PresentationML & DrawingML engines.' },
   ]);
 
-  addDisclaimer(slide12, false);
+  addDisclaimer(slide13, true);
 
   // 3. Export Presentation to Buffer and Save to Disk
   const outputFile = resolve(process.cwd(), 'hokkyss_showcase_deck.pptx');
