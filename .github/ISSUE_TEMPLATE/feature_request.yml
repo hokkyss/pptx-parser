@@ -1,0 +1,48 @@
+name: 🚀 Feature Request
+description: Propose a new feature, chart topology, OpenXML capability, or SDK enhancement.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We love new ideas! Please describe the use case and proposed API design.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Target Package
+      options:
+        - "@hokkyss/pptx (Fluent SDK)"
+        - "@hokkyss/pptx-reader (Parser)"
+        - "@hokkyss/pptx-writer (Serializer)"
+        - "@hokkyss/pptx-core (AST & Units)"
+        - "CLI / Inspection Tools"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement / Motivation
+      description: Is your feature request related to a problem or missing OpenXML capability?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed API & Usage Example
+      description: How should the proposed API look in TypeScript?
+      render: typescript
+      placeholder: |
+        slide.addChart('waterfallChart', {
+          // ...
+        });
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've considered.

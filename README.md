@@ -1,5 +1,12 @@
 # PPTX Parser & Generation Suite
 
+[![NPM Version](https://img.shields.io/npm/v/@hokkyss/pptx?color=38BDF8&label=npm%20package)](https://www.npmjs.com/package/@hokkyss/pptx)
+[![NPM Downloads](https://img.shields.io/npm/dm/@hokkyss/pptx?color=6366F1)](https://www.npmjs.com/package/@hokkyss/pptx)
+[![CI Status](https://github.com/hokkyss/pptx-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/hokkyss/pptx-parser/actions/workflows/ci.yml)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@hokkyss/pptx?color=10B981&label=minzipped)](https://bundlephobia.com/package/@hokkyss/pptx)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
 A high-performance, isomorphic, and type-safe PowerPoint (`.pptx`) toolkit for TypeScript and JavaScript.
 
 Parse, construct, mutate, template, and serialize OpenXML presentation decks with 100% round-trip fidelity across Node.js, Web Browsers, Cloudflare Workers, Deno, and Bun.
@@ -10,10 +17,10 @@ Parse, construct, mutate, template, and serialize OpenXML presentation decks wit
 
 | Package | Version | Description |
 |---|---|---|
-| [`@hokkyss/pptx`](./packages/pptx) | `0.0.0` | **High-Level Fluent SDK**: `Presentation`, `Slide`, `SlideMaster`, multilevel bullets, tables, and theme builders. |
-| [`@hokkyss/pptx-reader`](./packages/pptx-reader) | `0.0.0` | **Isomorphic Parser**: Converts `.pptx` binaries to structured AST with 3-tier slide layer composition. |
-| [`@hokkyss/pptx-writer`](./packages/pptx-writer) | `0.0.0` | **OpenXML Serializer**: Emits standard `.pptx` archives from ASTs with fallback validation. |
-| [`@hokkyss/pptx-core`](./packages/pptx-core) | `0.0.0` | **Core Contracts & Units**: Type-safe OpenXML AST schemas, branded units (`Emu`, `Inches`, `Points`), and color/theme types. |
+| [`@hokkyss/pptx`](./packages/pptx) | [![npm](https://img.shields.io/npm/v/@hokkyss/pptx?label=)](https://www.npmjs.com/package/@hokkyss/pptx) | **High-Level Fluent SDK**: `Presentation`, `Slide`, `SlideMaster`, multilevel bullets, tables, and theme builders. |
+| [`@hokkyss/pptx-reader`](./packages/pptx-reader) | [![npm](https://img.shields.io/npm/v/@hokkyss/pptx-reader?label=)](https://www.npmjs.com/package/@hokkyss/pptx-reader) | **Isomorphic Parser**: Converts `.pptx` binaries to structured AST with 3-tier slide layer composition. |
+| [`@hokkyss/pptx-writer`](./packages/pptx-writer) | [![npm](https://img.shields.io/npm/v/@hokkyss/pptx-writer?label=)](https://www.npmjs.com/package/@hokkyss/pptx-writer) | **OpenXML Serializer**: Emits standard `.pptx` archives from ASTs with fallback validation. |
+| [`@hokkyss/pptx-core`](./packages/pptx-core) | [![npm](https://img.shields.io/npm/v/@hokkyss/pptx-core?label=)](https://www.npmjs.com/package/@hokkyss/pptx-core) | **Core Contracts & Units**: Type-safe OpenXML AST schemas, branded units (`Emu`, `Inches`, `Points`), and color/theme types. |
 
 ---
 
