@@ -2,66 +2,16 @@ import type { RelationshipResolver } from '@hokkyss/pptx-core';
 import {
   Emu,
   EmuDegree,
+  PptxLine,
   PptxPlaceholder,
   PptxShape,
 } from '../types/ast';
-import { defaultXmlParser, XmlParser } from '../xml/xml-parser';
+import { defaultXmlParser, getXmlChild, getXmlChildren, XmlParser } from '../xml/xml-parser';
+import { parseFill } from './fill-parser';
 import { parseHyperlink } from './hyperlink-parser';
 import { parseTextBody } from './text-parser';
 
-/**
- * Namespace-agnostic helper to get a single child object node by local tag name.
- * Seamlessly handles prefix variants like `'p:sp'`, `'a:sp'`, `'sp'`.
- * @param node Parent XML object node.
- * @param targetName Target local tag name (e.g. `'sp'`, `'bodyPr'`, `'p'`).
- * @returns Child object node or `undefined` if not found.
- */
-export function getXmlChild(node: Record<string, unknown> | undefined, targetName: string): Record<string, unknown> | undefined {
-  if (!node || typeof node !== 'object') return undefined;
-
-  for (const key of Object.keys(node)) {
-    const localName = key.includes(':') ? key.split(':')[1] : key;
-    if (localName === targetName) {
-      const val = node[key];
-      if (Array.isArray(val)) {
-        return val[0] as Record<string, unknown>;
-      }
-      if (typeof val === 'object' && val !== null) {
-        return val as Record<string, unknown>;
-      }
-    }
-  }
-  return undefined;
-}
-
-/**
- * Namespace-agnostic helper to get an array of child object nodes by local tag name.
- * Seamlessly handles prefix variants like `'p:sp'`, `'a:sp'`, `'sp'`.
- * @param node Parent XML object node.
- * @param targetName Target local tag name (e.g. `'sp'`, `'r'`, `'p'`).
- * @returns Array of matching child object nodes.
- */
-export function getXmlChildren(node: Record<string, unknown> | undefined, targetName: string): Record<string, unknown>[] {
-  if (!node || typeof node !== 'object') return [];
-
-  const results: Record<string, unknown>[] = [];
-  for (const key of Object.keys(node)) {
-    const localName = key.includes(':') ? key.split(':')[1] : key;
-    if (localName === targetName) {
-      const val = node[key];
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          if (typeof item === 'object' && item !== null) {
-            results.push(item as Record<string, unknown>);
-          }
-        }
-      } else if (typeof val === 'object' && val !== null) {
-        results.push(val as Record<string, unknown>);
-      }
-    }
-  }
-  return results;
-}
+export { getXmlChild, getXmlChildren };
 
 /**
  * Parses all visual elements/shapes from a slide XML string or parsed shape tree node (`<p:spTree>`).
@@ -297,6 +247,28 @@ export function parseSingleShape(
     children = parseShapeTree(node, relationshipResolver);
   }
 
+  // Extract fill properties
+  const fill = parseFill(spPrNode);
+
+  // Extract preset geometry
+  const prstGeomNode = getXmlChild(spPrNode, 'prstGeom');
+  const shapePreset = prstGeomNode ? (prstGeomNode['@_prst'] as string) : undefined;
+
+  // Extract outline / line properties (<a:ln>)
+  const lnNode = getXmlChild(spPrNode, 'ln');
+  let line: PptxLine | undefined;
+  if (lnNode) {
+    const w = lnNode['@_w'] !== undefined ? (Number(lnNode['@_w']) as Emu) : undefined;
+    const lineFill = parseFill(lnNode);
+    const prstDash = getXmlChild(lnNode, 'prstDash');
+    const dashStyle = prstDash ? (prstDash['@_val'] as string) : undefined;
+    line = {
+      dashStyle,
+      fill: lineFill,
+      width: w,
+    };
+  }
+
   const baseResult = {
     id,
     name,
@@ -305,6 +277,9 @@ export function parseSingleShape(
     rotation,
     zIndex: 0,
     isVisible,
+    ...(fill !== undefined && { fill }),
+    ...(line !== undefined && { line }),
+    ...(shapePreset !== undefined && { shapeType: shapePreset }),
     ...(hyperlink !== undefined && { hyperlink }),
     ...(isLocked !== undefined && { isLocked }),
     ...(locks !== undefined && { locks }),

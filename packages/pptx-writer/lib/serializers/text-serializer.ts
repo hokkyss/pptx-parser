@@ -9,6 +9,7 @@ import type {
   PptxTextBodyProperties,
 } from '@hokkyss/pptx-core';
 import {
+  degreesToGradientAngle,
   sanitizeHyperlinkAction,
   sanitizeHyperlinkTooltip,
   sanitizeSlideIndex,
@@ -22,6 +23,164 @@ const ALIGNMENT_MAP: Record<string, string> = {
   left: 'l',
   right: 'r',
 };
+
+const SCHEME_COLOR_NAMES = new Set([
+  'accent1',
+  'accent2',
+  'accent3',
+  'accent4',
+  'accent5',
+  'accent6',
+  'bg1',
+  'bg2',
+  'dk1',
+  'dk2',
+  'folHlink',
+  'hlink',
+  'lt1',
+  'lt2',
+  'tx1',
+  'tx2',
+]);
+
+/**
+ * Serializes a color into DrawingML `<a:srgbClr>` or `<a:schemeClr>`.
+ */
+export function serializeColorNode(
+  colorInput: PptxColor | string,
+  opacityOverride?: number,
+): Record<string, unknown> {
+  let colorVal: string;
+  let colorType: 'scheme' | 'srgb' = 'srgb';
+  let alphaVal: number | undefined;
+
+  if (typeof colorInput === 'string') {
+    const clean = colorInput.trim();
+    if (clean.startsWith('#') || /^[0-9A-Fa-f]{6}$/.test(clean)) {
+      colorVal = clean.replace(/^#/, '').toUpperCase();
+      colorType = 'srgb';
+    } else if (SCHEME_COLOR_NAMES.has(clean) || clean.startsWith('accent')) {
+      colorVal = clean;
+      colorType = 'scheme';
+    } else {
+      colorVal = clean.replace(/^#/, '').toUpperCase();
+      colorType = 'srgb';
+    }
+  } else {
+    colorVal = colorInput.value.replace(/^#/, '');
+    colorType = colorInput.type === 'scheme' ? 'scheme' : 'srgb';
+    if (colorType === 'srgb') colorVal = colorVal.toUpperCase();
+    if (colorInput.alpha !== undefined) {
+      alphaVal = Math.round(Number(colorInput.alpha));
+    }
+  }
+
+  if (opacityOverride !== undefined) {
+    alphaVal = Math.round(opacityOverride <= 1 ? opacityOverride * 100000 : opacityOverride);
+  }
+
+  const clrKey = colorType === 'scheme' ? 'a:schemeClr' : 'a:srgbClr';
+  const clrNode: Record<string, unknown> = {
+    '@_val': colorVal,
+  };
+  if (alphaVal !== undefined) {
+    clrNode['a:alpha'] = { '@_val': alphaVal };
+  }
+
+  return { [clrKey]: clrNode };
+}
+
+/**
+ * Serializes fill properties `<a:solidFill>`, `<a:gradFill>`, `<a:noFill>`, etc.
+ */
+export function serializeFill(fill?: PptxFill): Record<string, unknown> | undefined {
+  if (!fill) return undefined;
+
+  if (fill.type === 'none') {
+    return { 'a:noFill': {} };
+  }
+
+  if (fill.type === 'solid' && fill.solidColor) {
+    const colorNode = serializeColorNode(fill.solidColor);
+    return { 'a:solidFill': colorNode };
+  }
+
+  if (fill.type === 'gradient' && fill.gradient) {
+    const grad = fill.gradient;
+    const gradFill: Record<string, unknown> = {};
+
+    if (grad.flip && grad.flip !== 'none') {
+      gradFill['@_flip'] = grad.flip;
+    }
+    if (grad.rotateWithShape !== undefined) {
+      gradFill['@_rotWithShape'] = grad.rotateWithShape ? '1' : '0';
+    }
+
+    // 1. Gradient Stop List <a:gsLst>
+    const stops = grad.stops || [];
+    const gsList = stops.map((stop, idx) => {
+      let posVal: number;
+      if (typeof stop.position === 'number') {
+        posVal = stop.position <= 1 ? Math.round(stop.position * 100000) : Math.round(stop.position);
+      } else {
+        posVal = stops.length > 1 ? Math.round((idx / (stops.length - 1)) * 100000) : 0;
+      }
+      posVal = Math.max(0, Math.min(100000, posVal));
+
+      const colorNode = serializeColorNode(stop.color, stop.opacity);
+      return {
+        '@_pos': posVal,
+        ...colorNode,
+      };
+    });
+
+    gradFill['a:gsLst'] = {
+      'a:gs': gsList,
+    };
+
+    // 2. Gradient Type / Direction
+    if (grad.type === 'radial' || grad.type === 'path') {
+      const pathNode: Record<string, unknown> = {
+        '@_path': grad.type === 'radial' ? 'circle' : 'rect',
+      };
+      if (grad.pathBounds) {
+        const fillToRect: Record<string, unknown> = {};
+        if (grad.pathBounds.left !== undefined) fillToRect['@_l'] = Math.round(grad.pathBounds.left <= 1 ? grad.pathBounds.left * 100000 : grad.pathBounds.left);
+        if (grad.pathBounds.top !== undefined) fillToRect['@_t'] = Math.round(grad.pathBounds.top <= 1 ? grad.pathBounds.top * 100000 : grad.pathBounds.top);
+        if (grad.pathBounds.right !== undefined) fillToRect['@_r'] = Math.round(grad.pathBounds.right <= 1 ? grad.pathBounds.right * 100000 : grad.pathBounds.right);
+        if (grad.pathBounds.bottom !== undefined) fillToRect['@_b'] = Math.round(grad.pathBounds.bottom <= 1 ? grad.pathBounds.bottom * 100000 : grad.pathBounds.bottom);
+        pathNode['a:fillToRect'] = fillToRect;
+      } else {
+        pathNode['a:fillToRect'] = {
+          '@_b': 50000,
+          '@_l': 50000,
+          '@_r': 50000,
+          '@_t': 50000,
+        };
+      }
+      gradFill['a:path'] = pathNode;
+    } else {
+      // Linear gradient (default)
+      let angVal = 5400000; // Default 90 degrees (top to bottom)
+      if (grad.angle !== undefined) {
+        const numAngle = Number(grad.angle);
+        if (Math.abs(numAngle) <= 360) {
+          angVal = degreesToGradientAngle(numAngle);
+        } else {
+          angVal = Math.round(numAngle);
+        }
+      }
+      gradFill['a:lin'] = {
+        '@_ang': angVal,
+        '@_scaled': '1',
+      };
+    }
+
+    return { 'a:gradFill': gradFill };
+  }
+
+  return undefined;
+}
 
 const VERTICAL_ALIGNMENT_MAP: Record<string, string> = {
   bottom: 'b',
@@ -72,42 +231,6 @@ export function serializeBulletProperties(bullet?: PptxBullet): Record<string, u
         ...(bullet.startAt ? { '@_startAt': bullet.startAt } : {}),
       },
     };
-  }
-
-  return undefined;
-}
-
-/**
- * Serializes fill properties `<a:solidFill>`, `<a:gradFill>`, `<a:noFill>`, etc.
- */
-export function serializeFill(fill?: PptxFill): Record<string, unknown> | undefined {
-  if (!fill) return undefined;
-
-  if (fill.type === 'none') {
-    return { 'a:noFill': {} };
-  }
-
-  if (fill.type === 'solid' && fill.solidColor) {
-    const color: PptxColor = fill.solidColor;
-    if (color.type === 'srgb') {
-      const srgbClr: Record<string, unknown> = {
-        '@_val': color.value.replace(/^#/, '').toUpperCase(),
-      };
-      if (color.alpha !== undefined) {
-        srgbClr['a:alpha'] = { '@_val': Math.round(Number(color.alpha)) };
-      }
-      return { 'a:solidFill': { 'a:srgbClr': srgbClr } };
-    }
-
-    if (color.type === 'scheme') {
-      const schemeClr: Record<string, unknown> = {
-        '@_val': color.value,
-      };
-      if (color.alpha !== undefined) {
-        schemeClr['a:alpha'] = { '@_val': Math.round(Number(color.alpha)) };
-      }
-      return { 'a:solidFill': { 'a:schemeClr': schemeClr } };
-    }
   }
 
   return undefined;

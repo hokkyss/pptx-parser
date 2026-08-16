@@ -1,4 +1,11 @@
-import type { PptxFill, PptxHyperlink, PptxLine, PptxShadow, PptxShapeElement } from '@hokkyss/pptx-core';
+import type {
+  PptxFill,
+  PptxGradientStop,
+  PptxHyperlink,
+  PptxLine,
+  PptxShadow,
+  PptxShapeElement,
+} from '@hokkyss/pptx-core';
 import {
   degreesToEmuDegree,
   emu,
@@ -14,6 +21,28 @@ import {
   type TextRunConfig,
 } from './text-builder';
 
+export interface GradientStopInput {
+  color: string;
+  opacity?: number;
+  position?: number;
+}
+
+export interface GradientFillInput {
+  angle?: Degrees | number;
+  flip?: 'none' | 'x' | 'xy' | 'y';
+  pathBounds?: {
+    bottom?: number;
+    left?: number;
+    right?: number;
+    top?: number;
+  };
+  rotateWithShape?: boolean;
+  stops: (GradientStopInput | string)[];
+  type?: 'linear' | 'path' | 'radial';
+}
+
+export type FillInput = GradientFillInput | PptxFill | string;
+
 export interface ShapeShadowOptions {
   alignment?: string;
   blur?: Inches;
@@ -25,7 +54,7 @@ export interface ShapeShadowOptions {
 }
 
 export interface AddShapeOptions {
-  fill?: PptxFill | string;
+  fill?: FillInput;
   h: Inches;
   hyperlink?: PptxHyperlink | string;
   id?: string;
@@ -46,9 +75,9 @@ export interface AddShapeOptions {
 }
 
 /**
- * Normalizes fill string or object into a typed PptxFill.
+ * Normalizes fill string, shorthand gradient object, or PptxFill into a typed PptxFill.
  */
-export function normalizeFill(fillInput?: PptxFill | string): PptxFill | undefined {
+export function normalizeFill(fillInput?: FillInput): PptxFill | undefined {
   if (!fillInput) return undefined;
   if (typeof fillInput === 'string') {
     return {
@@ -59,7 +88,42 @@ export function normalizeFill(fillInput?: PptxFill | string): PptxFill | undefin
       type: 'solid',
     };
   }
-  return fillInput;
+
+  // Handle shorthand GradientFillInput
+  if ('stops' in fillInput && Array.isArray(fillInput.stops)) {
+    const gradInput = fillInput;
+    const rawStops = gradInput.stops;
+    const total = rawStops.length;
+
+    const stops: PptxGradientStop[] = rawStops.map((stop, idx) => {
+      if (typeof stop === 'string') {
+        const pos = total > 1 ? idx / (total - 1) : 0;
+        return {
+          color: stop,
+          position: pos,
+        };
+      }
+      return {
+        color: stop.color,
+        opacity: stop.opacity,
+        position: stop.position !== undefined ? stop.position : (total > 1 ? idx / (total - 1) : 0),
+      };
+    });
+
+    return {
+      gradient: {
+        angle: gradInput.angle,
+        flip: gradInput.flip,
+        pathBounds: gradInput.pathBounds,
+        rotateWithShape: gradInput.rotateWithShape,
+        stops,
+        type: gradInput.type ?? 'linear',
+      },
+      type: 'gradient',
+    };
+  }
+
+  return fillInput as PptxFill;
 }
 
 const PRESET_GEOMETRY_MAP: Record<string, string> = {

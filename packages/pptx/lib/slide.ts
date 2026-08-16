@@ -36,8 +36,13 @@ import {
 import {
   AddShapeOptions,
   buildShapeElement,
+  type FillInput,
+  type GradientFillInput,
+  type GradientStopInput,
   normalizeFill,
 } from './builders/shape-builder';
+
+export type { FillInput, GradientFillInput, GradientStopInput };
 import {
   AddTableOptions,
   TableBuilder,
@@ -124,7 +129,7 @@ export class Slide {
   /**
    * Sets the slide background fill.
    */
-  setBackground(fill: PptxFill | string): this {
+  setBackground(fill: FillInput): this {
     const normalized = normalizeFill(fill);
     this._ast.background = normalized ? { fill: normalized } : undefined;
     delete this._ast.rawXml;
