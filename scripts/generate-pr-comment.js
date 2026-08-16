@@ -24,6 +24,43 @@ function generateMarkdown(report) {
     md += `| **\`${pkgName}\`** | ${data.minifiedFormatted} | **${data.gzipFormatted}** | ${data.brotliFormatted} | ${data.dtsFormatted} | ${data.targetBudgetKb} KB | ${status} |\n`;
   }
 
+  // 1b. Baseline Comparison (Δ Delta)
+  const baselinePath = resolve(process.cwd(), 'benchmarks/bundle-baseline.json');
+  if (existsSync(baselinePath)) {
+    try {
+      const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
+      const formatDelta = (delta, baseVal) => {
+        if (!baseVal || delta === 0) return '0 B (0.0%)';
+        const sign = delta > 0 ? '+' : '-';
+        const pct = ((delta / baseVal) * 100).toFixed(1);
+        const abs = Math.abs(delta);
+        const formattedBytes = abs < 1024 ? `${abs} B` : `${(abs / 1024).toFixed(2)} KB`;
+        return `${sign}${formattedBytes} (${delta > 0 ? '+' : ''}${pct}%)`;
+      };
+
+      md += `\n### 📊 Baseline Comparison (Δ Delta)\n\n`;
+      md += `| Package | Δ Minified | Δ Gzip | Δ Brotli | Status |\n`;
+      md += `| :--- | :--- | :--- | :--- | :--- |\n`;
+
+      for (const [pkgName, curr] of Object.entries(report.bundleSize?.packages || {})) {
+        const base = baseline[pkgName];
+        if (!base) continue;
+        const baseMin = base.minifiedBytes ?? base.rawBytes ?? base.rawSize ?? 0;
+        const baseGzip = base.gzipBytes ?? base.gzipSize ?? 0;
+        const baseBrotli = base.brotliBytes ?? base.brotliSize ?? 0;
+
+        const deltaMin = curr.minifiedBytes - baseMin;
+        const deltaGzip = curr.gzipBytes - baseGzip;
+        const deltaBrotli = curr.brotliBytes - baseBrotli;
+
+        const status = deltaGzip > 0 ? '🔴 INCREASED' : deltaGzip < 0 ? '🟢 REDUCED' : '🟢 OPTIMIZED';
+        md += `| **\`${pkgName}\`** | ${formatDelta(deltaMin, baseMin)} | ${formatDelta(deltaGzip, baseGzip)} | ${formatDelta(deltaBrotli, baseBrotli)} | ${status} |\n`;
+      }
+    } catch {
+      // ignore baseline parse failure
+    }
+  }
+
   // 2. Tree-Shaking Table
   if (report.bundleSize?.treeShaking?.length) {
     md += `\n### 🌲 First-Party Tree-Shaking Efficacy (Client Bundling)\n\n`;
