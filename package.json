@@ -21,9 +21,13 @@
     "bench:baseline": "node scripts/benchmark-bundle-size.js --save-baseline",
     "bench:json": "node scripts/benchmark-report.js",
     "release": "node scripts/release.js",
-    "release:dry": "node scripts/release.js --dry-run"
+    "release:dry": "node scripts/release.js --dry-run",
+    "changeset": "changeset",
+    "version-packages": "changeset version && pnpm install --no-frozen-lockfile",
+    "publish-packages": "pnpm build && pnpm changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.0",
     "@monorepo/cli": "workspace:*",
     "typescript": "catalog:ts5"
   },
