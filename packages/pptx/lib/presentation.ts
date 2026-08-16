@@ -458,12 +458,6 @@ export class Presentation {
     return this._ast.metadata?.firstSlideNumber;
   }
 
-  set firstSlideNumber(num: number | undefined) {
-    if (this._ast.metadata) {
-      this._ast.metadata.firstSlideNumber = num;
-    }
-  }
-
   /**
    * Sets the starting slide number for the presentation.
    * @param num Starting slide number (e.g. 0 or 1).
@@ -474,7 +468,9 @@ export class Presentation {
    * ```
    */
   setFirstSlideNumber(num: number): this {
-    this.firstSlideNumber = num;
+    if (this._ast.metadata) {
+      this._ast.metadata.firstSlideNumber = num;
+    }
     return this;
   }
 

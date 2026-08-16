@@ -159,11 +159,11 @@ describe('Presentation Class (Unit Tests)', () => {
       expect(pres.metadata.firstSlideNumber).toBe(0);
     });
 
-    it('sets firstSlideNumber via getter/setter and fluent method', () => {
+    it('sets firstSlideNumber via fluent method', () => {
       const pres = Presentation.create();
       expect(pres.firstSlideNumber).toBeUndefined();
 
-      pres.firstSlideNumber = 0;
+      pres.setFirstSlideNumber(0);
       expect(pres.firstSlideNumber).toBe(0);
 
       pres.setFirstSlideNumber(5);

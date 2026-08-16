@@ -77,4 +77,3 @@ describe('Presentation Serializer (firstSlideNum)', () => {
     expect(xml).toContain('firstSlideNum="5"');
   });
 });
-
