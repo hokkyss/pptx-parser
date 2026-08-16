@@ -1,4 +1,10 @@
-import type { PptxAnimation, PptxTransition } from './animation';
+import type {
+  PptxAnimation,
+  PptxTransition,
+  PptxTransitionDirection,
+  PptxTransitionSpeed,
+  PptxTransitionType,
+} from './animation';
 import type { PptxChart } from './chart';
 import type { PptxFill } from './color';
 import type { PptxMediaAsset } from './media';
@@ -20,6 +26,9 @@ export type {
   PptxTextBody,
   PptxTheme,
   PptxTransition,
+  PptxTransitionDirection,
+  PptxTransitionSpeed,
+  PptxTransitionType,
   ThousandthsPercent,
 };
 
