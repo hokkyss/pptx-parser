@@ -15,6 +15,10 @@ export {
   type AddImageOptions,
   type AddTextOptions,
   GroupBuilder,
+  type PptxTransition,
+  type PptxTransitionDirection,
+  type PptxTransitionSpeed,
+  type PptxTransitionType,
   Slide,
 } from './slide';
 

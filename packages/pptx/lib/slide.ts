@@ -6,7 +6,18 @@ import type {
   PptxPictureElement,
   PptxShapeElement,
   PptxSlide,
+  PptxTransition,
+  PptxTransitionDirection,
+  PptxTransitionSpeed,
+  PptxTransitionType,
 } from '@hokkyss/pptx-core';
+
+export type {
+  PptxTransition,
+  PptxTransitionDirection,
+  PptxTransitionSpeed,
+  PptxTransitionType,
+};
 import {
   degreesToEmuDegree,
   emu,
@@ -501,6 +512,52 @@ export class Slide {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Configures or updates the slide transition effect.
+   * @param transition Transition type string (e.g. 'fade', 'wipe', 'push', 'split') or full PptxTransition configuration.
+   * @param options Optional transition settings (direction, speed, durationMs, advanceAfterMs, etc.)
+   * @example
+   * ```ts
+   * slide.setTransition('fade', { durationMs: 500 });
+   * slide.setTransition('wipe', { direction: 'right', speed: 'fast' });
+   * slide.setTransition('push', { direction: 'up', advanceAfterMs: 3000 });
+   * ```
+   */
+  setTransition(
+    transition: PptxTransition | PptxTransitionType,
+    options?: Omit<PptxTransition, 'type'>,
+  ): this {
+    if (typeof transition === 'string') {
+      this._ast.transition = {
+        type: transition,
+        ...options,
+      };
+    } else {
+      this._ast.transition = {
+        ...transition,
+        ...options,
+      };
+    }
+    delete this._ast.rawXml;
+    return this;
+  }
+
+  /**
+   * Retrieves the current slide transition configuration if defined.
+   */
+  getTransition(): PptxTransition | undefined {
+    return this._ast.transition;
+  }
+
+  /**
+   * Removes any transition effect from the slide.
+   */
+  clearTransition(): this {
+    delete this._ast.transition;
+    delete this._ast.rawXml;
+    return this;
   }
 }
 
