@@ -71,14 +71,54 @@ function generateMarkdown(report) {
     }
   }
 
-  // 3. Vitest Performance Table
-  if (report.performance?.summary?.length) {
-    md += `\n### ⚡ Microsecond Performance & Latency Matrix (Vitest)\n\n`;
-    md += `| Benchmark Workload | Package | Frequency (ops/s) | Mean Latency | p99 Latency | Margin of Error |\n`;
-    md += `| :--- | :--- | :--- | :--- | :--- | :--- |\n`;
+  // 3. Vitest Performance Table & Baseline Comparison
+  const perfBaselinePath = resolve(process.cwd(), 'benchmarks/perf-baseline.json');
+  let perfBaseline = null;
+  if (existsSync(perfBaselinePath)) {
+    try {
+      const baseJson = JSON.parse(readFileSync(perfBaselinePath, 'utf8'));
+      perfBaseline = baseJson.performance?.summary || baseJson;
+    } catch {
+      // ignore
+    }
+  }
 
-    for (const b of report.performance.summary) {
-      md += `| **${b.name}** | \`${b.package.replace('@hokkyss/', '')}\` | **${formatNumber(b.opsPerSec, 1)}** | ${b.meanMs} ms | ${b.p99Ms} ms | $\\pm$ ${b.rmePercent}% |\n`;
+  if (report.performance?.summary?.length) {
+    if (perfBaseline && Array.isArray(perfBaseline) && perfBaseline.length) {
+      md += `\n### ⚡ Microsecond Performance & Latency Delta (vs \`${process.env.GITHUB_BASE_REF || 'main'}\`)\n\n`;
+      md += `| Benchmark Workload | Package | PR Throughput | Base Throughput | Δ Throughput | PR Latency | Base Latency | Δ Latency | Status |\n`;
+      md += `| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n`;
+
+      for (const b of report.performance.summary) {
+        const base = perfBaseline.find((x) => x.name === b.name);
+        const pkgName = b.package.replace('@hokkyss/', '');
+        if (!base) {
+          md += `| **${b.name}** | \`${pkgName}\` | **${formatNumber(b.opsPerSec, 1)}** | N/A | N/A | ${b.meanMs} ms | N/A | N/A | 🟢 NEW |\n`;
+          continue;
+        }
+
+        const opsDelta = ((b.opsPerSec - base.opsPerSec) / base.opsPerSec) * 100;
+        const latDelta = ((b.meanMs - base.meanMs) / base.meanMs) * 100;
+
+        const formatPercent = (val) => {
+          const sign = val > 0 ? '+' : '';
+          return `${sign}${val.toFixed(1)}%`;
+        };
+
+        let status = '🟢 PARITY';
+        if (opsDelta > 10) status = '🚀 FASTER';
+        else if (opsDelta < -15) status = '⚠️ SLOWER';
+
+        md += `| **${b.name}** | \`${pkgName}\` | **${formatNumber(b.opsPerSec, 1)}** | ${formatNumber(base.opsPerSec, 1)} | **${formatPercent(opsDelta)}** | ${b.meanMs} ms | ${base.meanMs} ms | ${formatPercent(latDelta)} | ${status} |\n`;
+      }
+    } else {
+      md += `\n### ⚡ Microsecond Performance & Latency Matrix (Vitest)\n\n`;
+      md += `| Benchmark Workload | Package | Frequency (ops/s) | Mean Latency | p99 Latency | Margin of Error |\n`;
+      md += `| :--- | :--- | :--- | :--- | :--- | :--- |\n`;
+
+      for (const b of report.performance.summary) {
+        md += `| **${b.name}** | \`${b.package.replace('@hokkyss/', '')}\` | **${formatNumber(b.opsPerSec, 1)}** | ${b.meanMs} ms | ${b.p99Ms} ms | $\\pm$ ${b.rmePercent}% |\n`;
+      }
     }
   }
 
