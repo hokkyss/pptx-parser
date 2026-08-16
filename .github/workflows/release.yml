@@ -1,6 +1,9 @@
 name: Release & Publish (Changesets)
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
