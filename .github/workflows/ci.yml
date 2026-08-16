@@ -45,6 +45,8 @@ jobs:
           git checkout "origin/$BASE_REF" -- packages/ pnpm-lock.yaml package.json || true
           pnpm build || true
           node scripts/benchmark-bundle-size.js --save-baseline || true
+          pnpm bench:json || true
+          cp benchmarks/benchmark-report.json benchmarks/perf-baseline.json || true
           git checkout HEAD -- packages/ pnpm-lock.yaml package.json || true
 
       - name: Typecheck & Build Monorepo
