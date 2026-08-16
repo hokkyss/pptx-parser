@@ -46,3 +46,57 @@ export function createXmlParser(): XmlParser {
 
 /** Default shared singleton `XmlParser` instance used across all parsers */
 export const defaultXmlParser = createXmlParser();
+
+/**
+ * Namespace-agnostic helper to get a single child object node by local tag name.
+ * Seamlessly handles prefix variants like `'p:sp'`, `'a:sp'`, `'sp'`.
+ * @param node Parent XML object node.
+ * @param targetName Target local tag name (e.g. `'sp'`, `'bodyPr'`, `'p'`).
+ * @returns Child object node or `undefined` if not found.
+ */
+export function getXmlChild(node: Record<string, unknown> | undefined, targetName: string): Record<string, unknown> | undefined {
+  if (!node || typeof node !== 'object') return undefined;
+
+  for (const key of Object.keys(node)) {
+    const localName = key.includes(':') ? key.split(':')[1] : key;
+    if (localName === targetName) {
+      const val = node[key];
+      if (Array.isArray(val)) {
+        return val[0] as Record<string, unknown>;
+      }
+      if (typeof val === 'object' && val !== null) {
+        return val as Record<string, unknown>;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Namespace-agnostic helper to get an array of child object nodes by local tag name.
+ * Seamlessly handles prefix variants like `'p:sp'`, `'a:sp'`, `'sp'`.
+ * @param node Parent XML object node.
+ * @param targetName Target local tag name (e.g. `'sp'`, `'r'`, `'p'`).
+ * @returns Array of matching child object nodes.
+ */
+export function getXmlChildren(node: Record<string, unknown> | undefined, targetName: string): Record<string, unknown>[] {
+  if (!node || typeof node !== 'object') return [];
+
+  const results: Record<string, unknown>[] = [];
+  for (const key of Object.keys(node)) {
+    const localName = key.includes(':') ? key.split(':')[1] : key;
+    if (localName === targetName) {
+      const val = node[key];
+      if (Array.isArray(val)) {
+        for (const item of val) {
+          if (typeof item === 'object' && item !== null) {
+            results.push(item as Record<string, unknown>);
+          }
+        }
+      } else if (typeof val === 'object' && val !== null) {
+        results.push(val as Record<string, unknown>);
+      }
+    }
+  }
+  return results;
+}

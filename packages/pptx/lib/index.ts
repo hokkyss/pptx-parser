@@ -43,6 +43,9 @@ export {
 export {
   type AddShapeOptions,
   buildShapeElement,
+  type FillInput,
+  type GradientFillInput,
+  type GradientStopInput,
   normalizeFill,
 } from './builders/shape-builder';
 

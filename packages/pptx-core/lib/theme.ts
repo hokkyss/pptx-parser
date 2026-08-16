@@ -8,7 +8,7 @@ export interface PptxLine {
   /** Line fill. OpenXML: `<a:ln><a:solidFill>` */
   fill?: PptxFill;
   /** Line width in EMU. OpenXML: `<a:ln @_w>` */
-  width: Emu;
+  width?: Emu;
 }
 
 /** Represents a color scheme within a theme */

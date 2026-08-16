@@ -14,6 +14,7 @@ import type { XmlParser } from '@hokkyss/pptx-core';
 import type { ZipReader } from '@hokkyss/pptx-core';
 import { parseAnimations } from './parsers/animation-parser';
 import { parseChart } from './parsers/chart-parser';
+import { parseBackground } from './parsers/fill-parser';
 import { parseShapes } from './parsers/shape-parser';
 import { parseTable } from './parsers/table-parser';
 import { parseTextBody } from './parsers/text-parser';
@@ -418,8 +419,16 @@ export async function parsePptx(
       }
     }
 
+    // Parse Slide Background
+    const parsedSlideXml = xmlParser.parse<Record<string, unknown>>(slideXml);
+    const sldNode = (parsedSlideXml['p:sld'] || parsedSlideXml['sld'] || {}) as Record<string, unknown>;
+    const cSldNode = (sldNode['p:cSld'] || sldNode['cSld'] || {}) as Record<string, unknown>;
+    const bgNode = (cSldNode['p:bg'] || cSldNode['bg'] || sldNode['p:bg'] || sldNode['bg']) as Record<string, unknown> | undefined;
+    const background = parseBackground(bgNode);
+
     slides.push({
       animations,
+      background,
       elements: shapes,
       layoutId,
       notes,

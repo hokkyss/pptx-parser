@@ -1674,22 +1674,13 @@ async function runShowcase() {
 
   const jumpTiles = [
     {
-      desc: 'Four decoupled packages & DrawingML presets',
-      fill: 'F0F9FF',
-      line: '0284C7',
+      desc: '3-tier modular schemas & strict units',
+      fill: 'EFF6FF',
+      line: '3B82F6',
       slideIdx: 2,
-      textColor: '0369A1',
+      textColor: '1D4ED8',
       title: '📐 Slide 2: Modular Architecture',
       y: 2.95,
-    },
-    {
-      desc: 'Formatted headers, zebra fills & metric cells',
-      fill: 'EEF2FF',
-      line: '6366F1',
-      slideIdx: 3,
-      textColor: '4338CA',
-      title: '📊 Slide 3: Enterprise Data Tables',
-      y: 3.9,
     },
     {
       desc: 'Clustered bar & line dual-series analytics',
@@ -1698,15 +1689,24 @@ async function runShowcase() {
       slideIdx: 9,
       textColor: '047857',
       title: '📈 Slide 9: OpenXML Charts & Graphs',
+      y: 3.9,
+    },
+    {
+      desc: 'Linear, radial, alpha & multi-stop mesh cards',
+      fill: 'F5F3FF',
+      line: '8B5CF6',
+      slideIdx: 13,
+      textColor: '6D28D9',
+      title: '🎨 Slide 13: DrawingML Gradient Engine',
       y: 4.85,
     },
     {
       desc: 'Empirical throughput & bundle size matrix',
       fill: 'FFFBEB',
       line: 'F59E0B',
-      slideIdx: 13,
+      slideIdx: 14,
       textColor: 'B45309',
-      title: '⚡ Slide 13: Engine Benchmark Matrix',
+      title: '⚡ Slide 14: Engine Benchmark Matrix',
       y: 5.8,
     },
   ];
@@ -1863,14 +1863,18 @@ async function runShowcase() {
   addDisclaimer(slide12, false);
 
   // ==================================================================
-  // SLIDE 13: Live Benchmark Matrix (Performance & Bundle Size)
+  // SLIDE 13: Native OpenXML DrawingML Gradient Engine
   // ==================================================================
-  console.log('⚡ Generating Slide 13: Live Benchmark Matrix (Performance & Bundle Size)...');
+  console.log('🎨 Generating Slide 13: Native OpenXML DrawingML Gradient Engine...');
   const slide13 = pres.addSlide();
-  slide13.setTransition('zoom', { direction: 'in', speed: 'med' });
-  slide13.setBackground('0F172A');
+  slide13.setTransition('wipe', { direction: 'right', speed: 'fast' });
+  slide13.setBackground({
+    angle: degrees(135),
+    stops: ['090D16', '0F172A', '1E293B'],
+    type: 'linear',
+  });
 
-  slide13.addText('Engine Performance & Bundle Size Matrix', {
+  slide13.addText('Native OpenXML DrawingML Gradient Engine', {
     bold: true,
     color: 'FFFFFF',
     font: '+mj-lt',
@@ -1881,7 +1885,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide13.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
+  slide13.addText('Linear, radial, multi-stop vector meshes, alpha transparency, and angle rotation', {
     color: '94A3B8',
     fontSize: points(14),
     h: inches(0.4),
@@ -1890,18 +1894,48 @@ async function runShowcase() {
     y: inches(1.4),
   });
 
-  // Table Card (Left)
+  // Top Nav Buttons
   slide13.addShape('roundRect', {
-    fill: '1E293B',
+    fill: '0284C7',
+    h: inches(0.45),
+    hyperlink: { slideIndex: 12, tooltip: 'Return to Hyperlinks Hub (Slide 12)' },
+    line: { color: '38BDF8', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '0284C7', opacity: 0.3 },
+    text: '⬅ Back to Nav Hub',
+    textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10) },
+    w: inches(2.2),
+    x: inches(8.0),
+    y: inches(0.8),
+  });
+
+  slide13.addShape('roundRect', {
+    fill: {
+      angle: degrees(90),
+      stops: ['10B981', '059669'],
+    },
+    h: inches(0.45),
+    hyperlink: { slideIndex: 14, tooltip: 'Advance to Live Benchmarks (Slide 14)' },
+    line: { color: '34D399', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '10B981', opacity: 0.3 },
+    text: 'Benchmarks ➔',
+    textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10) },
+    w: inches(2.0),
+    x: inches(10.4),
+    y: inches(0.8),
+  });
+
+  // Left Card: Linear Vector Gradients
+  slide13.addShape('roundRect', {
+    fill: '0F172A',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
-    shadow: { blur: inches(0.12), color: '000000', opacity: 0.3 },
+    shadow: { blur: inches(0.12), color: '000000', opacity: 0.4 },
     w: inches(5.7),
     x: inches(0.8),
     y: inches(2.0),
   });
 
-  slide13.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
+  slide13.addText('🌈 Multi-Angle Linear Gradient Topologies', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -1911,7 +1945,200 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide13.addTable(
+  const linearPills = [
+    {
+      angle: 45,
+      desc: '45° Diagonal • Sky to Indigo Vector Fusion',
+      stops: ['0284C7', '38BDF8', '818CF8'],
+      title: 'Oceanic Aurora Mesh',
+      y: 2.65,
+    },
+    {
+      angle: 90,
+      desc: '90° Vertical • Amber to Crimson Sunset',
+      stops: ['F59E0B', 'EF4444', 'EC4899'],
+      title: 'Sunset Ember Gradient',
+      y: 3.85,
+    },
+    {
+      angle: 135,
+      desc: '135° Diagonal • Forest to Emerald Glow',
+      stops: ['059669', '10B981', '34D399'],
+      title: 'Emerald Surge Vector',
+      y: 5.05,
+    },
+  ];
+
+  for (const pill of linearPills) {
+    slide13.addShape('roundRect', {
+      fill: {
+        angle: degrees(pill.angle),
+        stops: pill.stops,
+        type: 'linear',
+      },
+      h: inches(1.05),
+      line: { color: 'FFFFFF', width: inches(0.01) },
+      shadow: { blur: inches(0.1), color: pill.stops[0], opacity: 0.35 },
+      text: [
+        { bold: true, color: 'FFFFFF', fontSize: points(12), text: `${pill.title}\n` },
+        { color: 'F1F5F9', fontSize: points(9.5), text: pill.desc },
+      ],
+      textOptions: { align: 'left' },
+      w: inches(5.3),
+      x: inches(1.0),
+      y: inches(pill.y),
+    });
+  }
+
+  // Right Card: Radial & Alpha Glass Meshes
+  slide13.addShape('roundRect', {
+    fill: '0F172A',
+    h: inches(4.9),
+    line: { color: '334155', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '000000', opacity: 0.4 },
+    w: inches(5.7),
+    x: inches(6.8),
+    y: inches(2.0),
+  });
+
+  slide13.addText('🔮 Radial Glow & Alpha Opacity Transparency', {
+    bold: true,
+    color: 'FFFFFF',
+    fontSize: points(13),
+    h: inches(0.35),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(2.2),
+  });
+
+  // Radial Circle Card
+  slide13.addShape('ellipse', {
+    fill: {
+      stops: [
+        { color: '38BDF8', position: 0 },
+        { color: '0284C7', position: 0.5 },
+        { color: '0F172A', position: 1 },
+      ],
+      type: 'radial',
+    },
+    h: inches(1.6),
+    line: { color: '38BDF8', width: inches(0.015) },
+    shadow: { blur: inches(0.2), color: '38BDF8', opacity: 0.4 },
+    w: inches(1.6),
+    x: inches(7.1),
+    y: inches(2.65),
+  });
+
+  slide13.addText('Radial Orb Focus\n3-Stop Centered Radial Gradient (<a:path path="circle">) with automatic edge falloff', {
+    color: 'E2E8F0',
+    fontSize: points(10),
+    h: inches(1.4),
+    w: inches(3.5),
+    x: inches(8.9),
+    y: inches(2.75),
+  });
+
+  // Alpha Transparency Frosted Glass Card
+  slide13.addShape('roundRect', {
+    fill: {
+      angle: degrees(135),
+      stops: [
+        { color: 'FFFFFF', opacity: 0.25, position: 0 },
+        { color: '6366F1', opacity: 0.15, position: 0.5 },
+        { color: '0F172A', opacity: 0.4, position: 1 },
+      ],
+      type: 'linear',
+    },
+    h: inches(1.05),
+    line: { color: '818CF8', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '6366F1', opacity: 0.25 },
+    text: [
+      { bold: true, color: 'FFFFFF', fontSize: points(11), text: '🪟 Alpha Transparency & Frosted Glass\n' },
+      { color: 'CBD5E1', fontSize: points(9.5), text: 'Multi-stop alpha stops (10% to 80% opacity) for glassmorphic card overlays' },
+    ],
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(4.4),
+  });
+
+  // Fluent API Code Snippet
+  slide13.addShape('roundRect', {
+    fill: '020617',
+    h: inches(1.15),
+    line: { color: '1E293B', width: inches(0.015) },
+    text: [
+      { bold: true, color: '38BDF8', fontSize: points(9), text: '// 3-Line Fluent Gradient Fill\n' },
+      { color: 'E2E8F0', fontSize: points(9), text: 'slide.addShape(\'roundRect\', {\n  fill: { type: \'linear\', angle: degrees(135), stops: [\'#0284C7\', \'#6366F1\'] }\n});' },
+    ],
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(5.55),
+  });
+
+  slide13.setNotes([
+    {
+      runs: [
+        { text: 'DrawingML Gradient Engine Keynote: ', bold: true },
+        { text: 'Full Vector Fidelity & Transparency', underline: true },
+      ],
+    },
+    { bullet: true, level: 0, text: 'Native <a:gradFill> support with linear, radial, and path gradients.' },
+    { bullet: true, level: 0, text: 'Full alpha transparency channel support across all color stops.' },
+    { bullet: true, level: 0, text: 'Seamless integration with shapes, cards, outlines, and slide backgrounds.' },
+  ]);
+
+  addDisclaimer(slide13, true);
+
+  // ==================================================================
+  // SLIDE 14: Live Benchmark Matrix (Performance & Bundle Size)
+  // ==================================================================
+  console.log('⚡ Generating Slide 14: Live Benchmark Matrix (Performance & Bundle Size)...');
+  const slide14 = pres.addSlide();
+  slide14.setTransition('zoom', { direction: 'in', speed: 'med' });
+  slide14.setBackground('0F172A');
+
+  slide14.addText('Engine Performance & Bundle Size Matrix', {
+    bold: true,
+    color: 'FFFFFF',
+    font: '+mj-lt',
+    fontSize: points(24),
+    h: inches(0.6),
+    w: inches(11.73),
+    x: inches(0.8),
+    y: inches(0.8),
+  });
+
+  slide14.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
+    color: '94A3B8',
+    fontSize: points(14),
+    h: inches(0.4),
+    w: inches(11.73),
+    x: inches(0.8),
+    y: inches(1.4),
+  });
+
+  // Table Card (Left)
+  slide14.addShape('roundRect', {
+    fill: '1E293B',
+    h: inches(4.9),
+    line: { color: '334155', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '000000', opacity: 0.3 },
+    w: inches(5.7),
+    x: inches(0.8),
+    y: inches(2.0),
+  });
+
+  slide14.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
+    bold: true,
+    color: 'FFFFFF',
+    fontSize: points(13),
+    h: inches(0.35),
+    w: inches(5.3),
+    x: inches(1.0),
+    y: inches(2.2),
+  });
+
+  slide14.addTable(
     (tbl) => {
       // Header Row
       tbl.addRow({
@@ -1955,7 +2182,7 @@ async function runShowcase() {
   );
 
   // Bundle Size Card (Right)
-  slide13.addShape('roundRect', {
+  slide14.addShape('roundRect', {
     fill: '1E293B',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
@@ -1965,7 +2192,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide13.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
+  slide14.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -1975,7 +2202,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide13.addChart({
+  slide14.addChart({
     axisColor: '94A3B8',
     categories: ['@pptx-core', '@pptx-reader', '@pptx-writer', 'Full SDK'],
     chartType: 'column',
@@ -2000,7 +2227,7 @@ async function runShowcase() {
     y: inches(2.65),
   });
 
-  slide13.addShape('roundRect', {
+  slide14.addShape('roundRect', {
     fill: '0284C7',
     h: inches(0.45),
     hyperlink: { slideIndex: 12, tooltip: 'Return to Hyperlinks Hub (Slide 12)' },
@@ -2013,7 +2240,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide13.setNotes([
+  slide14.setNotes([
     {
       runs: [
         { text: 'Empirical Benchmark Keynote: ', bold: true },
@@ -2025,7 +2252,7 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Total bundle size under 49 KB gzipped with full PresentationML & DrawingML engines.' },
   ]);
 
-  addDisclaimer(slide13, true);
+  addDisclaimer(slide14, true);
 
   // 3. Export Presentation to Buffer and Save to Disk
   const outputFile = resolve(process.cwd(), 'hokkyss_showcase_deck.pptx');

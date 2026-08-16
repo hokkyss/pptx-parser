@@ -3,6 +3,7 @@
 export * from './parser';
 export * from './parsers/animation-parser';
 export * from './parsers/chart-parser';
+export * from './parsers/fill-parser';
 export * from './parsers/hyperlink-parser';
 export * from './parsers/shape-parser';
 export * from './parsers/table-parser';
