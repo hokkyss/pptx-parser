@@ -149,6 +149,7 @@ async function runShowcase() {
     font: '+mj-lt',
     fontSize: points(44),
     h: inches(1.0),
+    hyperlink: { tooltip: 'GitHub Repository: @hokkyss/pptx', url: 'https://github.com/hokkyss/pptx-parser' },
     w: inches(11.33),
     x: inches(1.0),
     y: inches(2.3),
@@ -228,6 +229,7 @@ async function runShowcase() {
   slide2.addShape('roundRect', {
     fill: 'FFFFFF',
     h: inches(2.0),
+    hyperlink: { tooltip: 'View @hokkyss/pptx-core on GitHub', url: 'https://github.com/hokkyss/pptx-parser/tree/main/packages/pptx-core' },
     line: { color: '0284C7', width: inches(0.02) },
     shadow: { blur: inches(0.15), color: '0284C7', direction: degrees(90), distance: inches(0.06), opacity: 0.25 },
     text: [
@@ -243,6 +245,7 @@ async function runShowcase() {
   slide2.addShape('roundRect', {
     fill: '6366F1',
     h: inches(2.0),
+    hyperlink: { tooltip: 'View @hokkyss/pptx-reader on GitHub', url: 'https://github.com/hokkyss/pptx-parser/tree/main/packages/pptx-reader' },
     shadow: { blur: inches(0.12), color: '000000', direction: degrees(90), distance: inches(0.04), opacity: 0.2 },
     text: [
       { text: '@hokkyss/pptx-reader\n', bold: true, color: 'FFFFFF', fontSize: points(13) },
@@ -257,6 +260,7 @@ async function runShowcase() {
   slide2.addShape('roundRect', {
     fill: '10B981',
     h: inches(2.0),
+    hyperlink: { tooltip: 'View @hokkyss/pptx-writer on GitHub', url: 'https://github.com/hokkyss/pptx-parser/tree/main/packages/pptx-writer' },
     shadow: { blur: inches(0.1), color: '000000', direction: degrees(90), distance: inches(0.04), opacity: 0.2 },
     text: [
       { text: '@hokkyss/pptx-writer\n', bold: true, color: 'FFFFFF', fontSize: points(13) },
@@ -271,6 +275,7 @@ async function runShowcase() {
   slide2.addShape('roundRect', {
     fill: 'F59E0B',
     h: inches(2.0),
+    hyperlink: { tooltip: 'View @hokkyss/pptx on GitHub', url: 'https://github.com/hokkyss/pptx-parser/tree/main/packages/pptx' },
     shadow: { blur: inches(0.2), color: 'D97706', direction: degrees(90), distance: inches(0.05), opacity: 0.35 },
     text: [
       { text: '@hokkyss/pptx\n', bold: true, color: 'FFFFFF', fontSize: points(13) },
@@ -1745,6 +1750,19 @@ async function runShowcase() {
     w: inches(5.3),
     x: inches(7.0),
     y: inches(2.65),
+  });
+
+  slide12.addShape('roundRect', {
+    fill: '0284C7',
+    h: inches(0.45),
+    hyperlink: { action: 'firstSlide', tooltip: 'Return to Title (Slide 1)' },
+    line: { color: '38BDF8', width: inches(0.015) },
+    shadow: { blur: inches(0.15), color: '0284C7', direction: degrees(90), distance: inches(0.03), opacity: 0.3 },
+    text: '⬅ Return to Title',
+    textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10) },
+    w: inches(2.2),
+    x: inches(10.1),
+    y: inches(0.8),
   });
 
   slide12.setNotes([
