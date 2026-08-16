@@ -1,6 +1,6 @@
 {
   "name": "@hokkyss/pptx",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Modern, high-performance, and type-safe PowerPoint (.pptx) authoring and manipulation SDK for TypeScript.",
   "type": "module",
   "sideEffects": false,
