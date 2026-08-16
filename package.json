@@ -1,0 +1,34 @@
+{
+  "name": "@monorepo/workspace",
+  "version": "1.0.0",
+  "description": "Portfolio workspace",
+  "private": true,
+  "type": "module",
+  "license": "ISC",
+  "scripts": {
+    "build": "pnpm --filter @hokkyss/pptx-core build && pnpm --filter @hokkyss/pptx-reader build && pnpm --filter @hokkyss/pptx-writer build && pnpm --filter @hokkyss/pptx build",
+    "test": "pnpm --filter @hokkyss/pptx-reader test && pnpm --filter @hokkyss/pptx-writer test && pnpm --filter @hokkyss/pptx test",
+    "lint": "pnpm -r --if-present lint",
+    "boil": "node packages/cli/bin/index.js",
+    "demo": "node scripts/showcase-demo.js",
+    "demo:showcase": "node scripts/showcase-demo.js",
+    "inspect": "node packages/pptx-reader/scripts/inspect.js",
+    "bench": "pnpm bench:size && pnpm bench:perf",
+    "bench:size": "node scripts/benchmark-bundle-size.js",
+    "bench:perf": "pnpm bench:vitest",
+    "bench:vitest": "pnpm --filter @hokkyss/pptx-reader bench && pnpm --filter @hokkyss/pptx-writer bench && pnpm --filter @hokkyss/pptx bench",
+    "bench:diff": "node scripts/benchmark-bundle-size.js --diff",
+    "bench:baseline": "node scripts/benchmark-bundle-size.js --save-baseline",
+    "bench:json": "node scripts/benchmark-report.js",
+    "release": "node scripts/release.js",
+    "release:dry": "node scripts/release.js --dry-run"
+  },
+  "devDependencies": {
+    "@monorepo/cli": "workspace:*",
+    "typescript": "catalog:ts5"
+  },
+  "packageManager": "pnpm@11.8.0",
+  "dependencies": {
+    "@tanstack/intent": "^0.0.36"
+  }
+}

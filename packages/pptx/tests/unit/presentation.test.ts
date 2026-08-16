@@ -1,0 +1,154 @@
+import { describe, expect, it } from 'vitest';
+import { inches } from '@hokkyss/pptx-core';
+import { Presentation } from '../../lib/presentation';
+
+describe('Presentation Class (Unit Tests)', () => {
+  describe('Presentation.create()', () => {
+    it('creates a default 16:9 widescreen presentation', () => {
+      const pres = Presentation.create();
+      expect(pres.slides.length).toBe(0);
+      expect(pres.metadata.slideWidth).toBe(12192000); // 13.333333 inches in EMU
+      expect(pres.metadata.slideHeight).toBe(6858000); // 7.5 inches in EMU
+      expect(pres.ast.slideMasters.length).toBeGreaterThan(0);
+      expect(pres.ast.slideLayouts.length).toBeGreaterThan(0);
+    });
+
+    it('creates a presentation with custom dimensions in Inches', () => {
+      const pres = Presentation.create({
+        title: 'Custom Deck',
+        width: inches(10),
+        height: inches(7.5),
+      });
+      expect(pres.metadata.title).toBe('Custom Deck');
+      expect(pres.metadata.slideWidth).toBe(9144000); // 10 inches in EMU
+      expect(pres.metadata.slideHeight).toBe(6858000); // 7.5 inches in EMU
+    });
+  });
+
+  describe('Slide CRUD Operations', () => {
+    it('adds slides to the presentation', () => {
+      const pres = Presentation.create();
+      const slide1 = pres.addSlide();
+      const slide2 = pres.addSlide();
+
+      expect(pres.slides.length).toBe(2);
+      expect(slide1.slideNumber).toBe(1);
+      expect(slide2.slideNumber).toBe(2);
+      expect(pres.getSlide(1)).toBe(slide1);
+      expect(pres.getSlide(2)).toBe(slide2);
+    });
+
+    it('retrieves slide by 1-based index or rId', () => {
+      const pres = Presentation.create();
+      const slide = pres.addSlide();
+
+      expect(pres.getSlide(1)).toBe(slide);
+      expect(pres.getSlide(slide.slideId)).toBe(slide);
+      expect(pres.getSlide(999)).toBeUndefined();
+    });
+
+    it('removes slide by index or id and re-indexes remaining slides', () => {
+      const pres = Presentation.create();
+      const s1 = pres.addSlide();
+      pres.addSlide();
+      const s3 = pres.addSlide();
+
+      const removed = pres.removeSlide(2);
+      expect(removed).toBe(true);
+      expect(pres.slides.length).toBe(2);
+      expect(pres.slides[0]).toBe(s1);
+      expect(pres.slides[1]).toBe(s3);
+      expect(pres.slides[1].slideNumber).toBe(2); // reindexed
+    });
+
+    it('duplicates an existing slide with deep clone of elements', () => {
+      const pres = Presentation.create();
+      const s1 = pres.addSlide();
+      s1.addText('Original Slide Header', {
+        x: inches(1),
+        y: inches(1),
+        w: inches(5),
+        h: inches(1),
+      });
+
+      const s2 = pres.duplicateSlide(1);
+      expect(pres.slides.length).toBe(2);
+      expect(s2.slideNumber).toBe(2);
+      expect(s2.getElements().length).toBe(1);
+      expect(s2.getElements()[0].name).toBe(s1.getElements()[0].name);
+
+      // Verify deep copy mutation isolation
+      s2.addText('Second Element on Copy', {
+        x: inches(1),
+        y: inches(2),
+        w: inches(5),
+        h: inches(1),
+      });
+      expect(s1.getElements().length).toBe(1);
+      expect(s2.getElements().length).toBe(2);
+    });
+
+    it('moves slide to a new position', () => {
+      const pres = Presentation.create();
+      const s1 = pres.addSlide();
+      const s2 = pres.addSlide();
+      const s3 = pres.addSlide();
+
+      pres.moveSlide(1, 3); // Move s1 from position 1 to position 3
+      expect(pres.slides[0]).toBe(s2);
+      expect(pres.slides[1]).toBe(s3);
+      expect(pres.slides[2]).toBe(s1);
+      expect(pres.slides[0].slideNumber).toBe(1);
+      expect(pres.slides[1].slideNumber).toBe(2);
+      expect(pres.slides[2].slideNumber).toBe(3);
+    });
+  });
+
+  describe('Theme Modification API', () => {
+    it('modifies theme colors with partial merge and # stripping', () => {
+      const pres = Presentation.create();
+      const initialAccent2 = pres.ast.themes[0].colorScheme.accent2;
+
+      pres.setThemeColors({
+        accent1: '#FF0000',
+        accent3: '38BDF8',
+      });
+
+      expect(pres.ast.themes[0].colorScheme.accent1).toBe('FF0000');
+      expect(pres.ast.themes[0].colorScheme.accent3).toBe('38BDF8');
+      expect(pres.ast.themes[0].colorScheme.accent2).toBe(initialAccent2); // unchanged
+    });
+
+    it('modifies theme fonts including major, minor, and font scheme name', () => {
+      const pres = Presentation.create();
+      pres.setThemeFonts({
+        major: 'Inter',
+        minor: 'Roboto',
+        name: 'Modern Corporate Fonts',
+      });
+
+      expect(pres.ast.themes[0].fontScheme.majorFont).toBe('Inter');
+      expect(pres.ast.themes[0].fontScheme.minorFont).toBe('Roboto');
+      expect(pres.ast.themes[0].fontScheme.name).toBe('Modern Corporate Fonts');
+    });
+
+    it('modifies theme name', () => {
+      const pres = Presentation.create();
+      pres.setThemeName('Ajinomoto Custom Theme');
+
+      expect(pres.ast.themes[0].name).toBe('Ajinomoto Custom Theme');
+    });
+
+    it('chains theme methods fluently', () => {
+      const pres = Presentation.create();
+      pres
+        .setThemeName('Fluent Theme')
+        .setThemeColors({ accent1: '#0055FF' })
+        .setThemeFonts({ major: 'Arial' });
+
+      expect(pres.ast.themes[0].name).toBe('Fluent Theme');
+      expect(pres.ast.themes[0].colorScheme.accent1).toBe('0055FF');
+      expect(pres.ast.themes[0].fontScheme.majorFont).toBe('Arial');
+    });
+  });
+});

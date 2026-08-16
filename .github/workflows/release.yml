@@ -1,0 +1,114 @@
+name: Monorepo Release & NPM Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'SemVer release increment type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+          - 'custom'
+      custom_version:
+        description: 'Custom Version (e.g. 0.2.0 - required if version_type is custom)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: monorepo-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, Changelog, Release & Publish (OIDC Trusted Publishing)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck & Build Monorepo
+        run: pnpm build
+
+      - name: Run Unit Tests
+        run: pnpm test
+
+      - name: Execute SemVer Bump & Generate Changelog
+        id: semver
+        run: |
+          if [ "${{ inputs.version_type }}" = "custom" ]; then
+            node scripts/release.js --version "${{ inputs.custom_version }}"
+          else
+            node scripts/release.js --type "${{ inputs.version_type }}"
+          fi
+          
+          # Extract newly updated version
+          NEW_VERSION=$(node -p "require('./packages/pptx/package.json').version")
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=v${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Configure Git Author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit Release & Push Git Tag
+        run: |
+          git add -A
+          git commit -m "chore(release): ${{ steps.semver.outputs.tag }} [skip ci]"
+          git tag -a "${{ steps.semver.outputs.tag }}" -m "Release ${{ steps.semver.outputs.tag }}"
+          git push origin main --follow-tags
+
+      - name: Publish Packages to NPM (Workspace Resolution + Provenance)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "📦 Publishing @hokkyss/pptx-core..."
+          pnpm --filter @hokkyss/pptx-core publish --access public --no-git-checks --provenance
+          
+          echo "📦 Publishing @hokkyss/pptx-reader..."
+          pnpm --filter @hokkyss/pptx-reader publish --access public --no-git-checks --provenance
+          
+          echo "📦 Publishing @hokkyss/pptx-writer..."
+          pnpm --filter @hokkyss/pptx-writer publish --access public --no-git-checks --provenance
+          
+          echo "📦 Publishing @hokkyss/pptx..."
+          pnpm --filter @hokkyss/pptx publish --access public --no-git-checks --provenance
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.semver.outputs.tag }}
+          name: ${{ steps.semver.outputs.tag }}
+          body_path: benchmarks/release-notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

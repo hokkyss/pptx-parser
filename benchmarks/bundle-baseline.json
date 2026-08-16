@@ -1,0 +1,30 @@
+{
+  "@hokkyss/pptx-core": {
+    "brotliSize": 475,
+    "dtsSize": 305,
+    "gzipSize": 529,
+    "rawSize": 1664,
+    "targetBudgetKb": 5
+  },
+  "@hokkyss/pptx-reader": {
+    "brotliSize": 14081,
+    "dtsSize": 608,
+    "gzipSize": 16013,
+    "rawSize": 63051,
+    "targetBudgetKb": 30
+  },
+  "@hokkyss/pptx-writer": {
+    "brotliSize": 14451,
+    "dtsSize": 61,
+    "gzipSize": 16650,
+    "rawSize": 76404,
+    "targetBudgetKb": 30
+  },
+  "@hokkyss/pptx (Full SDK)": {
+    "brotliSize": 55301,
+    "dtsSize": 895,
+    "gzipSize": 64758,
+    "rawSize": 272471,
+    "targetBudgetKb": 90
+  }
+}

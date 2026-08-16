@@ -1,0 +1,67 @@
+{
+  "name": "@hokkyss/pptx-reader",
+  "version": "0.2.0",
+  "description": "Isomorphic and high-performance OpenXML PowerPoint (.pptx) presentation parser for TypeScript.",
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "author": "Hokki Suwanda",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hokkyss/pptx-parser.git",
+    "directory": "packages/pptx-reader"
+  },
+  "bugs": {
+    "url": "https://github.com/hokkyss/pptx-parser/issues"
+  },
+  "homepage": "https://github.com/hokkyss/pptx-parser#readme",
+  "keywords": [
+    "pptx",
+    "powerpoint",
+    "openxml",
+    "parser",
+    "presentation",
+    "typescript",
+    "isomorphic"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite",
+    "lint": "eslint",
+    "build": "tsc && vite build",
+    "inspect": "node scripts/inspect.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bench": "vitest bench"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "@monorepo/eslint": "workspace:^",
+    "@types/node": "^24.0.14",
+    "eslint": "catalog:eslint",
+    "typescript": "catalog:ts5",
+    "vite": "catalog:vite",
+    "vite-plugin-dts": "catalog:vite",
+    "vitest": "catalog:vite"
+  },
+  "dependencies": {
+    "@hokkyss/pptx-core": "workspace:*",
+    "fast-xml-parser": "^4.5.0",
+    "fflate": "^0.8.2"
+  }
+}

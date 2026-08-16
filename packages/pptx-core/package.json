@@ -1,0 +1,56 @@
+{
+  "name": "@hokkyss/pptx-core",
+  "version": "0.2.0",
+  "description": "Foundational OpenXML AST schemas, branded physical/angular units, theme definitions, and conversion utilities for PPTX.",
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "author": "Hokki Suwanda",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hokkyss/pptx-parser.git",
+    "directory": "packages/pptx-core"
+  },
+  "bugs": {
+    "url": "https://github.com/hokkyss/pptx-parser/issues"
+  },
+  "homepage": "https://github.com/hokkyss/pptx-parser#readme",
+  "keywords": [
+    "pptx",
+    "powerpoint",
+    "openxml",
+    "ast",
+    "drawingml",
+    "presentationml",
+    "typescript"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "lint": "eslint"
+  },
+  "devDependencies": {
+    "@monorepo/eslint": "workspace:^",
+    "@types/node": "^24.0.14",
+    "eslint": "catalog:eslint",
+    "typescript": "catalog:ts5",
+    "vite": "catalog:vite",
+    "vite-plugin-dts": "catalog:vite"
+  }
+}

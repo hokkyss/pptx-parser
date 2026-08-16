@@ -1,0 +1,535 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-08-16T04:14:27.213Z",
+  "system": {
+    "node": "v24.13.1",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "bundleSize": {
+    "packages": {
+      "@hokkyss/pptx-core": {
+        "minifiedBytes": 1633,
+        "gzipBytes": 437,
+        "brotliBytes": 382,
+        "dtsBytes": 305,
+        "minifiedFormatted": "1.59 KB",
+        "gzipFormatted": "437.00 B",
+        "brotliFormatted": "382.00 B",
+        "dtsFormatted": "305.00 B",
+        "targetBudgetKb": 5,
+        "passed": true,
+        "compressionRatioPercent": 73.2
+      },
+      "@hokkyss/pptx-reader": {
+        "minifiedBytes": 97704,
+        "gzipBytes": 26455,
+        "brotliBytes": 23435,
+        "dtsBytes": 608,
+        "minifiedFormatted": "95.41 KB",
+        "gzipFormatted": "25.83 KB",
+        "brotliFormatted": "22.89 KB",
+        "dtsFormatted": "608.00 B",
+        "targetBudgetKb": 30,
+        "passed": true,
+        "compressionRatioPercent": 72.9
+      },
+      "@hokkyss/pptx-writer": {
+        "minifiedBytes": 128966,
+        "gzipBytes": 32450,
+        "brotliBytes": 28405,
+        "dtsBytes": 97,
+        "minifiedFormatted": "125.94 KB",
+        "gzipFormatted": "31.69 KB",
+        "brotliFormatted": "27.74 KB",
+        "dtsFormatted": "97.00 B",
+        "targetBudgetKb": 35,
+        "passed": true,
+        "compressionRatioPercent": 74.8
+      },
+      "@hokkyss/pptx (Full SDK)": {
+        "minifiedBytes": 195576,
+        "gzipBytes": 50101,
+        "brotliBytes": 44360,
+        "dtsBytes": 895,
+        "minifiedFormatted": "190.99 KB",
+        "gzipFormatted": "48.93 KB",
+        "brotliFormatted": "43.32 KB",
+        "dtsFormatted": "895.00 B",
+        "targetBudgetKb": 70,
+        "passed": true,
+        "compressionRatioPercent": 74.4
+      }
+    },
+    "treeShaking": [
+      {
+        "scenario": "Core Units & Types Only",
+        "minifiedBytes": 245,
+        "gzipBytes": 127,
+        "brotliBytes": 95,
+        "minified": "245.00 B",
+        "gzip": "127.00 B",
+        "brotli": "95.00 B",
+        "ratio": "48.2%"
+      },
+      {
+        "scenario": "Reader Parser Only",
+        "minifiedBytes": 31178,
+        "gzipBytes": 8751,
+        "brotliBytes": 7769,
+        "minified": "30.45 KB",
+        "gzip": "8.55 KB",
+        "brotli": "7.59 KB",
+        "ratio": "71.9%"
+      },
+      {
+        "scenario": "Writer Serializer Only",
+        "minifiedBytes": 60158,
+        "gzipBytes": 13023,
+        "brotliBytes": 11430,
+        "minified": "58.75 KB",
+        "gzip": "12.72 KB",
+        "brotli": "11.16 KB",
+        "ratio": "78.4%"
+      },
+      {
+        "scenario": "Full Presentation Engine",
+        "minifiedBytes": 28330,
+        "gzipBytes": 6881,
+        "brotliBytes": 6088,
+        "minified": "27.67 KB",
+        "gzip": "6.72 KB",
+        "brotli": "5.95 KB",
+        "ratio": "75.7%"
+      }
+    ]
+  },
+  "performance": {
+    "summary": [
+      {
+        "package": "@hokkyss/pptx-reader",
+        "suite": "tests/benchmarks/reader.bench.ts > PPTX Reader Parsing Benchmarks (Vitest)",
+        "name": "Parse In-Memory PPTX Package to AST",
+        "opsPerSec": 9379.6,
+        "meanMs": 0.1066,
+        "minMs": 0.0926,
+        "maxMs": 0.5289,
+        "p75Ms": 0.107,
+        "p99Ms": 0.166,
+        "rmePercent": 0.45,
+        "samples": 4690
+      },
+      {
+        "package": "@hokkyss/pptx-writer",
+        "suite": "tests/benchmarks/writer.bench.ts > PPTX Writer Serializer Benchmarks (Vitest)",
+        "name": "Serialize Shape to DrawingML XML",
+        "opsPerSec": 5073981.56,
+        "meanMs": 0.0002,
+        "minMs": 0.0001,
+        "maxMs": 1.9373,
+        "p75Ms": 0.0002,
+        "p99Ms": 0.0004,
+        "rmePercent": 1.33,
+        "samples": 2536991
+      },
+      {
+        "package": "@hokkyss/pptx-writer",
+        "suite": "tests/benchmarks/writer.bench.ts > PPTX Writer Serializer Benchmarks (Vitest)",
+        "name": "Serialize Table to DrawingML XML",
+        "opsPerSec": 1989735.87,
+        "meanMs": 0.0005,
+        "minMs": 0.0004,
+        "maxMs": 0.2154,
+        "p75Ms": 0.0005,
+        "p99Ms": 0.0008,
+        "rmePercent": 0.36,
+        "samples": 994868
+      },
+      {
+        "package": "@hokkyss/pptx-writer",
+        "suite": "tests/benchmarks/writer.bench.ts > PPTX Writer Serializer Benchmarks (Vitest)",
+        "name": "Serialize Chart to DrawingML XML",
+        "opsPerSec": 836008.1,
+        "meanMs": 0.0012,
+        "minMs": 0.0009,
+        "maxMs": 4.6029,
+        "p75Ms": 0.0011,
+        "p99Ms": 0.0023,
+        "rmePercent": 3.28,
+        "samples": 418005
+      },
+      {
+        "package": "@hokkyss/pptx-writer",
+        "suite": "tests/benchmarks/writer.bench.ts > PPTX Writer Serializer Benchmarks (Vitest)",
+        "name": "Full writePptx ZIP Assembly",
+        "opsPerSec": 1469.27,
+        "meanMs": 0.6806,
+        "minMs": 0.436,
+        "maxMs": 5.2316,
+        "p75Ms": 0.6537,
+        "p99Ms": 2.6893,
+        "rmePercent": 4.17,
+        "samples": 735
+      },
+      {
+        "package": "@hokkyss/pptx",
+        "suite": "tests/benchmarks/presentation.bench.ts > Presentation Generation Benchmarks (Vitest)",
+        "name": "Single Slide with Shape & Text",
+        "opsPerSec": 1820.68,
+        "meanMs": 0.5492,
+        "minMs": 0.4224,
+        "maxMs": 1.0353,
+        "p75Ms": 0.5754,
+        "p99Ms": 0.7986,
+        "rmePercent": 0.82,
+        "samples": 911
+      },
+      {
+        "package": "@hokkyss/pptx",
+        "suite": "tests/benchmarks/presentation.bench.ts > Presentation Generation Benchmarks (Vitest)",
+        "name": "Enterprise Data Table (10 rows x 5 cols)",
+        "opsPerSec": 1270.63,
+        "meanMs": 0.787,
+        "minMs": 0.4355,
+        "maxMs": 8.0851,
+        "p75Ms": 0.7473,
+        "p99Ms": 2.9784,
+        "rmePercent": 6.1,
+        "samples": 636
+      },
+      {
+        "package": "@hokkyss/pptx",
+        "suite": "tests/benchmarks/presentation.bench.ts > Presentation Generation Benchmarks (Vitest)",
+        "name": "DrawingML Column Chart Generation",
+        "opsPerSec": 1243.41,
+        "meanMs": 0.8042,
+        "minMs": 0.4758,
+        "maxMs": 19.4987,
+        "p75Ms": 0.7296,
+        "p99Ms": 3.0161,
+        "rmePercent": 8.93,
+        "samples": 622
+      },
+      {
+        "package": "@hokkyss/pptx",
+        "suite": "tests/benchmarks/presentation.bench.ts > Presentation Generation Benchmarks (Vitest)",
+        "name": "10-Slide Full Enterprise Deck",
+        "opsPerSec": 357.79,
+        "meanMs": 2.795,
+        "minMs": 1.9925,
+        "maxMs": 4.9341,
+        "p75Ms": 2.6811,
+        "p99Ms": 4.8388,
+        "rmePercent": 3.58,
+        "samples": 180
+      },
+      {
+        "package": "@hokkyss/pptx",
+        "suite": "tests/benchmarks/presentation.bench.ts > Presentation Generation Benchmarks (Vitest)",
+        "name": "50-Slide Batch Scale",
+        "opsPerSec": 164.7,
+        "meanMs": 6.0717,
+        "minMs": 4.4113,
+        "maxMs": 17.3659,
+        "p75Ms": 6.846,
+        "p99Ms": 17.3659,
+        "rmePercent": 6.61,
+        "samples": 84
+      }
+    ],
+    "rawVitest": {
+      "@hokkyss/pptx-reader": {
+        "files": [
+          {
+            "filepath": "/Users/hokki.suwanda/Documents/PersonalCodes/pptx-parser/packages/pptx-reader/tests/benchmarks/reader.bench.ts",
+            "groups": [
+              {
+                "fullName": "tests/benchmarks/reader.bench.ts > PPTX Reader Parsing Benchmarks (Vitest)",
+                "benchmarks": [
+                  {
+                    "id": "-1024694403_0_0",
+                    "name": "Parse In-Memory PPTX Package to AST",
+                    "rank": 1,
+                    "rme": 0.4457618269304091,
+                    "samples": [],
+                    "totalTime": 500.0212469999983,
+                    "min": 0.09258399999998801,
+                    "max": 0.5288750000000277,
+                    "hz": 9379.601423217153,
+                    "period": 0.10661433837953056,
+                    "mean": 0.10661433837953056,
+                    "variance": 0.0002757386732757358,
+                    "sd": 0.016605380853076987,
+                    "sem": 0.0002424724604746754,
+                    "df": 4689,
+                    "critical": 1.96,
+                    "moe": 0.0004752460225303638,
+                    "p75": 0.10704099999998107,
+                    "p99": 0.16604200000000446,
+                    "p995": 0.19466699999998127,
+                    "p999": 0.2887499999999932,
+                    "sampleCount": 4690,
+                    "median": 0.10293749999999591
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "@hokkyss/pptx-writer": {
+        "files": [
+          {
+            "filepath": "/Users/hokki.suwanda/Documents/PersonalCodes/pptx-parser/packages/pptx-writer/tests/benchmarks/writer.bench.ts",
+            "groups": [
+              {
+                "fullName": "tests/benchmarks/writer.bench.ts > PPTX Writer Serializer Benchmarks (Vitest)",
+                "benchmarks": [
+                  {
+                    "id": "-341098035_0_0",
+                    "name": "Serialize Shape to DrawingML XML",
+                    "rank": 1,
+                    "rme": 1.3316494404980592,
+                    "samples": [],
+                    "totalTime": 500.0000429999326,
+                    "min": 0.00008300000001781882,
+                    "max": 1.9372500000000628,
+                    "hz": 5073981.56363827,
+                    "period": 0.00019708388520098518,
+                    "mean": 0.00019708388520098518,
+                    "variance": 0.000004548716142258425,
+                    "sd": 0.0021327719386419228,
+                    "sem": 0.0000013390134972401819,
+                    "df": 2536990,
+                    "critical": 1.96,
+                    "moe": 0.0000026244664545907565,
+                    "p75": 0.00020800000004328467,
+                    "p99": 0.00037500000007639755,
+                    "p995": 0.0005419999999958236,
+                    "p999": 0.0012920000000349319,
+                    "sampleCount": 2536991,
+                    "median": 0.00016700000003311288
+                  },
+                  {
+                    "id": "-341098035_0_1",
+                    "name": "Serialize Table to DrawingML XML",
+                    "rank": 2,
+                    "rme": 0.36078226996245405,
+                    "samples": [],
+                    "totalTime": 500.0000330001294,
+                    "min": 0.0003749999996216502,
+                    "max": 0.2154169999998885,
+                    "hz": 1989735.8686769176,
+                    "period": 0.0005025792698128088,
+                    "mean": 0.0005025792698128088,
+                    "variance": 8.514376191787638e-7,
+                    "sd": 0.0009227337748119789,
+                    "sem": 9.251106622404991e-7,
+                    "df": 994867,
+                    "critical": 1.96,
+                    "moe": 0.0000018132168979913782,
+                    "p75": 0.0005000000001018634,
+                    "p99": 0.0008339999999407155,
+                    "p995": 0.0010000000002037268,
+                    "p999": 0.0016660000001138542,
+                    "sampleCount": 994868,
+                    "median": 0.0004590000000916916
+                  },
+                  {
+                    "id": "-341098035_0_2",
+                    "name": "Serialize Chart to DrawingML XML",
+                    "rank": 3,
+                    "rme": 3.276293337243837,
+                    "samples": [],
+                    "totalTime": 500.0011369997628,
+                    "min": 0.0009159999999610591,
+                    "max": 4.602917000000161,
+                    "hz": 836008.0989179796,
+                    "period": 0.001196160660757079,
+                    "mean": 0.001196160660757079,
+                    "variance": 0.0001671144183631374,
+                    "sd": 0.012927274204685897,
+                    "sem": 0.000019994761240365325,
+                    "df": 418004,
+                    "critical": 1.96,
+                    "moe": 0.000039189732031116036,
+                    "p75": 0.0010839999999916472,
+                    "p99": 0.002250000000003638,
+                    "p995": 0.0027500000001055014,
+                    "p999": 0.007250000000112777,
+                    "sampleCount": 418005,
+                    "median": 0.0010420000003250607
+                  },
+                  {
+                    "id": "-341098035_0_3",
+                    "name": "Full writePptx ZIP Assembly",
+                    "rank": 4,
+                    "rme": 4.173203721160525,
+                    "samples": [],
+                    "totalTime": 500.2479870000011,
+                    "min": 0.43604199999981574,
+                    "max": 5.231583000000228,
+                    "hz": 1469.2712796463454,
+                    "period": 0.6806095061224505,
+                    "mean": 0.6806095061224505,
+                    "variance": 0.15435133480587748,
+                    "sd": 0.39287572437843177,
+                    "sem": 0.014491439406160395,
+                    "df": 734,
+                    "critical": 1.96,
+                    "moe": 0.028403221236074375,
+                    "p75": 0.6537499999999454,
+                    "p99": 2.689292000000023,
+                    "p995": 3.1170420000003105,
+                    "p999": 5.231583000000228,
+                    "sampleCount": 735,
+                    "median": 0.5696670000002086
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "@hokkyss/pptx": {
+        "files": [
+          {
+            "filepath": "/Users/hokki.suwanda/Documents/PersonalCodes/pptx-parser/packages/pptx/tests/benchmarks/presentation.bench.ts",
+            "groups": [
+              {
+                "fullName": "tests/benchmarks/presentation.bench.ts > Presentation Generation Benchmarks (Vitest)",
+                "benchmarks": [
+                  {
+                    "id": "-36333754_0_0",
+                    "name": "Single Slide with Shape & Text",
+                    "rank": 1,
+                    "rme": 0.8225673750621234,
+                    "samples": [],
+                    "totalTime": 500.36265300000144,
+                    "min": 0.42241599999999835,
+                    "max": 1.035250000000019,
+                    "hz": 1820.6794502706368,
+                    "period": 0.5492455027442387,
+                    "mean": 0.5492455027442387,
+                    "variance": 0.004840410720977982,
+                    "sd": 0.06957306031056835,
+                    "sem": 0.0023050583237602283,
+                    "df": 910,
+                    "critical": 1.96,
+                    "moe": 0.004517914314570048,
+                    "p75": 0.5754160000000184,
+                    "p99": 0.7986250000000155,
+                    "p995": 0.9230000000000018,
+                    "p999": 1.035250000000019,
+                    "sampleCount": 911,
+                    "median": 0.5400000000000205
+                  },
+                  {
+                    "id": "-36333754_0_1",
+                    "name": "Enterprise Data Table (10 rows x 5 cols)",
+                    "rank": 2,
+                    "rme": 6.099840335077729,
+                    "samples": [],
+                    "totalTime": 500.5372920000003,
+                    "min": 0.4355000000000473,
+                    "max": 8.08508299999994,
+                    "hz": 1270.6345963928688,
+                    "period": 0.7870083207547175,
+                    "mean": 0.7870083207547175,
+                    "variance": 0.38154042203397387,
+                    "sd": 0.6176895838801022,
+                    "sem": 0.024492985198884782,
+                    "df": 635,
+                    "critical": 1.96,
+                    "moe": 0.04800625098981417,
+                    "p75": 0.747333000000026,
+                    "p99": 2.978417000000036,
+                    "p995": 4.038041999999905,
+                    "p999": 8.08508299999994,
+                    "sampleCount": 636,
+                    "median": 0.6208329999999478
+                  },
+                  {
+                    "id": "-36333754_0_2",
+                    "name": "DrawingML Column Chart Generation",
+                    "rank": 3,
+                    "rme": 8.933093058912425,
+                    "samples": [],
+                    "totalTime": 500.2352930000013,
+                    "min": 0.47579099999984464,
+                    "max": 19.49870799999985,
+                    "hz": 1243.4148663716903,
+                    "period": 0.8042368054662401,
+                    "mean": 0.8042368054662401,
+                    "variance": 0.8356989323357356,
+                    "sd": 0.9141657028874665,
+                    "sem": 0.03665470522771619,
+                    "df": 621,
+                    "critical": 1.96,
+                    "moe": 0.07184322224632372,
+                    "p75": 0.7296249999999418,
+                    "p99": 3.0160829999999805,
+                    "p995": 3.5183340000000953,
+                    "p999": 19.49870799999985,
+                    "sampleCount": 622,
+                    "median": 0.6369790000001103
+                  },
+                  {
+                    "id": "-36333754_0_3",
+                    "name": "10-Slide Full Enterprise Deck",
+                    "rank": 4,
+                    "rme": 3.5772095065506324,
+                    "samples": [],
+                    "totalTime": 503.0941219999986,
+                    "min": 1.9924580000001697,
+                    "max": 4.934083000000101,
+                    "hz": 357.7859333446963,
+                    "period": 2.7949673444444367,
+                    "mean": 2.7949673444444367,
+                    "variance": 0.4683845822557532,
+                    "sd": 0.6843862814637309,
+                    "sem": 0.05101114160737355,
+                    "df": 179,
+                    "critical": 1.96,
+                    "moe": 0.09998183755045216,
+                    "p75": 2.681082999999944,
+                    "p99": 4.83883300000025,
+                    "p995": 4.934083000000101,
+                    "p999": 4.934083000000101,
+                    "sampleCount": 180,
+                    "median": 2.543437499999982
+                  },
+                  {
+                    "id": "-36333754_0_4",
+                    "name": "50-Slide Batch Scale",
+                    "rank": 5,
+                    "rme": 6.613335860805655,
+                    "samples": [],
+                    "totalTime": 510.02070800000047,
+                    "min": 4.411291999999776,
+                    "max": 17.36587499999996,
+                    "hz": 164.6991949197481,
+                    "period": 6.071675095238101,
+                    "mean": 6.071675095238101,
+                    "variance": 3.423136812306619,
+                    "sd": 1.8501721034289267,
+                    "sem": 0.20187032649187434,
+                    "df": 83,
+                    "critical": 1.9891,
+                    "moe": 0.40154026642498725,
+                    "p75": 6.846000000000004,
+                    "p99": 17.36587499999996,
+                    "p995": 17.36587499999996,
+                    "p999": 17.36587499999996,
+                    "sampleCount": 84,
+                    "median": 5.337313000000222
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
