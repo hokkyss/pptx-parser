@@ -36,11 +36,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint Workspace
-        run: pnpm lint
-
       - name: Typecheck & Build Monorepo
         run: pnpm build
+
+      - name: Lint Workspace
+        run: pnpm lint
 
       - name: Run Unit Tests
         run: pnpm test
