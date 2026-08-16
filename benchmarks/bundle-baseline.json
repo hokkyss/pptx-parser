@@ -1,30 +1,54 @@
 {
   "@hokkyss/pptx-core": {
-    "brotliSize": 475,
-    "dtsSize": 305,
-    "gzipSize": 529,
-    "rawSize": 1664,
-    "targetBudgetKb": 5
+    "minifiedBytes": 1633,
+    "gzipBytes": 437,
+    "brotliBytes": 382,
+    "dtsBytes": 305,
+    "minifiedFormatted": "1.59 KB",
+    "gzipFormatted": "437.00 B",
+    "brotliFormatted": "382.00 B",
+    "dtsFormatted": "305.00 B",
+    "targetBudgetKb": 5,
+    "passed": true,
+    "compressionRatioPercent": 73.2
   },
   "@hokkyss/pptx-reader": {
-    "brotliSize": 14081,
-    "dtsSize": 608,
-    "gzipSize": 16013,
-    "rawSize": 63051,
-    "targetBudgetKb": 30
+    "minifiedBytes": 99075,
+    "gzipBytes": 26841,
+    "brotliBytes": 23808,
+    "dtsBytes": 608,
+    "minifiedFormatted": "96.75 KB",
+    "gzipFormatted": "26.21 KB",
+    "brotliFormatted": "23.25 KB",
+    "dtsFormatted": "608.00 B",
+    "targetBudgetKb": 30,
+    "passed": true,
+    "compressionRatioPercent": 72.9
   },
   "@hokkyss/pptx-writer": {
-    "brotliSize": 14451,
-    "dtsSize": 61,
-    "gzipSize": 16650,
-    "rawSize": 76404,
-    "targetBudgetKb": 30
+    "minifiedBytes": 131368,
+    "gzipBytes": 32946,
+    "brotliBytes": 28793,
+    "dtsBytes": 107,
+    "minifiedFormatted": "128.29 KB",
+    "gzipFormatted": "32.17 KB",
+    "brotliFormatted": "28.12 KB",
+    "dtsFormatted": "107.00 B",
+    "targetBudgetKb": 35,
+    "passed": true,
+    "compressionRatioPercent": 74.9
   },
   "@hokkyss/pptx (Full SDK)": {
-    "brotliSize": 55301,
-    "dtsSize": 895,
-    "gzipSize": 64758,
-    "rawSize": 272471,
-    "targetBudgetKb": 90
+    "minifiedBytes": 201042,
+    "gzipBytes": 51508,
+    "brotliBytes": 45585,
+    "dtsBytes": 895,
+    "minifiedFormatted": "196.33 KB",
+    "gzipFormatted": "50.30 KB",
+    "brotliFormatted": "44.52 KB",
+    "dtsFormatted": "895.00 B",
+    "targetBudgetKb": 70,
+    "passed": true,
+    "compressionRatioPercent": 74.4
   }
 }
