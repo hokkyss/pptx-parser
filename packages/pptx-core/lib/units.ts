@@ -56,10 +56,22 @@ export type ThousandthsPercent = { readonly __brand: 'ThousandthsPercent' } & nu
 export type Percent = { readonly __brand: 'Percent' } & number;
 
 /**
+ * Validates that a numeric argument is a finite number, rejecting NaN and Infinity.
+ * @param value Input number.
+ * @param unitName Name of the target branded unit for error reporting.
+ */
+function assertFinite(value: number, unitName: string): void {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new TypeError(`Invalid ${unitName} value: expected a finite number, but received ${String(value)}`);
+  }
+}
+
+/**
  * Identity constructor for English Metric Units (EMU).
  * @param value
  */
 export function emu(value: number): Emu {
+  assertFinite(value, 'Emu');
   return value as Emu;
 }
 
@@ -68,6 +80,7 @@ export function emu(value: number): Emu {
  * @param value
  */
 export function inches(value: number): Inches {
+  assertFinite(value, 'Inches');
   return value as Inches;
 }
 
@@ -76,6 +89,7 @@ export function inches(value: number): Inches {
  * @param value
  */
 export function points(value: number): Points {
+  assertFinite(value, 'Points');
   return value as Points;
 }
 
@@ -84,6 +98,7 @@ export function points(value: number): Points {
  * @param value
  */
 export function centimeters(value: number): Centimeters {
+  assertFinite(value, 'Centimeters');
   return value as Centimeters;
 }
 
@@ -92,6 +107,7 @@ export function centimeters(value: number): Centimeters {
  * @param value
  */
 export function pixels(value: number): Pixels {
+  assertFinite(value, 'Pixels');
   return value as Pixels;
 }
 
@@ -100,6 +116,7 @@ export function pixels(value: number): Pixels {
  * @param value
  */
 export function hundredthsPoint(value: number): HundredthsPoint {
+  assertFinite(value, 'HundredthsPoint');
   return value as HundredthsPoint;
 }
 
@@ -108,6 +125,7 @@ export function hundredthsPoint(value: number): HundredthsPoint {
  * @param value
  */
 export function emuDegree(value: number): EmuDegree {
+  assertFinite(value, 'EmuDegree');
   return value as EmuDegree;
 }
 
@@ -116,6 +134,7 @@ export function emuDegree(value: number): EmuDegree {
  * @param value
  */
 export function degrees(value: number): Degrees {
+  assertFinite(value, 'Degrees');
   return value as Degrees;
 }
 
@@ -124,6 +143,7 @@ export function degrees(value: number): Degrees {
  * @param value
  */
 export function thousandthsPercent(value: number): ThousandthsPercent {
+  assertFinite(value, 'ThousandthsPercent');
   return value as ThousandthsPercent;
 }
 
@@ -132,6 +152,7 @@ export function thousandthsPercent(value: number): ThousandthsPercent {
  * @param value
  */
 export function percent(value: number): Percent {
+  assertFinite(value, 'Percent');
   return value as Percent;
 }
 

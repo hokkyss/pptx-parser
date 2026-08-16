@@ -69,4 +69,23 @@ describe('Text Body Serializer', () => {
     expect(runs[1]['a:rPr']['@_u']).toBe('sng');
     expect((runs[1]['a:rPr']['a:solidFill'] as Record<string, Record<string, unknown>>)['a:srgbClr']['@_val']).toBe('0000FF');
   });
+
+  it('sanitizes invalid XML 1.0 control characters in text runs preventing PowerPoint corruption', () => {
+    const textBody: PptxTextBody = {
+      paragraphs: [
+        {
+          runs: [
+            {
+              text: 'Clean\x00Text\x08With\x0BControl\x0CChars\x1F!',
+            },
+          ],
+        },
+      ],
+    };
+
+    const xmlObject = serializeTextBody(textBody);
+    const p = (xmlObject['a:p'] as Record<string, unknown>[])[0];
+    const runs = p['a:r'] as Record<string, Record<string, unknown>>[];
+    expect(runs[0]['a:t']).toBe('CleanTextWithControlChars!');
+  });
 });

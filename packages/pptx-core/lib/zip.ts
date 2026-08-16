@@ -9,6 +9,18 @@ export interface ZipEntry {
 }
 
 /**
+ * Security and resource limit options for decompressing PPTX ZIP archives.
+ */
+export interface ZipReaderOptions {
+  /** Maximum allowed number of file entries in the ZIP archive (default: 10,000) */
+  maxEntries?: number;
+  /** Maximum allowed uncompressed byte size for any individual file entry (default: 100MB) */
+  maxSingleFileBytes?: number;
+  /** Maximum allowed total uncompressed byte size for the entire archive (default: 500MB) */
+  maxTotalBytes?: number;
+}
+
+/**
  * Handles non-blocking asynchronous decompression, file entry lookup, and text decoding for OpenXML ZIP packages (`.pptx`).
  */
 export interface ZipReader {
