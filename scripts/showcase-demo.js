@@ -1784,11 +1784,11 @@ async function runShowcase() {
         {
           bold: true,
           color: '10B981',
-          hyperlink: { tooltip: 'Contact Developer Email', url: 'mailto:support@hokkyss.dev' },
-          text: 'Direct Developer Contact (support@hokkyss.dev)',
+          hyperlink: { tooltip: 'View Issue Tracker & Discussions', url: 'https://github.com/hokkyss/pptx-parser/issues' },
+          text: 'GitHub Issue Tracker & Community',
           underline: true,
         },
-        { text: ' — Support.' },
+        { text: ' — Discussions & issues.' },
       ],
     },
   ], {
@@ -1855,7 +1855,7 @@ async function runShowcase() {
         { text: 'Interactive OpenXML Actions & Relationships', underline: true },
       ],
     },
-    { bullet: true, level: 0, text: 'Full support for external web links, mailto targets, and hover tooltips.' },
+    { bullet: true, level: 0, text: 'Full support for external web links, custom URLs, and hover tooltips.' },
     { bullet: true, level: 0, text: 'Internal slide jumping using strongly typed slideIndex referencing.' },
     { bullet: true, level: 0, text: 'Built-in slide show control actions: firstSlide, lastSlide, nextSlide, previousSlide, endShow.' },
   ]);
