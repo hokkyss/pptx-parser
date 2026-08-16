@@ -25,24 +25,28 @@ const packages = [
     entry: 'packages/pptx-core/lib/index.ts',
     dts: 'packages/pptx-core/dist/index.d.ts',
     targetBudgetKb: 5,
+    external: [],
   },
   {
     name: '@hokkyss/pptx-reader',
     entry: 'packages/pptx-reader/lib/index.ts',
     dts: 'packages/pptx-reader/dist/index.d.ts',
     targetBudgetKb: 30,
+    external: ['@hokkyss/pptx-core'],
   },
   {
     name: '@hokkyss/pptx-writer',
     entry: 'packages/pptx-writer/lib/index.ts',
     dts: 'packages/pptx-writer/dist/index.d.ts',
     targetBudgetKb: 35,
+    external: ['@hokkyss/pptx-core'],
   },
   {
     name: '@hokkyss/pptx (Full SDK)',
     entry: 'packages/pptx/lib/index.ts',
     dts: 'packages/pptx/dist/index.d.ts',
     targetBudgetKb: 70,
+    external: [],
   },
 ];
 
@@ -63,7 +67,10 @@ async function getViteInstance() {
  * Calculates exact standalone production bundle size with all dependencies inlined,
  * matching Bundlephobia's Webpack/esbuild bundling methodology.
  */
-async function calculateBundlephobiaSize(vite, entryPath) {
+async function calculateBundlephobiaSize(vite, entryPath, external = []) {
+  const defaultExternal = ['node:fs', 'node:fs/promises', 'node:path', 'node:zlib', 'node:perf_hooks', 'node:console'];
+  const rollupExternal = [...new Set([...defaultExternal, ...external])];
+
   const res = await vite.build({
     configFile: false,
     logLevel: 'silent',
@@ -75,7 +82,7 @@ async function calculateBundlephobiaSize(vite, entryPath) {
         formats: ['es'],
       },
       rollupOptions: {
-        external: ['node:fs', 'node:fs/promises', 'node:path', 'node:zlib', 'node:perf_hooks', 'node:console'],
+        external: rollupExternal,
       },
     },
   });
@@ -175,7 +182,7 @@ export async function getBundleSizeData() {
 
     let bundleSizes = { minifiedBytes: 0, gzipBytes: 0, brotliBytes: 0 };
     if (vite) {
-      bundleSizes = await calculateBundlephobiaSize(vite, fullEntryPath);
+      bundleSizes = await calculateBundlephobiaSize(vite, fullEntryPath, pkg.external || []);
     }
 
     let dtsSize = 0;

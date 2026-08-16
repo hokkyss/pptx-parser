@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -35,6 +37,15 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Compute Target Base Branch Benchmark Baseline
+        run: |
+          BASE_REF="${{ github.base_ref || 'main' }}"
+          git fetch origin "$BASE_REF" --depth=1 || true
+          git checkout "origin/$BASE_REF" -- packages/ pnpm-lock.yaml package.json || true
+          pnpm build || true
+          node scripts/benchmark-bundle-size.js --save-baseline || true
+          git checkout HEAD -- packages/ pnpm-lock.yaml package.json || true
 
       - name: Typecheck & Build Monorepo
         run: pnpm build
