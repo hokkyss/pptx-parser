@@ -151,4 +151,32 @@ describe('Presentation Class (Unit Tests)', () => {
       expect(pres.ast.themes[0].fontScheme.majorFont).toBe('Arial');
     });
   });
+
+  describe('First Slide Numbering (Starting Slide Number)', () => {
+    it('initializes firstSlideNumber from CreatePresentationOptions', () => {
+      const pres = Presentation.create({ firstSlideNumber: 0 });
+      expect(pres.firstSlideNumber).toBe(0);
+      expect(pres.metadata.firstSlideNumber).toBe(0);
+    });
+
+    it('sets firstSlideNumber via getter/setter and fluent method', () => {
+      const pres = Presentation.create();
+      expect(pres.firstSlideNumber).toBeUndefined();
+
+      pres.firstSlideNumber = 0;
+      expect(pres.firstSlideNumber).toBe(0);
+
+      pres.setFirstSlideNumber(5);
+      expect(pres.firstSlideNumber).toBe(5);
+    });
+
+    it('roundtrips firstSlideNumber cleanly through binary write and parse', async () => {
+      const pres = Presentation.create({ firstSlideNumber: 0 });
+      pres.addSlide();
+      const buffer = await pres.toBuffer();
+
+      const loaded = await Presentation.load(buffer);
+      expect(loaded.firstSlideNumber).toBe(0);
+    });
+  });
 });
