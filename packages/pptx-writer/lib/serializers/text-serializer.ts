@@ -1,5 +1,18 @@
-import type { PptxBullet, PptxParagraph, PptxRun, PptxTextBody, PptxTextBodyProperties } from '@hokkyss/pptx-core';
-import type { PptxColor, PptxFill } from '@hokkyss/pptx-core';
+import type {
+  PptxBullet,
+  PptxColor,
+  PptxFill,
+  PptxHyperlink,
+  PptxParagraph,
+  PptxRun,
+  PptxTextBody,
+  PptxTextBodyProperties,
+} from '@hokkyss/pptx-core';
+import {
+  sanitizeHyperlinkAction,
+  sanitizeHyperlinkTooltip,
+  sanitizeSlideIndex,
+} from '@hokkyss/pptx-core';
 import { sanitizeXmlText } from '../xml/xml-builder';
 
 const ALIGNMENT_MAP: Record<string, string> = {
@@ -101,6 +114,69 @@ export function serializeFill(fill?: PptxFill): Record<string, unknown> | undefi
 }
 
 /**
+ * Serializes an OpenXML DrawingML Hyperlink `<a:hlinkClick>`.
+ * @param hyperlink Hyperlink configuration or URL string.
+ * @param relIdOverride Optional relationship ID override.
+ * @returns Serialized XML node object or `undefined`.
+ */
+export function serializeHyperlink(
+  hyperlink?: PptxHyperlink | string,
+  relIdOverride?: string,
+): Record<string, unknown> | undefined {
+  if (!hyperlink) return undefined;
+
+  const hlinkNode: Record<string, unknown> = {};
+
+  if (typeof hyperlink === 'string') {
+    const rId = relIdOverride;
+    if (rId) {
+      hlinkNode['@_r:id'] = rId;
+    }
+    return Object.keys(hlinkNode).length > 0 ? hlinkNode : undefined;
+  }
+
+  const rId = relIdOverride || hyperlink.rId;
+  if (rId) {
+    hlinkNode['@_r:id'] = rId;
+  }
+
+  const cleanTooltip = sanitizeHyperlinkTooltip(hyperlink.tooltip);
+  if (cleanTooltip) {
+    hlinkNode['@_tooltip'] = cleanTooltip;
+  }
+
+  const cleanAction = sanitizeHyperlinkAction(hyperlink.action);
+  if (cleanAction) {
+    switch (cleanAction) {
+      case 'endShow':
+        hlinkNode['@_action'] = 'ppaction://hlinkshowjump?jump=endshow';
+        break;
+      case 'firstSlide':
+        hlinkNode['@_action'] = 'ppaction://hlinkshowjump?jump=firstslide';
+        break;
+      case 'lastSlide':
+        hlinkNode['@_action'] = 'ppaction://hlinkshowjump?jump=lastslide';
+        break;
+      case 'nextSlide':
+        hlinkNode['@_action'] = 'ppaction://hlinkshowjump?jump=nextslide';
+        break;
+      case 'previousSlide':
+        hlinkNode['@_action'] = 'ppaction://hlinkshowjump?jump=previousslide';
+        break;
+      default:
+        hlinkNode['@_action'] = cleanAction;
+    }
+  } else {
+    const cleanSlideIndex = sanitizeSlideIndex(hyperlink.slideIndex);
+    if (cleanSlideIndex && !hlinkNode['@_action']) {
+      hlinkNode['@_action'] = 'ppaction://hlinksldjump';
+    }
+  }
+
+  return Object.keys(hlinkNode).length > 0 ? hlinkNode : undefined;
+}
+
+/**
  * Serializes run properties `<a:rPr>`.
  */
 export function serializeRunProperties(props?: PptxRun['properties']): Record<string, unknown> {
@@ -131,6 +207,13 @@ export function serializeRunProperties(props?: PptxRun['properties']): Record<st
       if (fillNode) {
         Object.assign(rPr, fillNode);
       }
+    }
+  }
+
+  if (props.hyperlink) {
+    const hlinkNode = serializeHyperlink(props.hyperlink);
+    if (hlinkNode) {
+      rPr['a:hlinkClick'] = hlinkNode;
     }
   }
 

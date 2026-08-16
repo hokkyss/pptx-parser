@@ -43,7 +43,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@monorepo/eslint": "workspace:^",
@@ -51,6 +52,7 @@
     "eslint": "catalog:eslint",
     "typescript": "catalog:ts5",
     "vite": "catalog:vite",
-    "vite-plugin-dts": "catalog:vite"
+    "vite-plugin-dts": "catalog:vite",
+    "vitest": "catalog:vite"
   }
 }

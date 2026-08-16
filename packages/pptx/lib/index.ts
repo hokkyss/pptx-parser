@@ -5,6 +5,8 @@ export {
 } from './presentation';
 
 export type {
+  PptxHyperlink,
+  PptxHyperlinkAction,
   ThemeColorInput,
   ThemeFontInput,
 } from '@hokkyss/pptx-core';

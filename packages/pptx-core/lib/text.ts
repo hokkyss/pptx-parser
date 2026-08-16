@@ -34,6 +34,29 @@ export interface PptxParagraphProperties {
   spaceBefore?: HundredthsPoint;
 }
 
+/** Action trigger for presentation slide navigation hyperlinks */
+export type PptxHyperlinkAction
+  = 'endShow'
+    | 'firstSlide'
+    | 'lastSlide'
+    | 'nextSlide'
+    | 'previousSlide'
+    | ({} & string);
+
+/** Represents an OpenXML Hyperlink or Slide Navigation Action */
+export interface PptxHyperlink {
+  /** Built-in presentation action (e.g., 'nextSlide', 'previousSlide', 'firstSlide', 'lastSlide', 'endShow') */
+  action?: PptxHyperlinkAction;
+  /** Internal OpenXML relationship ID (e.g. 'rId2'). OpenXML: `<a:hlinkClick @_r:id>` */
+  rId?: string;
+  /** 1-based target slide index for internal presentation jumps. */
+  slideIndex?: number;
+  /** ScreenTip tooltip text displayed on hover. OpenXML: `<a:hlinkClick @_tooltip>` */
+  tooltip?: string;
+  /** External URL (e.g. 'https://example.com' or 'mailto:team@example.com'). */
+  url?: string;
+}
+
 /** Represents a run of text with uniform formatting */
 export interface PptxRun {
   /** Text properties. OpenXML: `<a:rPr>` */
@@ -48,8 +71,8 @@ export interface PptxRun {
     fontFamily?: string;
     /** Font size in Hundredths of a Point. OpenXML: `<a:rPr @_sz>` */
     fontSize?: HundredthsPoint;
-    /** Hyperlink URL or reference. OpenXML: `<a:rPr><a:hlinkClick>` */
-    hyperlink?: string;
+    /** Hyperlink URL or rich hyperlink configuration. OpenXML: `<a:rPr><a:hlinkClick>` */
+    hyperlink?: PptxHyperlink | string;
     /** Italic. OpenXML: `<a:rPr @_i>` */
     italic?: boolean;
     /** Language. OpenXML: `<a:rPr @_lang>` */

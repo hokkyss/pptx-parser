@@ -1,3 +1,4 @@
+import type { RelationshipResolver } from '@hokkyss/pptx-core';
 import {
   Emu,
   HundredthsPoint,
@@ -9,15 +10,20 @@ import {
   PptxTextBodyProperties,
 } from '../types/ast';
 import { defaultXmlParser, XmlParser } from '../xml/xml-parser';
+import { parseHyperlink } from './hyperlink-parser';
 
 /**
  * Parses a single OpenXML paragraph node (`<a:p>`).
  *
  * Extracts paragraph properties (`alignment`, `leftMargin`, `rightMargin`, `firstLineIndent`, `spaceBefore`, `spaceAfter`, `lineSpacing`, `bullet`) and text runs.
  * @param pNode Raw XML paragraph object node (`<a:p>`).
+ * @param relationshipResolver Optional resolver for mapping hyperlink `r:id` references.
  * @returns Parsed `PptxParagraph` structure.
  */
-export function parseParagraph(pNode: Record<string, unknown>): PptxParagraph {
+export function parseParagraph(
+  pNode: Record<string, unknown>,
+  relationshipResolver?: RelationshipResolver,
+): PptxParagraph {
   const pPr = (pNode['a:pPr'] || pNode['pPr'] || {}) as Record<string, unknown>;
 
   const alignMap: Record<string, 'center' | 'justify' | 'left' | 'right'> = {
@@ -103,7 +109,7 @@ export function parseParagraph(pNode: Record<string, unknown>): PptxParagraph {
       rNodes = [rNodes];
     }
     for (const rNode of rNodes as Record<string, unknown>[]) {
-      const run = parseRun(rNode, fallbackProps);
+      const run = parseRun(rNode, fallbackProps, relationshipResolver);
       if (run) runs.push(run);
     }
   }
@@ -112,7 +118,7 @@ export function parseParagraph(pNode: Record<string, unknown>): PptxParagraph {
   if (fldNodes) {
     const flds = Array.isArray(fldNodes) ? fldNodes : [fldNodes];
     for (const fld of flds as Record<string, unknown>[]) {
-      const run = parseRun(fld, fallbackProps);
+      const run = parseRun(fld, fallbackProps, relationshipResolver);
       if (run) runs.push(run);
     }
   }
@@ -138,12 +144,17 @@ export function parseParagraph(pNode: Record<string, unknown>): PptxParagraph {
 /**
  * Parses a single OpenXML text run node (`<a:r>` or `<a:fld>`).
  *
- * Extracts text string and formatting properties (`fontSize`, `bold`, `italic`, `underline`, `strikethrough`, `color`, `fontFamily`).
+ * Extracts text string and formatting properties (`fontSize`, `bold`, `italic`, `underline`, `strikethrough`, `color`, `fontFamily`, `hyperlink`).
  * @param rNode Raw XML text run node (`<a:r>`).
  * @param fallbackProps Optional default run properties from `<a:defRPr>`.
+ * @param relationshipResolver Optional resolver for mapping hyperlink `r:id` references.
  * @returns Parsed `PptxRun` structure or `null` if run is empty.
  */
-export function parseRun(rNode: Record<string, unknown>, fallbackProps?: PptxRun['properties']): null | PptxRun {
+export function parseRun(
+  rNode: Record<string, unknown>,
+  fallbackProps?: PptxRun['properties'],
+  relationshipResolver?: RelationshipResolver,
+): null | PptxRun {
   const tText = rNode['a:t'] !== undefined ? rNode['a:t'] : rNode['t'];
   let text = '';
 
@@ -156,7 +167,7 @@ export function parseRun(rNode: Record<string, unknown>, fallbackProps?: PptxRun
   }
 
   const rPr = (rNode['a:rPr'] || rNode['rPr'] || {}) as Record<string, unknown>;
-  const explicitProps = parseRunProperties(rPr);
+  const explicitProps = parseRunProperties(rPr, relationshipResolver);
 
   const cleanExplicit = Object.fromEntries(Object.entries(explicitProps).filter(([, v]) => v !== undefined));
   const properties = {
@@ -173,9 +184,13 @@ export function parseRun(rNode: Record<string, unknown>, fallbackProps?: PptxRun
 /**
  * Extracts run formatting properties from an XML run properties node (`<a:rPr>` or `<a:defRPr>`).
  * @param rPr Raw XML run properties object.
+ * @param relationshipResolver Optional resolver for mapping hyperlink `r:id` references.
  * @returns Parsed `PptxRun['properties']` structure.
  */
-export function parseRunProperties(rPr: Record<string, unknown>): PptxRun['properties'] {
+export function parseRunProperties(
+  rPr: Record<string, unknown>,
+  relationshipResolver?: RelationshipResolver,
+): PptxRun['properties'] {
   const fontSize = rPr['@_sz'] !== undefined ? ((Number(rPr['@_sz']) as unknown) as HundredthsPoint) : undefined;
   const bold = rPr['@_b'] === '1' || rPr['@_b'] === true;
   const italic = rPr['@_i'] === '1' || rPr['@_i'] === true;
@@ -197,12 +212,16 @@ export function parseRunProperties(rPr: Record<string, unknown>): PptxRun['prope
     }
   }
 
+  const hlinkNode = (rPr['a:hlinkClick'] || rPr['hlinkClick']) as Record<string, unknown> | undefined;
+  const hyperlink = hlinkNode ? parseHyperlink(hlinkNode, relationshipResolver) : undefined;
+
   return {
     baseline,
     bold: bold || undefined,
     color,
     fontFamily,
     fontSize,
+    hyperlink,
     italic: italic || undefined,
     strikethrough: strikethrough || undefined,
     subscript: subscript || undefined,
@@ -216,6 +235,7 @@ export function parseRunProperties(rPr: Record<string, unknown>): PptxRun['prope
  *
  * Extracts text body container properties (`verticalAlignment`, `wrap`, `insets`, `columns`, `columnSpacing`) and all child paragraphs.
  * @param txBodyNode Raw XML object node for `<p:txBody>`.
+ * @param relationshipResolver Optional resolver for mapping hyperlink `r:id` references.
  * @returns Parsed `PptxTextBody` AST.
  * @example
  * ```ts
@@ -223,7 +243,10 @@ export function parseRunProperties(rPr: Record<string, unknown>): PptxRun['prope
  * console.log(textBody.paragraphs[0].runs[0].text);
  * ```
  */
-export function parseTextBody(txBodyNode: Record<string, unknown>): PptxTextBody {
+export function parseTextBody(
+  txBodyNode: Record<string, unknown>,
+  relationshipResolver?: RelationshipResolver,
+): PptxTextBody {
   const bodyPrNode = (txBodyNode['a:bodyPr'] || txBodyNode['bodyPr'] || {}) as Record<string, unknown>;
 
   const vertAlignMap: Record<string, 'bottom' | 'middle' | 'top'> = {
@@ -266,7 +289,7 @@ export function parseTextBody(txBodyNode: Record<string, unknown>): PptxTextBody
       pNodes = [pNodes];
     }
     for (const pNode of pNodes as Record<string, unknown>[]) {
-      paragraphs.push(parseParagraph(pNode));
+      paragraphs.push(parseParagraph(pNode, relationshipResolver));
     }
   }
 

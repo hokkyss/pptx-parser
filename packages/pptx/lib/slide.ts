@@ -3,6 +3,7 @@ import type {
   PptxElement,
   PptxFill,
   PptxGroupElement,
+  PptxHyperlink,
   PptxPictureElement,
   PptxShapeElement,
   PptxSlide,
@@ -67,6 +68,7 @@ export interface AddImageOptions {
   alpha?: ThousandthsPercent;
   fileName?: string;
   h?: Inches;
+  hyperlink?: PptxHyperlink | string;
   id?: string;
   mediaId?: string;
   name?: string;
@@ -281,6 +283,7 @@ export class Slide {
       const shape: PptxShapeElement = {
         elementType: 'shape',
         fill,
+        hyperlink: options.hyperlink,
         id,
         isVisible: true,
         name,
@@ -311,6 +314,7 @@ export class Slide {
     const shape: PptxShapeElement = {
       elementType: 'shape',
       fill,
+      hyperlink: options.hyperlink,
       id,
       isVisible: true,
       name,
@@ -372,6 +376,7 @@ export class Slide {
 
     const picElement: PptxPictureElement = {
       elementType: 'picture',
+      hyperlink: options.hyperlink,
       id,
       isVisible: true,
       name: placeholderEl?.name || name,

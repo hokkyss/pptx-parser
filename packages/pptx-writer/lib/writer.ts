@@ -1,4 +1,5 @@
-import type { PptxDocument } from '@hokkyss/pptx-core';
+import type { PptxDocument, PptxElement, PptxHyperlink } from '@hokkyss/pptx-core';
+import { sanitizeHyperlinkUrl, sanitizeSlideIndex } from '@hokkyss/pptx-core';
 import { serializeChart } from './serializers/chart-serializer';
 import { serializeContentTypes } from './serializers/content-types-serializer';
 import { serializeNotesSlide, serializeNotesSlideRels } from './serializers/notes-serializer';
@@ -33,6 +34,7 @@ const REL_TYPES = {
   coreProperties: 'http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties',
   extendedProperties: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties',
   handoutMaster: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster',
+  hyperlink: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
   image: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
   notesMaster: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster',
   notesSlide: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide',
@@ -45,6 +47,125 @@ const REL_TYPES = {
   theme: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme',
   viewProps: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps',
 };
+
+/**
+ * Validates, sanitizes, and registers a hyperlink target in the slide relationship table.
+ */
+function processHyperlinkTarget(
+  hlink: PptxHyperlink | string,
+  slideRels: RelationshipEntry[],
+  getSlideRelId: () => string,
+): PptxHyperlink | undefined {
+  if (typeof hlink === 'string') {
+    const safeUrl = sanitizeHyperlinkUrl(hlink);
+    if (!safeUrl) return undefined;
+    const rId = getSlideRelId();
+    slideRels.push({
+      id: rId,
+      target: safeUrl,
+      targetMode: 'External',
+      type: REL_TYPES.hyperlink,
+    });
+    return { rId, url: safeUrl };
+  }
+
+  if (hlink.rId) return hlink;
+
+  if (hlink.url) {
+    const safeUrl = sanitizeHyperlinkUrl(hlink.url);
+    if (safeUrl) {
+      const rId = getSlideRelId();
+      hlink.rId = rId;
+      hlink.url = safeUrl;
+      slideRels.push({
+        id: rId,
+        target: safeUrl,
+        targetMode: 'External',
+        type: REL_TYPES.hyperlink,
+      });
+      return hlink;
+    }
+    return undefined;
+  }
+
+  if (hlink.slideIndex !== undefined) {
+    const safeIndex = sanitizeSlideIndex(hlink.slideIndex);
+    if (safeIndex !== undefined) {
+      const rId = getSlideRelId();
+      hlink.rId = rId;
+      hlink.slideIndex = safeIndex;
+      slideRels.push({
+        id: rId,
+        target: `slide${safeIndex}.xml`,
+        type: REL_TYPES.slide,
+      });
+      return hlink;
+    }
+    return undefined;
+  }
+
+  return hlink;
+}
+
+/**
+ * Traverses an element, child elements, and text runs to register and allocate relationship IDs for hyperlinks.
+ */
+function registerElementHyperlinks(
+  elem: PptxElement,
+  slideRels: RelationshipEntry[],
+  getSlideRelId: () => string,
+): void {
+  if (elem.hyperlink) {
+    const processed = processHyperlinkTarget(elem.hyperlink, slideRels, getSlideRelId);
+    if (processed) {
+      elem.hyperlink = processed;
+    } else {
+      delete elem.hyperlink;
+    }
+  }
+
+  if (elem.textBody) {
+    for (const p of elem.textBody.paragraphs || []) {
+      for (const r of p.runs || []) {
+        if (r.properties?.hyperlink) {
+          const processed = processHyperlinkTarget(r.properties.hyperlink, slideRels, getSlideRelId);
+          if (processed) {
+            r.properties.hyperlink = processed;
+          } else {
+            delete r.properties.hyperlink;
+          }
+        }
+      }
+    }
+  }
+
+  if (elem.elementType === 'table' && elem.table) {
+    for (const row of elem.table.rows || []) {
+      for (const cell of row.cells || []) {
+        if (cell.textBody) {
+          for (const p of cell.textBody.paragraphs || []) {
+            for (const r of p.runs || []) {
+              if (r.properties?.hyperlink) {
+                const processed = processHyperlinkTarget(r.properties.hyperlink, slideRels, getSlideRelId);
+                if (processed) {
+                  r.properties.hyperlink = processed;
+                } else {
+                  delete r.properties.hyperlink;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (elem.elementType === 'group' && elem.children) {
+    for (const child of elem.children) {
+      registerElementHyperlinks(child, slideRels, getSlideRelId);
+    }
+  }
+}
 
 /**
  * Serializes a `PptxDocument` AST into a valid `.pptx` presentation binary buffer.
@@ -302,6 +423,9 @@ export async function writePptx(
           });
         }
       }
+
+      // Register hyperlinks across element, text runs, and tables/groups
+      registerElementHyperlinks(elem, slideRels, () => `rId${slideRelCounter++}`);
     }
 
     // Handle speaker notes (strictly sequential notesSlide indexing)

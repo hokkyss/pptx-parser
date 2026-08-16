@@ -241,6 +241,9 @@ importers:
       vite-plugin-dts:
         specifier: catalog:vite
         version: 4.5.4(@types/node@24.13.3)(rollup@4.62.4)(typescript@5.9.3)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(yaml@2.9.0))
+      vitest:
+        specifier: catalog:vite
+        version: 3.2.7(@types/node@24.13.3)(lightningcss@1.33.0)(yaml@2.9.0)
 
   packages/pptx-reader:
     dependencies:

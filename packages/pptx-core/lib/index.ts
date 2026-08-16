@@ -4,6 +4,7 @@ export * from './chart';
 export * from './color';
 export * from './media';
 export * from './relationships';
+export * from './security/hyperlink-sanitizer';
 export * from './table';
 export * from './text';
 export * from './theme';
