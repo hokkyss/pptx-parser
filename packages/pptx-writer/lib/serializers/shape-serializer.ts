@@ -5,7 +5,7 @@ import type {
   PptxShapeElement,
   PptxShapeLocks,
 } from '@hokkyss/pptx-core';
-import { serializeFill, serializeTextBody } from './text-serializer';
+import { serializeFill, serializeHyperlink, serializeTextBody } from './text-serializer';
 
 /**
  * Serializes shape locks `<a:spLocks>`.
@@ -132,6 +132,12 @@ export function serializeShape(shape: PptxShapeElement): Record<string, unknown>
   if (shape.isVisible === false) {
     cNvPr['@_hidden'] = '1';
   }
+  if (shape.hyperlink) {
+    const hlinkNode = serializeHyperlink(shape.hyperlink);
+    if (hlinkNode) {
+      cNvPr['a:hlinkClick'] = hlinkNode;
+    }
+  }
 
   const cNvSpPr: Record<string, unknown> = {};
   if (shape.isTextBox) {
@@ -256,6 +262,12 @@ export function serializeConnector(connector: PptxConnectorElement): Record<stri
   };
   if (connector.isVisible === false) {
     cNvPr['@_hidden'] = '1';
+  }
+  if (connector.hyperlink) {
+    const hlinkNode = serializeHyperlink(connector.hyperlink);
+    if (hlinkNode) {
+      cNvPr['a:hlinkClick'] = hlinkNode;
+    }
   }
 
   const nvCxnSpPr = {

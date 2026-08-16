@@ -1,4 +1,4 @@
-import type { PptxBullet, PptxParagraph, PptxRun, PptxTextBody } from '@hokkyss/pptx-core';
+import type { PptxBullet, PptxHyperlink, PptxParagraph, PptxRun, PptxTextBody } from '@hokkyss/pptx-core';
 import { hundredthsPoint, type Points } from '@hokkyss/pptx-core';
 
 export interface TextRunConfig {
@@ -7,6 +7,7 @@ export interface TextRunConfig {
   color?: string; // Hex string e.g. '38BDF8'
   font?: string;
   fontSize?: Points;
+  hyperlink?: PptxHyperlink | string;
   italic?: boolean;
   strikethrough?: 'dblStrike' | 'sngStrike' | boolean;
   subscript?: boolean;
@@ -33,6 +34,7 @@ export interface ParagraphConfig {
   color?: string;
   font?: string;
   fontSize?: Points;
+  hyperlink?: PptxHyperlink | string;
   italic?: boolean;
   level?: number;
   lineSpacing?: Points;
@@ -54,6 +56,7 @@ export interface TextOptions {
   color?: string;
   font?: string;
   fontSize?: Points;
+  hyperlink?: PptxHyperlink | string;
   italic?: boolean;
   level?: number;
   spaceAfter?: Points;
@@ -100,6 +103,7 @@ export function buildTextRun(input: string | TextRunConfig, defaultOptions?: Tex
         color: defaultOptions?.color,
         fontFamily: defaultOptions?.font,
         fontSize: defaultOptions?.fontSize ? hundredthsPoint(Math.round(defaultOptions.fontSize * 100)) : undefined,
+        hyperlink: defaultOptions?.hyperlink,
         italic: defaultOptions?.italic,
         strikethrough: defaultOptions?.strikethrough,
         subscript: defaultOptions?.subscript,
@@ -117,6 +121,7 @@ export function buildTextRun(input: string | TextRunConfig, defaultOptions?: Tex
       color: input.color ?? defaultOptions?.color,
       fontFamily: input.font ?? defaultOptions?.font,
       fontSize: input.fontSize ? hundredthsPoint(Math.round(input.fontSize * 100)) : (defaultOptions?.fontSize ? hundredthsPoint(Math.round(defaultOptions.fontSize * 100)) : undefined),
+      hyperlink: input.hyperlink ?? defaultOptions?.hyperlink,
       italic: input.italic ?? defaultOptions?.italic,
       strikethrough: input.strikethrough ?? defaultOptions?.strikethrough,
       subscript: input.subscript ?? defaultOptions?.subscript,
@@ -165,7 +170,17 @@ export function buildTextBody(
     }
   } else if (Array.isArray(content) && content.length > 0) {
     const isParagraphConfigList = content.some(
-      (item) => typeof item === 'object' && item !== null && ('level' in item || 'runs' in item || 'bullet' in item || ('text' in item && typeof (item as ParagraphConfig).text === 'string')),
+      (item) =>
+        typeof item === 'object'
+        && item !== null
+        && ('level' in item
+          || 'runs' in item
+          || 'bullet' in item
+          || 'align' in item
+          || 'spaceAfter' in item
+          || 'spaceBefore' in item
+          || 'lineSpacing' in item
+          || (Array.isArray((item as Record<string, unknown>).text))),
     );
 
     if (isParagraphConfigList) {
@@ -192,6 +207,7 @@ export function buildTextBody(
             color: pConfig.color ?? options?.color,
             font: pConfig.font ?? options?.font,
             fontSize: pConfig.fontSize ?? options?.fontSize,
+            hyperlink: pConfig.hyperlink ?? options?.hyperlink,
             italic: pConfig.italic ?? options?.italic,
             strikethrough: pConfig.strikethrough ?? options?.strikethrough,
             subscript: pConfig.subscript ?? options?.subscript,

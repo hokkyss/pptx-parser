@@ -1,4 +1,5 @@
 import type { PptxPictureElement } from '@hokkyss/pptx-core';
+import { serializeHyperlink } from './text-serializer';
 
 /**
  * Serializes a picture element into OpenXML `<p:pic>`.
@@ -45,12 +46,20 @@ export function serializePicture(pictureElement: PptxPictureElement, overrideEmb
     xfrm['@_rot'] = Math.round(Number(pictureElement.rotation));
   }
 
+  const cNvPr: Record<string, unknown> = {
+    '@_id': pictureElement.id || '4',
+    '@_name': pictureElement.name || `Picture ${pictureElement.id || '4'}`,
+  };
+  if (pictureElement.hyperlink) {
+    const hlinkNode = serializeHyperlink(pictureElement.hyperlink);
+    if (hlinkNode) {
+      cNvPr['a:hlinkClick'] = hlinkNode;
+    }
+  }
+
   return {
     'p:nvPicPr': {
-      'p:cNvPr': {
-        '@_id': pictureElement.id || '4',
-        '@_name': pictureElement.name || `Picture ${pictureElement.id || '4'}`,
-      },
+      'p:cNvPr': cNvPr,
       'p:cNvPicPr': {
         'a:picLocks': { '@_noChangeAspect': '1' },
       },

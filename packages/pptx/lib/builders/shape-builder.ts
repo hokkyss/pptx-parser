@@ -1,4 +1,4 @@
-import type { PptxFill, PptxLine, PptxShadow, PptxShapeElement } from '@hokkyss/pptx-core';
+import type { PptxFill, PptxHyperlink, PptxLine, PptxShadow, PptxShapeElement } from '@hokkyss/pptx-core';
 import {
   degreesToEmuDegree,
   emu,
@@ -27,6 +27,7 @@ export interface ShapeShadowOptions {
 export interface AddShapeOptions {
   fill?: PptxFill | string;
   h: Inches;
+  hyperlink?: PptxHyperlink | string;
   id?: string;
   line?: {
     color?: string;
@@ -115,6 +116,7 @@ export function buildShapeElement(
   return {
     elementType: 'shape',
     fill,
+    hyperlink: options.hyperlink,
     id,
     isVisible: true,
     line,

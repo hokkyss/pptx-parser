@@ -389,7 +389,7 @@ export async function parsePptx(
     const layoutId = layoutRel ? layoutRel.resolvedTarget.split('/').pop()?.replace('.xml', '') : undefined;
 
     // Parse Shapes
-    const shapes = parseShapes(slideXml, xmlParser);
+    const shapes = parseShapes(slideXml, slideRelResolver, xmlParser);
 
     // Check for GraphicFrames containing tables or charts & assign high-level elementType
     const chartRels = slideRelResolver.getRelationshipsByType('chart');

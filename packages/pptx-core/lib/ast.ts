@@ -9,7 +9,7 @@ import type { PptxChart } from './chart';
 import type { PptxFill } from './color';
 import type { PptxMediaAsset } from './media';
 import type { PptxTable } from './table';
-import type { PptxTextBody } from './text';
+import type { PptxHyperlink, PptxHyperlinkAction, PptxTextBody } from './text';
 import type { PptxLine, PptxTheme } from './theme';
 import type { Emu, EmuDegree, HundredthsPoint, ThousandthsPercent } from './units';
 
@@ -20,6 +20,8 @@ export type {
   PptxAnimation,
   PptxChart,
   PptxFill,
+  PptxHyperlink,
+  PptxHyperlinkAction,
   PptxLine,
   PptxMediaAsset,
   PptxTable,
@@ -123,6 +125,8 @@ export interface PptxBaseElement {
   geometry?: PptxGeometry;
   /** Element ID. OpenXML: `<p:cNvPr @_id>` */
   id: string;
+  /** Shape or element hyperlink. OpenXML: `<p:cNvPr><a:hlinkClick>` */
+  hyperlink?: PptxHyperlink | string;
   /** Whether the element is locked in PowerPoint. OpenXML: `<a:spLocks>`, `<a:picLocks>`, `<a:grpSpLocks>` */
   isLocked?: boolean;
   /** Whether the element is visible in PowerPoint rendering. OpenXML: `<p:cNvPr @_hidden="1">` (defaults to true) */

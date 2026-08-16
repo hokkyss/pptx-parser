@@ -1,3 +1,4 @@
+import type { RelationshipResolver } from '@hokkyss/pptx-core';
 import {
   Emu,
   EmuDegree,
@@ -5,6 +6,7 @@ import {
   PptxShape,
 } from '../types/ast';
 import { defaultXmlParser, XmlParser } from '../xml/xml-parser';
+import { parseHyperlink } from './hyperlink-parser';
 import { parseTextBody } from './text-parser';
 
 /**
@@ -74,10 +76,37 @@ export function getXmlChildren(node: Record<string, unknown> | undefined, target
  * console.log(`Parsed ${shapes.length} shapes.`);
  * ```
  */
-export function parseShapes(slideXml: Record<string, unknown> | string, parser: XmlParser = defaultXmlParser): PptxShape[] {
+export function parseShapes(
+  slideXml: Record<string, unknown> | string,
+  parser?: XmlParser,
+): PptxShape[];
+export function parseShapes(
+  slideXml: Record<string, unknown> | string,
+  relationshipResolver?: RelationshipResolver,
+  parser?: XmlParser,
+): PptxShape[];
+export function parseShapes(
+  slideXml: Record<string, unknown> | string,
+  resolverOrParser?: RelationshipResolver | XmlParser,
+  parser?: XmlParser,
+): PptxShape[] {
+  let resolver: RelationshipResolver | undefined;
+  let activeParser = defaultXmlParser;
+
+  if (resolverOrParser) {
+    if ('parse' in resolverOrParser && typeof resolverOrParser.parse === 'function') {
+      activeParser = resolverOrParser;
+    } else {
+      resolver = resolverOrParser as RelationshipResolver;
+      if (parser) {
+        activeParser = parser;
+      }
+    }
+  }
+
   let parsed: Record<string, unknown>;
   if (typeof slideXml === 'string') {
-    parsed = parser.parse<Record<string, unknown>>(slideXml);
+    parsed = activeParser.parse<Record<string, unknown>>(slideXml);
   } else {
     parsed = slideXml;
   }
@@ -88,7 +117,7 @@ export function parseShapes(slideXml: Record<string, unknown> | string, parser: 
 
   if (!spTree) return [];
 
-  return parseShapeTree(spTree);
+  return parseShapeTree(spTree, resolver);
 }
 
 /**
@@ -96,34 +125,38 @@ export function parseShapes(slideXml: Record<string, unknown> | string, parser: 
  *
  * Automatically computes and assigns 0-based `zIndex` values representing back-to-front rendering order.
  * @param spTree Raw XML object node representing shape tree (`<p:spTree>`).
+ * @param relationshipResolver Optional resolver for mapping hyperlink `r:id` references.
  * @returns Array of parsed `PptxShape` elements.
  */
-export function parseShapeTree(spTree: Record<string, unknown>): PptxShape[] {
+export function parseShapeTree(
+  spTree: Record<string, unknown>,
+  relationshipResolver?: RelationshipResolver,
+): PptxShape[] {
   const shapes: PptxShape[] = [];
 
   // Parse Auto Shapes (<p:sp>)
   for (const spNode of getXmlChildren(spTree, 'sp')) {
-    shapes.push(parseSingleShape(spNode, 'shape'));
+    shapes.push(parseSingleShape(spNode, 'shape', relationshipResolver));
   }
 
   // Parse Pictures (<p:pic>)
   for (const picNode of getXmlChildren(spTree, 'pic')) {
-    shapes.push(parseSingleShape(picNode, 'picture'));
+    shapes.push(parseSingleShape(picNode, 'picture', relationshipResolver));
   }
 
   // Parse Graphic Frames (<p:graphicFrame>)
   for (const gfNode of getXmlChildren(spTree, 'graphicFrame')) {
-    shapes.push(parseSingleShape(gfNode, 'graphicFrame'));
+    shapes.push(parseSingleShape(gfNode, 'graphicFrame', relationshipResolver));
   }
 
   // Parse Group Shapes (<p:grpSp>)
   for (const grpNode of getXmlChildren(spTree, 'grpSp')) {
-    shapes.push(parseSingleShape(grpNode, 'group'));
+    shapes.push(parseSingleShape(grpNode, 'group', relationshipResolver));
   }
 
   // Parse Connection Shapes (<p:cxnSp>)
   for (const cxnNode of getXmlChildren(spTree, 'cxnSp')) {
-    shapes.push(parseSingleShape(cxnNode, 'connector'));
+    shapes.push(parseSingleShape(cxnNode, 'connector', relationshipResolver));
   }
 
   // Assign 0-based zIndex to reflect rendering layer order
@@ -138,11 +171,13 @@ export function parseShapeTree(spTree: Record<string, unknown>): PptxShape[] {
  * Parses a single OpenXML shape node (`<p:sp>`, `<p:pic>`, `<p:graphicFrame>`, `<p:grpSp>`, `<p:cxnSp>`).
  * @param node Raw XML object node.
  * @param shapeType OpenXML shape tag classification.
+ * @param relationshipResolver Optional resolver for mapping hyperlink `r:id` references.
  * @returns Parsed `PptxShape` AST structure.
  */
 export function parseSingleShape(
   node: Record<string, unknown>,
   shapeType: 'connector' | 'graphicFrame' | 'group' | 'picture' | 'shape',
+  relationshipResolver?: RelationshipResolver,
 ): PptxShape {
   // Non-visual shape properties node (nvSpPr, nvPicPr, nvGraphicFramePr, nvGrpSpPr)
   const nvPrNode
@@ -158,6 +193,9 @@ export function parseSingleShape(
   const hiddenAttr = cNvPrNode['@_hidden'];
   const isHidden = hiddenAttr === '1' || hiddenAttr === 'true' || hiddenAttr === true ? true : undefined;
   const isVisible = isHidden ? false : true;
+
+  const hlinkNode = getXmlChild(cNvPrNode, 'hlinkClick');
+  const hyperlink = hlinkNode ? parseHyperlink(hlinkNode, relationshipResolver) : undefined;
 
   // Extract shape locks (<a:spLocks>, <a:picLocks>, <a:grpSpLocks>, etc.)
   const cNvChild
@@ -236,9 +274,9 @@ export function parseSingleShape(
 
   // Extract text body
   const txBodyNode = getXmlChild(node, 'txBody');
-  let textBody = parseTextBody(txBodyNode || {});
-  if (textBody.paragraphs.length === 0) {
-    textBody = undefined as unknown as typeof textBody;
+  let textBody = txBodyNode ? parseTextBody(txBodyNode, relationshipResolver) : undefined;
+  if (textBody && textBody.paragraphs.length === 0) {
+    textBody = undefined;
   }
 
   // Extract picture blip embed rId
@@ -256,7 +294,7 @@ export function parseSingleShape(
   // Parse children if group shape
   let children: PptxShape[] | undefined;
   if (shapeType === 'group') {
-    children = parseShapeTree(node);
+    children = parseShapeTree(node, relationshipResolver);
   }
 
   const baseResult = {
@@ -267,6 +305,7 @@ export function parseSingleShape(
     rotation,
     zIndex: 0,
     isVisible,
+    ...(hyperlink !== undefined && { hyperlink }),
     ...(isLocked !== undefined && { isLocked }),
     ...(locks !== undefined && { locks }),
     layerSource: 'slide' as const,
