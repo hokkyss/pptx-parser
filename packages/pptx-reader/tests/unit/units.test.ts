@@ -111,4 +111,13 @@ describe('Unit Conversion Functions (Strongly-Typed Units)', () => {
     expect(degreesToRotation(degrees(300))).toBe(18000000);
     expect(degreesToRotation(degrees(0))).toBe(0);
   });
+
+  it('should reject NaN and Infinity in branded unit constructors', () => {
+    expect(() => inches(NaN)).toThrow(TypeError);
+    expect(() => inches(Infinity)).toThrow(TypeError);
+    expect(() => points(NaN)).toThrow(TypeError);
+    expect(() => emu(-Infinity)).toThrow(TypeError);
+    expect(() => degrees(NaN)).toThrow(TypeError);
+    expect(() => percent(NaN)).toThrow(TypeError);
+  });
 });

@@ -1,5 +1,6 @@
 import type { PptxBullet, PptxParagraph, PptxRun, PptxTextBody, PptxTextBodyProperties } from '@hokkyss/pptx-core';
 import type { PptxColor, PptxFill } from '@hokkyss/pptx-core';
+import { sanitizeXmlText } from '../xml/xml-builder';
 
 const ALIGNMENT_MAP: Record<string, string> = {
   center: 'ctr',
@@ -189,8 +190,8 @@ export function serializeParagraph(paragraph: PptxParagraph): Record<string, unk
         rNode['a:rPr'] = rPr;
       }
     }
-    // Strict OpenXML compliance: <a:t> must not have raw newlines
-    rNode['a:t'] = (run.text ?? '').replace(/[\r\n]+/g, ' ');
+    // Strict OpenXML compliance: <a:t> must not have raw newlines or invalid XML 1.0 control characters
+    rNode['a:t'] = sanitizeXmlText((run.text ?? '').replace(/[\r\n]+/g, ' '));
     return rNode;
   });
 
