@@ -23,6 +23,11 @@ export interface CreatePresentationOptions {
   height?: Inches;
   title?: string;
   /**
+   * First slide number displayed on the presentation (starting slide number).
+   * OpenXML: `<p:presentation firstSlideNum="...">` (Defaults to 1 in PowerPoint, set to 0 for decks with Title covers).
+   */
+  firstSlideNumber?: number;
+  /**
    * Slide width in inches.
    * Standard Landscape references:
    * - 16:9 Widescreen (Default): `inches(13.333)`
@@ -76,6 +81,7 @@ export class Presentation {
     const metadata: PptxMetadata = {
       created: new Date(),
       creator: options.author || 'Pptx SDK',
+      firstSlideNumber: options.firstSlideNumber,
       lastModifiedBy: options.author || 'Pptx SDK',
       modified: new Date(),
       revision: 1,
@@ -440,6 +446,30 @@ export class Presentation {
     if (this._ast.slideMasters[0]?.theme) {
       this._ast.slideMasters[0].theme.name = name;
       (this._ast.slideMasters[0].theme.colorScheme as unknown as Record<string, string>).name = name;
+    }
+    return this;
+  }
+
+  /**
+   * First slide number displayed on the presentation (starting slide number).
+   * OpenXML: `<p:presentation firstSlideNum="...">` (Defaults to 1, set to 0 for decks with Title covers).
+   */
+  get firstSlideNumber(): number | undefined {
+    return this._ast.metadata?.firstSlideNumber;
+  }
+
+  /**
+   * Sets the starting slide number for the presentation.
+   * @param num Starting slide number (e.g. 0 or 1).
+   * @example
+   * ```ts
+   * const pres = Presentation.create();
+   * pres.setFirstSlideNumber(0); // Cover slide is numbered 0, content starts at 1
+   * ```
+   */
+  setFirstSlideNumber(num: number): this {
+    if (this._ast.metadata) {
+      this._ast.metadata.firstSlideNumber = num;
     }
     return this;
   }

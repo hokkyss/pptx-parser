@@ -266,8 +266,14 @@ export async function parsePptx(
   const slideWidth = (sldSz['@_cx'] !== undefined ? Number(sldSz['@_cx']) : 9144000) as Emu;
   const slideHeight = (sldSz['@_cy'] !== undefined ? Number(sldSz['@_cy']) : 6858000) as Emu;
 
+  const firstSlideNumAttr = presNode['@_firstSlideNum'];
+  const firstSlideNumber = firstSlideNumAttr !== undefined ? Number(firstSlideNumAttr) : undefined;
+
   // 2. Parse Core Properties (Metadata)
   const metadata = parseMetadata(zipReader, xmlParser, slideWidth, slideHeight);
+  if (firstSlideNumber !== undefined) {
+    metadata.firstSlideNumber = firstSlideNumber;
+  }
 
   // 3. Resolve Presentation Relationships
   const presRelsXml = zipReader.getFileText('ppt/_rels/presentation.xml.rels');

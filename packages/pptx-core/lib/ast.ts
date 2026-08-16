@@ -274,6 +274,11 @@ export interface PptxMetadata {
   slideWidth: Emu;
   /** Document title. OpenXML: `<dc:title>` */
   title?: string;
+  /**
+   * First slide number displayed on the presentation (starting slide number).
+   * OpenXML: `<p:presentation firstSlideNum="...">` (Defaults to 1 in PowerPoint, set to 0 for decks with Title covers).
+   */
+  firstSlideNumber?: number;
 }
 
 /** Represents a single slide */

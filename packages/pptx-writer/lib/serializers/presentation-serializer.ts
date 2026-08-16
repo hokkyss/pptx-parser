@@ -34,6 +34,9 @@ export function serializePresentation(
     '@_xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
     '@_xmlns:p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
     '@_xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+    ...(document.metadata?.firstSlideNumber !== undefined
+      ? { '@_firstSlideNum': document.metadata.firstSlideNumber }
+      : {}),
     'p:sldMasterIdLst': {
       'p:sldMasterId': sldMasterIdList,
     },

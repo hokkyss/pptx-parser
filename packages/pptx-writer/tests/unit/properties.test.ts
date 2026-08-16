@@ -2,6 +2,7 @@ import type { PptxMetadata } from '@hokkyss/pptx-core';
 import { emu } from '@hokkyss/pptx-core';
 import { describe, expect, it } from 'vitest';
 import { serializeAppProperties, serializeCoreProperties } from '../../lib/serializers/properties-serializer';
+import { serializePresentation } from '../../lib/serializers/presentation-serializer';
 
 describe('Properties Serializer', () => {
   const metadata: PptxMetadata = {
@@ -33,5 +34,46 @@ describe('Properties Serializer', () => {
     expect(xml).toContain('<Slides>5</Slides>');
     expect(xml).toContain('<Application>Microsoft Office PowerPoint</Application>');
     expect(xml).toContain('<PresentationFormat>Widescreen</PresentationFormat>');
+  });
+});
+
+describe('Presentation Serializer (firstSlideNum)', () => {
+  const baseDoc = {
+    customXml: [],
+    media: [],
+    metadata: {
+      slideCount: 0,
+      slideHeight: emu(6858000),
+      slideWidth: emu(12192000),
+    },
+    slideLayouts: [],
+    slideMasters: [],
+    slides: [],
+    themes: [],
+  };
+
+  const baseOptions = { slideRelIds: [] };
+
+  it('omits firstSlideNum attribute when firstSlideNumber is not set', () => {
+    const xml = serializePresentation(baseDoc, baseOptions);
+    expect(xml).not.toContain('firstSlideNum');
+  });
+
+  it('emits firstSlideNum="0" when firstSlideNumber is 0', () => {
+    const doc = {
+      ...baseDoc,
+      metadata: { ...baseDoc.metadata, firstSlideNumber: 0 },
+    };
+    const xml = serializePresentation(doc, baseOptions);
+    expect(xml).toContain('firstSlideNum="0"');
+  });
+
+  it('emits firstSlideNum="5" when firstSlideNumber is 5', () => {
+    const doc = {
+      ...baseDoc,
+      metadata: { ...baseDoc.metadata, firstSlideNumber: 5 },
+    };
+    const xml = serializePresentation(doc, baseOptions);
+    expect(xml).toContain('firstSlideNum="5"');
   });
 });
