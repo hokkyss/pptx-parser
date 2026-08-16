@@ -15,10 +15,10 @@
 
 | Package | Δ Minified | Δ Gzip | Δ Brotli | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **`@hokkyss/pptx-core`** | 0 B (0.0%) | 0 B (0.0%) | 0 B (0.0%) | 🟢 OPTIMIZED |
-| **`@hokkyss/pptx-reader`** | 0 B (0.0%) | 0 B (0.0%) | 0 B (0.0%) | 🟢 OPTIMIZED |
-| **`@hokkyss/pptx-writer`** | 0 B (0.0%) | 0 B (0.0%) | 0 B (0.0%) | 🟢 OPTIMIZED |
-| **`@hokkyss/pptx (Full SDK)`** | 0 B (0.0%) | 0 B (0.0%) | 0 B (0.0%) | 🟢 OPTIMIZED |
+| **`@hokkyss/pptx-core`** | +401 B (+24.6%) | +185 B (+42.3%) | +164 B (+42.9%) | 🔴 INCREASED |
+| **`@hokkyss/pptx-reader`** | +870 B (+0.9%) | +325 B (+1.2%) | +224 B (+0.9%) | 🔴 INCREASED |
+| **`@hokkyss/pptx-writer`** | +292 B (+0.2%) | +87 B (+0.3%) | +101 B (+0.4%) | 🔴 INCREASED |
+| **`@hokkyss/pptx (Full SDK)`** | +622 B (+0.3%) | +288 B (+0.6%) | +275 B (+0.6%) | 🔴 INCREASED |
 
 ### 🌲 First-Party Tree-Shaking Efficacy (Client Bundling)
 
@@ -33,16 +33,16 @@
 
 | Benchmark Workload | Package | Frequency (ops/s) | Mean Latency | p99 Latency | Margin of Error |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Parse In-Memory PPTX Package to AST** | `pptx-reader` | **9,656.0** | 0.1036 ms | 0.1459 ms | $\pm$ 0.23% |
-| **Serialize Shape to DrawingML XML** | `pptx-writer` | **4,708,741.4** | 0.0002 ms | 0.0004 ms | $\pm$ 2.2% |
-| **Serialize Table to DrawingML XML** | `pptx-writer` | **1,643,666.2** | 0.0006 ms | 0.0009 ms | $\pm$ 0.25% |
-| **Serialize Chart to DrawingML XML** | `pptx-writer` | **882,755.9** | 0.0011 ms | 0.0018 ms | $\pm$ 0.43% |
-| **Full writePptx ZIP Assembly** | `pptx-writer` | **1,378.8** | 0.7253 ms | 2.6588 ms | $\pm$ 5.02% |
-| **Single Slide with Shape & Text** | `pptx` | **1,832.0** | 0.5458 ms | 0.7706 ms | $\pm$ 0.8% |
-| **Enterprise Data Table (10 rows x 5 cols)** | `pptx` | **1,209.2** | 0.827 ms | 4.7131 ms | $\pm$ 6.5% |
-| **DrawingML Column Chart Generation** | `pptx` | **685.0** | 1.4599 ms | 11.0127 ms | $\pm$ 26.05% |
-| **10-Slide Full Enterprise Deck** | `pptx` | **278.5** | 3.5909 ms | 10.0702 ms | $\pm$ 7.23% |
-| **50-Slide Batch Scale** | `pptx` | **148.5** | 6.7323 ms | 20.7122 ms | $\pm$ 8.67% |
+| **Parse In-Memory PPTX Package to AST** | `pptx-reader` | **9,312.3** | 0.1074 ms | 0.1785 ms | $\pm$ 0.4% |
+| **Serialize Shape to DrawingML XML** | `pptx-writer` | **4,805,006.0** | 0.0002 ms | 0.0003 ms | $\pm$ 0.87% |
+| **Serialize Table to DrawingML XML** | `pptx-writer` | **1,684,633.0** | 0.0006 ms | 0.0008 ms | $\pm$ 0.14% |
+| **Serialize Chart to DrawingML XML** | `pptx-writer` | **925,100.7** | 0.0011 ms | 0.0014 ms | $\pm$ 0.17% |
+| **Full writePptx ZIP Assembly** | `pptx-writer` | **1,411.3** | 0.7086 ms | 2.6033 ms | $\pm$ 3.83% |
+| **Single Slide with Shape & Text** | `pptx` | **1,200.9** | 0.8327 ms | 3.963 ms | $\pm$ 6.11% |
+| **Enterprise Data Table (10 rows x 5 cols)** | `pptx` | **1,189.7** | 0.8405 ms | 4.146 ms | $\pm$ 7.94% |
+| **DrawingML Column Chart Generation** | `pptx` | **972.7** | 1.0281 ms | 4.2158 ms | $\pm$ 14.12% |
+| **10-Slide Full Enterprise Deck** | `pptx` | **165.3** | 6.0497 ms | 47.649 ms | $\pm$ 24.13% |
+| **50-Slide Batch Scale** | `pptx` | **120.4** | 8.3049 ms | 49.148 ms | $\pm$ 21.55% |
 
 ---
 *Generated automatically by `pnpm bench:json` on Node.js v24.13.1 (darwin arm64)*
