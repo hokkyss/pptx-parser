@@ -21,7 +21,10 @@ export default defineConfig({
   },
   plugins: [
     esmExternalRequirePlugin({
-      external: Object.keys(pkg.peerDependencies || {})
+      external: [
+        ...Object.keys(pkg.dependencies || {}),
+        ...Object.keys(pkg.peerDependencies || {}),
+      ]
         .map<RegExp | string>((key) => new RegExp(`^${key}(/.+)*`))
         .concat('node:console'),
     }),
