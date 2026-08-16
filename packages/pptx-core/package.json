@@ -1,6 +1,6 @@
 {
   "name": "@hokkyss/pptx-core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Foundational OpenXML AST schemas, branded physical/angular units, theme definitions, and conversion utilities for PPTX.",
   "type": "module",
   "sideEffects": false,
