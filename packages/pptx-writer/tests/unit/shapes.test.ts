@@ -127,6 +127,7 @@ describe('Shape Serializer', () => {
 
     const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
     const cNvCxnSpPr = nvCxnSpPr['p:cNvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    expect(cNvCxnSpPr['a:cxnSpLocks']).toEqual({});
     expect(cNvCxnSpPr['a:stCxn']).toEqual({
       '@_id': 'card-1',
       '@_idx': 3, // 'right' -> 3

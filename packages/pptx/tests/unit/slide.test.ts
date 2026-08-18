@@ -318,7 +318,7 @@ describe('Slide Class (Unit Tests)', () => {
     expect(connector.position.x).toBe(3657600); // 4 inches in EMU
     expect(connector.position.y).toBe(2743200); // 3 inches in EMU
     expect(connector.position.cx).toBe(1828800); // 2 inches in EMU
-    expect(connector.position.cy).toBe(1); // cx > 0, cy is 0 clamped to 1 EMU
+    expect(connector.position.cy).toBe(0); // Exact horizontal line
 
     // Full roundtrip write and load
     const bytes = await pres.toArrayBuffer();
@@ -349,5 +349,21 @@ describe('Slide Class (Unit Tests)', () => {
         to: { x: inches(5), y: inches(5) },
       });
     }).toThrow('Shape with id "non-existent-shape" was not found on this slide');
+  });
+
+  it('throws an informative error if attaching a connector to a group', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'my-group', x: inches(1), y: inches(1), w: inches(3), h: inches(2) }, (g) => {
+      g.addShape('rect', { x: inches(1), y: inches(1), w: inches(3), h: inches(2) });
+    });
+
+    expect(() => {
+      slide.addConnector({
+        from: { position: 'right', shapeId: 'my-group' },
+        to: { x: inches(5), y: inches(5) },
+      });
+    }).toThrow('Cannot attach connector to a group ("my-group")');
   });
 });

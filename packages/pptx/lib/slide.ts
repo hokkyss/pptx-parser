@@ -598,6 +598,9 @@ function resolveEndpoint(
     if (!shape) {
       throw new Error(`Shape with id "${endpoint.shapeId}" was not found on this slide. Ensure the shape is added before attaching a connector to it.`);
     }
+    if (shape.elementType === 'group') {
+      throw new Error(`Cannot attach connector to a group ("${endpoint.shapeId}"). Connectors must be attached to individual geometric shapes (e.g. rect, roundRect, ellipse).`);
+    }
     const x = Number(shape.position?.x ?? 0);
     const y = Number(shape.position?.y ?? 0);
     const w = Number(shape.position?.cx ?? 0);
@@ -684,8 +687,8 @@ export function buildConnectorElement(
     },
     name,
     position: {
-      cx: emu(cx > 0 ? cx : 1),
-      cy: emu(cy > 0 ? cy : 1),
+      cx: emu(cx),
+      cy: emu(cy),
       x: emu(minX),
       y: emu(minY),
     },

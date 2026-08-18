@@ -299,7 +299,9 @@ export function serializeConnector(connector: PptxConnectorElement): Record<stri
     }
   }
 
-  const cNvCxnSpPr: Record<string, unknown> = {};
+  const cNvCxnSpPr: Record<string, unknown> = {
+    'a:cxnSpLocks': {},
+  };
   if (connector.startConnection) {
     cNvCxnSpPr['a:stCxn'] = {
       '@_id': connector.startConnection.shapeId,
