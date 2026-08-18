@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { PptxConnectorElement } from '@hokkyss/pptx-core';
 import { inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
@@ -192,5 +193,78 @@ describe('Slide Class (Unit Tests)', () => {
     const bytes = await pres.toArrayBuffer();
     const reloaded = await Presentation.load(bytes);
     expect(reloaded.slides[0].getElements().length).toBe(2);
+  });
+
+  it('supports customizable arrowheads (endArrow, startArrow, headEnd, tailEnd) across save/load', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // 1. Shorthand arrow type
+    slide.addConnector({
+      color: '0284C7',
+      endArrow: 'triangle',
+      from: { x: inches(1), y: inches(1) },
+      startArrow: 'oval',
+      to: { x: inches(4), y: inches(1) },
+    });
+
+    // 2. Granular arrow configuration with custom width and length
+    slide.addConnector({
+      color: '10B981',
+      endArrow: { length: 'lg', type: 'stealth', width: 'lg' },
+      from: { x: inches(1), y: inches(3) },
+      startArrow: { length: 'sm', type: 'diamond', width: 'sm' },
+      to: { x: inches(4), y: inches(3) },
+    });
+
+    // 3. Aliases headEnd / tailEnd
+    slide.addConnector({
+      color: '6366F1',
+      from: { x: inches(1), y: inches(5) },
+      headEnd: { length: 'med', type: 'arrow', width: 'med' },
+      tailEnd: { length: 'med', type: 'none', width: 'med' },
+      to: { x: inches(4), y: inches(5) },
+    });
+
+    const elements = slide.getElements();
+    expect(elements.length).toBe(3);
+
+    const c1 = elements[0] as PptxConnectorElement;
+    expect(c1.line?.headEnd?.type).toBe('triangle');
+    expect(c1.line?.tailEnd?.type).toBe('oval');
+
+    const c2 = elements[1] as PptxConnectorElement;
+    expect(c2.line?.headEnd?.type).toBe('stealth');
+    expect(c2.line?.headEnd?.width).toBe('lg');
+    expect(c2.line?.headEnd?.length).toBe('lg');
+    expect(c2.line?.tailEnd?.type).toBe('diamond');
+    expect(c2.line?.tailEnd?.width).toBe('sm');
+    expect(c2.line?.tailEnd?.length).toBe('sm');
+
+    const c3 = elements[2] as PptxConnectorElement;
+    expect(c3.line?.headEnd?.type).toBe('arrow');
+    expect(c3.line?.tailEnd?.type).toBe('none');
+
+    // Verify full write and parse roundtrip fidelity
+    const bytes = await pres.toArrayBuffer();
+    const reloaded = await Presentation.load(bytes);
+    const reloadedElements = reloaded.slides[0].getElements();
+    expect(reloadedElements.length).toBe(3);
+
+    const rc1 = reloadedElements[0] as PptxConnectorElement;
+    expect(rc1.line?.headEnd?.type).toBe('triangle');
+    expect(rc1.line?.tailEnd?.type).toBe('oval');
+
+    const rc2 = reloadedElements[1] as PptxConnectorElement;
+    expect(rc2.line?.headEnd?.type).toBe('stealth');
+    expect(rc2.line?.headEnd?.width).toBe('lg');
+    expect(rc2.line?.headEnd?.length).toBe('lg');
+    expect(rc2.line?.tailEnd?.type).toBe('diamond');
+    expect(rc2.line?.tailEnd?.width).toBe('sm');
+    expect(rc2.line?.tailEnd?.length).toBe('sm');
+
+    const rc3 = reloadedElements[2] as PptxConnectorElement;
+    expect(rc3.line?.headEnd?.type).toBe('arrow');
+    expect(rc3.line?.tailEnd?.type).toBe('none');
   });
 });

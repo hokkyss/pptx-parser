@@ -2,6 +2,7 @@ import type {
   PptxConnectorElement,
   PptxGeometry,
   PptxLine,
+  PptxLineEnd,
   PptxShapeElement,
   PptxShapeLocks,
 } from '@hokkyss/pptx-core';
@@ -30,6 +31,18 @@ export function serializeShapeLocks(locks?: PptxShapeLocks): Record<string, unkn
 }
 
 /**
+ * Serializes line end arrowhead properties `<a:headEnd>` or `<a:tailEnd>`.
+ */
+export function serializeLineEnd(lineEnd?: PptxLineEnd): Record<string, unknown> | undefined {
+  if (!lineEnd) return undefined;
+  const node: Record<string, unknown> = {};
+  if (lineEnd.type !== undefined) node['@_type'] = lineEnd.type;
+  if (lineEnd.width !== undefined) node['@_w'] = lineEnd.width;
+  if (lineEnd.length !== undefined) node['@_len'] = lineEnd.length;
+  return Object.keys(node).length > 0 ? node : undefined;
+}
+
+/**
  * Serializes line/outline properties `<a:ln>`.
  */
 export function serializeLine(line?: PptxLine): Record<string, unknown> | undefined {
@@ -47,6 +60,14 @@ export function serializeLine(line?: PptxLine): Record<string, unknown> | undefi
   }
   if (line.dashStyle) {
     ln['a:prstDash'] = { '@_val': line.dashStyle };
+  }
+  if (line.headEnd) {
+    const head = serializeLineEnd(line.headEnd);
+    if (head) ln['a:headEnd'] = head;
+  }
+  if (line.tailEnd) {
+    const tail = serializeLineEnd(line.tailEnd);
+    if (tail) ln['a:tailEnd'] = tail;
   }
 
   return ln;

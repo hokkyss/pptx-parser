@@ -987,6 +987,7 @@ async function runShowcase() {
   slide8.addConnector({
     color: '0284C7',
     dashStyle: 'solid',
+    endArrow: { length: 'lg', type: 'triangle', width: 'lg' },
     from: { x: inches(4.2), y: inches(3.95) },
     to: { x: inches(5.0), y: inches(3.95) },
     width: inches(0.03),
@@ -1036,6 +1037,7 @@ async function runShowcase() {
   slide8.addConnector({
     color: '6366F1',
     dashStyle: 'solid',
+    endArrow: { length: 'lg', type: 'stealth', width: 'lg' },
     from: { x: inches(8.2), y: inches(3.95) },
     to: { x: inches(9.0), y: inches(3.95) },
     width: inches(0.03),
@@ -1081,13 +1083,15 @@ async function runShowcase() {
     });
   });
 
-  // Connector feedback loop (dashed return line from Step 3 back to Step 1)
+  // Connector feedback loop (dashed return line with arrows on both ends)
   slide8.addConnector({
     color: '94A3B8',
     dashStyle: 'dash',
+    endArrow: 'triangle',
     from: { x: inches(1.0), y: inches(6.2) },
+    startArrow: 'oval',
     to: { x: inches(12.2), y: inches(6.2) },
-    width: inches(0.015),
+    width: inches(0.02),
   });
 
   slide8.addText('Isomorphic Pipeline Feedback Loop: 100% Roundtrip Bit-Exact Precision', {

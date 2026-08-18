@@ -340,6 +340,17 @@ slide.addShape('rect', {
     width: points(2),
   },
 });
+
+// Connector line with customizable start and end arrowheads
+slide.addConnector({
+  from: { x: inches(1), y: inches(3) },
+  to: { x: inches(8), y: inches(3) },
+  color: '0284C7',
+  width: inches(0.03),
+  endArrow: 'triangle', // or { type: 'stealth', width: 'lg', length: 'lg' }
+  startArrow: { type: 'oval', width: 'med', length: 'med' },
+  shapeType: 'bentConnector2', // 'line' | 'straightConnector1' | 'bentConnector2' | 'curvedConnector3'
+});
 ```
 
 ---

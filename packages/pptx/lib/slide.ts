@@ -4,6 +4,10 @@ import type {
   PptxFill,
   PptxGroupElement,
   PptxHyperlink,
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
   PptxPictureElement,
   PptxShapeElement,
   PptxSlide,
@@ -14,6 +18,10 @@ import type {
 } from '@hokkyss/pptx-core';
 
 export type {
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
   PptxTransition,
   PptxTransitionDirection,
   PptxTransitionSpeed,
@@ -442,42 +450,23 @@ export class Slide {
   }
 
   /**
-   * Adds a connector or line between two points.
+   * Adds a connector or line between two points with optional custom arrowheads.
+   * @example
+   * ```ts
+   * slide.addConnector({
+   *   from: { x: inches(1), y: inches(1) },
+   *   to: { x: inches(4), y: inches(1) },
+   *   endArrow: 'triangle', // or { type: 'stealth', width: 'lg', length: 'lg' }
+   *   startArrow: 'oval',
+   *   color: '0284C7',
+   * });
+   * ```
    */
   addConnector(options: AddConnectorOptions): this {
-    const id = options.id || String(this._elementCounter++);
-    const name = options.name || `Connector ${id}`;
-    const x1 = inchesToEmu(options.from.x);
-    const y1 = inchesToEmu(options.from.y);
-    const x2 = inchesToEmu(options.to.x);
-    const y2 = inchesToEmu(options.to.y);
-    const minX = Math.min(Number(x1), Number(x2));
-    const minY = Math.min(Number(y1), Number(y2));
-    const cx = Math.abs(Number(x2) - Number(x1));
-    const cy = Math.abs(Number(y2) - Number(y1));
-
-    const connector: PptxConnectorElement = {
-      elementType: 'connector',
-      geometry: { presetGeometry: options.shapeType || 'line' },
-      id,
-      isVisible: true,
-      line: {
-        dashStyle: options.dashStyle,
-        fill: options.color ? { solidColor: { type: 'srgb', value: options.color.replace(/^#/, '') }, type: 'solid' } : undefined,
-        width: options.width ? inchesToEmu(options.width) : emu(19050),
-      },
-      name,
-      position: {
-        cx: emu(cx > 0 ? cx : 1),
-        cy: emu(cy > 0 ? cy : 1),
-        x: emu(minX),
-        y: emu(minY),
-      },
-      rotation: emuDegree(0),
-      shapeType: options.shapeType || 'line',
-      type: 'connector',
-      zIndex: options.zIndex ?? this._ast.elements.length,
-    };
+    const connector = buildConnectorElement(options, this._elementCounter++);
+    if (options.zIndex === undefined) {
+      connector.zIndex = this._ast.elements.length;
+    }
 
     this._ast.elements.push(connector);
     delete this._ast.rawXml;
@@ -571,15 +560,92 @@ export class Slide {
   }
 }
 
+/**
+ * Normalizes string or object line end configuration.
+ */
+function normalizeLineEnd(input?: PptxLineEnd | PptxLineEndType): PptxLineEnd | undefined {
+  if (!input) return undefined;
+  if (typeof input === 'string') {
+    return { type: input };
+  }
+  return input;
+}
+
+/**
+ * Builds a connector element AST node.
+ */
+export function buildConnectorElement(
+  options: AddConnectorOptions,
+  fallbackId: number | string,
+): PptxConnectorElement {
+  const id = options.id || String(fallbackId);
+  const name = options.name || `Connector ${id}`;
+  const x1 = inchesToEmu(options.from.x);
+  const y1 = inchesToEmu(options.from.y);
+  const x2 = inchesToEmu(options.to.x);
+  const y2 = inchesToEmu(options.to.y);
+  const minX = Math.min(Number(x1), Number(x2));
+  const minY = Math.min(Number(y1), Number(y2));
+  const cx = Math.abs(Number(x2) - Number(x1));
+  const cy = Math.abs(Number(y2) - Number(y1));
+
+  const headEnd = normalizeLineEnd(options.headEnd ?? options.endArrow);
+  const tailEnd = normalizeLineEnd(options.tailEnd ?? options.startArrow);
+
+  return {
+    elementType: 'connector',
+    geometry: { presetGeometry: options.shapeType || 'line' },
+    id,
+    isVisible: true,
+    line: {
+      dashStyle: options.dashStyle,
+      fill: options.color
+        ? { solidColor: { type: 'srgb', value: options.color.replace(/^#/, '') }, type: 'solid' }
+        : undefined,
+      width: options.width ? inchesToEmu(options.width) : emu(19050),
+      ...(headEnd && { headEnd }),
+      ...(tailEnd && { tailEnd }),
+    },
+    name,
+    position: {
+      cx: emu(cx > 0 ? cx : 1),
+      cy: emu(cy > 0 ? cy : 1),
+      x: emu(minX),
+      y: emu(minY),
+    },
+    rotation: emuDegree(0),
+    shapeType: options.shapeType || 'line',
+    type: 'connector',
+    zIndex: options.zIndex ?? 0,
+  };
+}
+
 export interface AddConnectorOptions {
+  /** Line stroke color (hex string, e.g. '#0284C7' or '0284C7') */
   color?: string;
+  /** Stroke dash style. OpenXML: `<a:prstDash @_val>` */
   dashStyle?: string;
+  /** End arrowhead / line marker (alias for headEnd). OpenXML: `<a:headEnd>` */
+  endArrow?: PptxLineEnd | PptxLineEndType;
+  /** Starting coordinate point `{ x: Inches, y: Inches }` */
   from: { x: Inches; y: Inches };
+  /** Head / end arrowhead marker. OpenXML: `<a:headEnd>` */
+  headEnd?: PptxLineEnd | PptxLineEndType;
+  /** Optional custom ID */
   id?: string;
+  /** Optional element name */
   name?: string;
+  /** Shape preset geometry for connector (defaults to 'line') */
   shapeType?: 'bentConnector2' | 'curvedConnector3' | 'line' | 'straightConnector1';
+  /** Start arrowhead / line marker (alias for tailEnd). OpenXML: `<a:tailEnd>` */
+  startArrow?: PptxLineEnd | PptxLineEndType;
+  /** Tail / start arrowhead marker. OpenXML: `<a:tailEnd>` */
+  tailEnd?: PptxLineEnd | PptxLineEndType;
+  /** Ending coordinate point `{ x: Inches, y: Inches }` */
   to: { x: Inches; y: Inches };
+  /** Line thickness width in inches */
   width?: Inches;
+  /** Visual stacking order */
   zIndex?: number;
 }
 
@@ -597,6 +663,12 @@ export interface AddGroupOptions {
 export class GroupBuilder {
   private _elements: PptxElement[] = [];
   private _elementCounter = 1;
+
+  addConnector(options: AddConnectorOptions): this {
+    const connector = buildConnectorElement(options, this._elementCounter++);
+    this._elements.push(connector);
+    return this;
+  }
 
   addShape(shapeType: string, options: AddShapeOptions): this {
     const shape = buildShapeElement(shapeType, options, this._elementCounter++);

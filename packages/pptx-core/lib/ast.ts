@@ -10,7 +10,14 @@ import type { PptxFill } from './color';
 import type { PptxMediaAsset } from './media';
 import type { PptxTable } from './table';
 import type { PptxHyperlink, PptxHyperlinkAction, PptxTextBody } from './text';
-import type { PptxLine, PptxTheme } from './theme';
+import type {
+  PptxLine,
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
+  PptxTheme,
+} from './theme';
 import type { Emu, EmuDegree, HundredthsPoint, ThousandthsPercent } from './units';
 
 export type {
@@ -23,6 +30,10 @@ export type {
   PptxHyperlink,
   PptxHyperlinkAction,
   PptxLine,
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
   PptxMediaAsset,
   PptxTable,
   PptxTextBody,

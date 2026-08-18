@@ -3,6 +3,10 @@ import {
   Emu,
   EmuDegree,
   PptxLine,
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
   PptxPlaceholder,
   PptxShape,
 } from '../types/ast';
@@ -115,6 +119,20 @@ export function parseShapeTree(
   }
 
   return shapes;
+}
+
+/** Helper to parse line end arrowhead properties from <a:headEnd> or <a:tailEnd> */
+function parseLineEnd(lineEndNode?: Record<string, unknown>): PptxLineEnd | undefined {
+  if (!lineEndNode) return undefined;
+  const type = lineEndNode['@_type'] as PptxLineEndType | undefined;
+  const width = lineEndNode['@_w'] as PptxLineEndWidth | undefined;
+  const length = lineEndNode['@_len'] as PptxLineEndLength | undefined;
+  if (!type && !width && !length) return undefined;
+  return {
+    ...(type && { type }),
+    ...(width && { width }),
+    ...(length && { length }),
+  };
 }
 
 /**
@@ -262,10 +280,14 @@ export function parseSingleShape(
     const lineFill = parseFill(lnNode);
     const prstDash = getXmlChild(lnNode, 'prstDash');
     const dashStyle = prstDash ? (prstDash['@_val'] as string) : undefined;
+    const headEnd = parseLineEnd(getXmlChild(lnNode, 'headEnd'));
+    const tailEnd = parseLineEnd(getXmlChild(lnNode, 'tailEnd'));
     line = {
       dashStyle,
       fill: lineFill,
       width: w,
+      ...(headEnd && { headEnd }),
+      ...(tailEnd && { tailEnd }),
     };
   }
 
