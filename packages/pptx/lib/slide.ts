@@ -587,6 +587,21 @@ function normalizeLineEnd(input?: PptxLineEnd | PptxLineEndType): PptxLineEnd | 
 }
 
 /**
+ * Recursively searches for an element by ID within a list of slide elements and nested group children.
+ */
+function findElementRecursively(elements: PptxElement[] | undefined, id: string): PptxElement | undefined {
+  if (!elements) return undefined;
+  for (const el of elements) {
+    if (el.id === id) return el;
+    if (el.elementType === 'group' && el.children) {
+      const found = findElementRecursively(el.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+/**
  * Resolves a connector endpoint (coordinate or shape attachment) to EMU coordinates and optional OpenXML attachment point.
  */
 function resolveEndpoint(
@@ -594,7 +609,7 @@ function resolveEndpoint(
   slideElements?: PptxElement[],
 ): { connection?: PptxShapeAttachment; emuX: Emu; emuY: Emu } {
   if ('shapeId' in endpoint) {
-    const shape = slideElements?.find((el) => el.id === endpoint.shapeId);
+    const shape = findElementRecursively(slideElements, endpoint.shapeId);
     if (!shape) {
       throw new Error(`Shape with id "${endpoint.shapeId}" was not found on this slide. Ensure the shape is added before attaching a connector to it.`);
     }

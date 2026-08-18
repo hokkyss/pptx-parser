@@ -943,109 +943,133 @@ async function runShowcase() {
     y: inches(1.4),
   });
 
-  // Stage 1 Card: Ingestion
-  slide8.addShape('roundRect', {
-    fill: 'FFFFFF',
+  // Stage 1 Group: Ingress & Decompress
+  slide8.addGroup({
     h: inches(3.5),
-    id: 'stage-1',
-    line: { color: '0284C7', width: inches(0.015) },
-    name: 'Stage 1 Card',
-    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
+    name: 'Stage 1 Ingress Container',
     w: inches(3.2),
     x: inches(1.0),
     y: inches(2.2),
-  });
-  slide8.addShape('roundRect', {
-    fill: '0284C7',
-    h: inches(0.4),
-    text: 'STEP 1: INGESTION',
-    textOptions: { bold: true, color: 'FFFFFF', fontSize: points(10), align: 'center' },
-    w: inches(2.6),
-    x: inches(1.3),
-    y: inches(2.5),
-  });
-  slide8.addText([
-    { bullet: true, level: 0, text: 'Streaming ZIP decompression' },
-    { bullet: true, level: 0, text: 'XML DOM part resolution' },
-    { bullet: true, level: 0, text: 'Extract relationships map' },
-  ], {
-    color: '475569',
-    fontSize: points(11),
-    h: inches(2.0),
-    w: inches(2.6),
-    x: inches(1.3),
-    y: inches(3.2),
+  }, (g) => {
+    g.addShape('roundRect', {
+      fill: 'FFFFFF',
+      h: inches(3.5),
+      id: 'stage-1',
+      line: { color: '0284C7', width: inches(0.015) },
+      name: 'Stage 1 Background',
+      shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
+      w: inches(3.2),
+      x: inches(1.0),
+      y: inches(2.2),
+    });
+    g.addShape('roundRect', {
+      fill: '0284C7',
+      h: inches(0.4),
+      text: 'STEP 1: INGESTION',
+      textOptions: { bold: true, color: 'FFFFFF', fontSize: points(10), align: 'center' },
+      w: inches(2.6),
+      x: inches(1.3),
+      y: inches(2.5),
+    });
+    g.addText([
+      { bullet: true, level: 0, text: 'Streaming ZIP decompression' },
+      { bullet: true, level: 0, text: 'XML DOM part resolution' },
+      { bullet: true, level: 0, text: 'Extract relationships map' },
+    ], {
+      color: '475569',
+      fontSize: points(11),
+      h: inches(2.0),
+      w: inches(2.6),
+      x: inches(1.3),
+      y: inches(3.2),
+    });
   });
 
-  // Stage 2 Card: Modeling
-  slide8.addShape('roundRect', {
-    fill: 'FFFFFF',
+  // Stage 2 Group: AST Modeling & Mutator
+  slide8.addGroup({
     h: inches(3.5),
-    id: 'stage-2',
-    line: { color: '6366F1', width: inches(0.015) },
-    name: 'Stage 2 Card',
-    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
+    name: 'Stage 2 AST Container',
     w: inches(3.2),
     x: inches(5.0),
     y: inches(2.2),
-  });
-  slide8.addShape('roundRect', {
-    fill: '6366F1',
-    h: inches(0.4),
-    text: 'STEP 2: MODELING',
-    textOptions: { bold: true, color: 'FFFFFF', fontSize: points(10), align: 'center' },
-    w: inches(2.6),
-    x: inches(5.3),
-    y: inches(2.5),
-  });
-  slide8.addText([
-    { bullet: true, level: 0, text: 'Type-safe AST generation' },
-    { bullet: true, level: 0, text: 'Layer & placeholder cascade' },
-    { bullet: true, level: 0, text: 'Fluent mutations & styling' },
-  ], {
-    color: '475569',
-    fontSize: points(11),
-    h: inches(2.0),
-    w: inches(2.6),
-    x: inches(5.3),
-    y: inches(3.2),
+  }, (g) => {
+    g.addShape('roundRect', {
+      fill: 'FFFFFF',
+      h: inches(3.5),
+      id: 'stage-2',
+      line: { color: '6366F1', width: inches(0.015) },
+      name: 'Stage 2 Background',
+      shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
+      w: inches(3.2),
+      x: inches(5.0),
+      y: inches(2.2),
+    });
+    g.addShape('roundRect', {
+      fill: '6366F1',
+      h: inches(0.4),
+      text: 'STEP 2: MODELING',
+      textOptions: { bold: true, color: 'FFFFFF', fontSize: points(10), align: 'center' },
+      w: inches(2.6),
+      x: inches(5.3),
+      y: inches(2.5),
+    });
+    g.addText([
+      { bullet: true, level: 0, text: 'Type-safe AST generation' },
+      { bullet: true, level: 0, text: 'Layer & placeholder cascade' },
+      { bullet: true, level: 0, text: 'Fluent mutations & styling' },
+    ], {
+      color: '475569',
+      fontSize: points(11),
+      h: inches(2.0),
+      w: inches(2.6),
+      x: inches(5.3),
+      y: inches(3.2),
+    });
   });
 
-  // Stage 3 Card: Compilation
-  slide8.addShape('roundRect', {
-    fill: 'FFFFFF',
+  // Stage 3 Group: Serialization & Packaging
+  slide8.addGroup({
     h: inches(3.5),
-    id: 'stage-3',
-    line: { color: '10B981', width: inches(0.015) },
-    name: 'Stage 3 Card',
-    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
+    name: 'Stage 3 Packaging Container',
     w: inches(3.2),
     x: inches(9.0),
     y: inches(2.2),
-  });
-  slide8.addShape('roundRect', {
-    fill: '10B981',
-    h: inches(0.4),
-    text: 'STEP 3: COMPILATION',
-    textOptions: { bold: true, color: 'FFFFFF', fontSize: points(10), align: 'center' },
-    w: inches(2.6),
-    x: inches(9.3),
-    y: inches(2.5),
-  });
-  slide8.addText([
-    { bullet: true, level: 0, text: 'Deterministic XML emission' },
-    { bullet: true, level: 0, text: 'Zero-copy fflate compression' },
-    { bullet: true, level: 0, text: 'ECMA-376 compliant PPTX' },
-  ], {
-    color: '475569',
-    fontSize: points(11),
-    h: inches(2.0),
-    w: inches(2.6),
-    x: inches(9.3),
-    y: inches(3.2),
+  }, (g) => {
+    g.addShape('roundRect', {
+      fill: 'FFFFFF',
+      h: inches(3.5),
+      id: 'stage-3',
+      line: { color: '10B981', width: inches(0.015) },
+      name: 'Stage 3 Background',
+      shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
+      w: inches(3.2),
+      x: inches(9.0),
+      y: inches(2.2),
+    });
+    g.addShape('roundRect', {
+      fill: '10B981',
+      h: inches(0.4),
+      text: 'STEP 3: COMPILATION',
+      textOptions: { bold: true, color: 'FFFFFF', fontSize: points(10), align: 'center' },
+      w: inches(2.6),
+      x: inches(9.3),
+      y: inches(2.5),
+    });
+    g.addText([
+      { bullet: true, level: 0, text: 'Deterministic XML emission' },
+      { bullet: true, level: 0, text: 'Zero-copy fflate compression' },
+      { bullet: true, level: 0, text: 'ECMA-376 compliant PPTX' },
+    ], {
+      color: '475569',
+      fontSize: points(11),
+      h: inches(2.0),
+      w: inches(2.6),
+      x: inches(9.3),
+      y: inches(3.2),
+    });
   });
 
-  // Connector 1 -> 2 (glued to stage-1 right side and stage-2 left side)
+  // Connector 1 -> 2 (glued to stage-1 inner background and stage-2 inner background)
   slide8.addConnector({
     color: '0284C7',
     dashStyle: 'solid',
@@ -1055,7 +1079,7 @@ async function runShowcase() {
     width: inches(0.03),
   });
 
-  // Connector 2 -> 3 (glued to stage-2 right side and stage-3 left side)
+  // Connector 2 -> 3 (glued to stage-2 inner background and stage-3 inner background)
   slide8.addConnector({
     color: '6366F1',
     dashStyle: 'solid',
