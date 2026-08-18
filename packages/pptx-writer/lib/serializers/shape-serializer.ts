@@ -1,4 +1,5 @@
 import type {
+  PptxConnectionPosition,
   PptxConnectorElement,
   PptxGeometry,
   PptxLine,
@@ -273,6 +274,13 @@ export function serializeShape(shape: PptxShapeElement): Record<string, unknown>
   return sp;
 }
 
+const POSITION_TO_INDEX_MAP: Record<PptxConnectionPosition, number> = {
+  top: 0,
+  left: 1,
+  bottom: 2,
+  right: 3,
+};
+
 /**
  * Serializes a connector element into OpenXML `<p:cxnSp>`.
  */
@@ -291,9 +299,23 @@ export function serializeConnector(connector: PptxConnectorElement): Record<stri
     }
   }
 
+  const cNvCxnSpPr: Record<string, unknown> = {};
+  if (connector.startConnection) {
+    cNvCxnSpPr['a:stCxn'] = {
+      '@_id': connector.startConnection.shapeId,
+      '@_idx': POSITION_TO_INDEX_MAP[connector.startConnection.position] ?? 0,
+    };
+  }
+  if (connector.endConnection) {
+    cNvCxnSpPr['a:endCxn'] = {
+      '@_id': connector.endConnection.shapeId,
+      '@_idx': POSITION_TO_INDEX_MAP[connector.endConnection.position] ?? 0,
+    };
+  }
+
   const nvCxnSpPr = {
     'p:cNvPr': cNvPr,
-    'p:cNvCxnSpPr': {},
+    'p:cNvCxnSpPr': cNvCxnSpPr,
     'p:nvPr': {},
   };
 

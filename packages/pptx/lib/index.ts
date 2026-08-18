@@ -16,6 +16,8 @@ export {
   type AddGroupOptions,
   type AddImageOptions,
   type AddTextOptions,
+  type ConnectionPosition,
+  type ConnectorEndpoint,
   GroupBuilder,
   type PptxLineEnd,
   type PptxLineEndLength,
@@ -25,6 +27,7 @@ export {
   type PptxTransitionDirection,
   type PptxTransitionSpeed,
   type PptxTransitionType,
+  type ShapeAttachment,
   Slide,
 } from './slide';
 

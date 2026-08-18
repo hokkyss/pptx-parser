@@ -267,4 +267,84 @@ describe('Slide Class (Unit Tests)', () => {
     expect(rc3.line?.headEnd?.type).toBe('arrow');
     expect(rc3.line?.tailEnd?.type).toBe('none');
   });
+
+  it('supports attaching connectors to shapes via shapeId and position (top, bottom, left, right)', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Add Card 1: x: 1", y: 2", w: 3", h: 2" -> Center-right is (4", 3")
+    slide.addShape('roundRect', {
+      id: 'step-1',
+      fill: '0284C7',
+      h: inches(2),
+      w: inches(3),
+      x: inches(1),
+      y: inches(2),
+    });
+
+    // Add Card 2: x: 6", y: 2", w: 3", h: 2" -> Center-left is (6", 3")
+    slide.addShape('roundRect', {
+      id: 'step-2',
+      fill: '6366F1',
+      h: inches(2),
+      w: inches(3),
+      x: inches(6),
+      y: inches(2),
+    });
+
+    // Attach connector between step-1 (right) and step-2 (left)
+    slide.addConnector({
+      color: '0284C7',
+      endArrow: 'triangle',
+      from: { position: 'right', shapeId: 'step-1' },
+      to: { position: 'left', shapeId: 'step-2' },
+    });
+
+    const elements = slide.getElements();
+    expect(elements.length).toBe(3);
+
+    const connector = elements[2] as PptxConnectorElement;
+    expect(connector.elementType).toBe('connector');
+    expect(connector.startConnection).toEqual({
+      position: 'right',
+      shapeId: 'step-1',
+    });
+    expect(connector.endConnection).toEqual({
+      position: 'left',
+      shapeId: 'step-2',
+    });
+
+    // Position check: (minX=4", minY=3", cx=2", cy=0")
+    expect(connector.position.x).toBe(3657600); // 4 inches in EMU
+    expect(connector.position.y).toBe(2743200); // 3 inches in EMU
+    expect(connector.position.cx).toBe(1828800); // 2 inches in EMU
+    expect(connector.position.cy).toBe(1); // cx > 0, cy is 0 clamped to 1 EMU
+
+    // Full roundtrip write and load
+    const bytes = await pres.toArrayBuffer();
+    const reloaded = await Presentation.load(bytes);
+    const reloadedConnector = reloaded.slides[0].getElements()[2] as PptxConnectorElement;
+
+    expect(reloadedConnector.elementType).toBe('connector');
+    expect(reloadedConnector.startConnection).toEqual({
+      position: 'right',
+      shapeId: 'step-1',
+    });
+    expect(reloadedConnector.endConnection).toEqual({
+      position: 'left',
+      shapeId: 'step-2',
+    });
+  });
+
+  it('throws an informative error if attaching a connector to a non-existent shapeId', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    expect(() => {
+      slide.addConnector({
+        from: { position: 'right', shapeId: 'non-existent-shape' },
+        to: { x: inches(5), y: inches(5) },
+      });
+    }).toThrow('Shape with id "non-existent-shape" was not found on this slide');
+  });
 });

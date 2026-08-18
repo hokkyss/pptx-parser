@@ -106,4 +106,34 @@ describe('Shape Serializer', () => {
     expect(tailEnd['@_w']).toBe('sm');
     expect(tailEnd['@_len']).toBe('med');
   });
+
+  it('serializes connector with startConnection and endConnection shape attachments', () => {
+    const connector = {
+      elementType: 'connector' as const,
+      endConnection: { position: 'left' as const, shapeId: 'card-2' },
+      id: '10',
+      isVisible: true,
+      name: 'Attached Connector',
+      position: { cx: emu(2000000), cy: emu(0), x: emu(1000000), y: emu(1000000) },
+      rotation: emuDegree(0),
+      shapeType: 'line',
+      startConnection: { position: 'right' as const, shapeId: 'card-1' },
+      type: 'connector' as const,
+      zIndex: 2,
+    };
+
+    const xmlObject = serializeConnector(connector);
+    expect(xmlObject).toBeDefined();
+
+    const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    const cNvCxnSpPr = nvCxnSpPr['p:cNvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    expect(cNvCxnSpPr['a:stCxn']).toEqual({
+      '@_id': 'card-1',
+      '@_idx': 3, // 'right' -> 3
+    });
+    expect(cNvCxnSpPr['a:endCxn']).toEqual({
+      '@_id': 'card-2',
+      '@_idx': 1, // 'left' -> 1
+    });
+  });
 });

@@ -2,6 +2,7 @@ import type { RelationshipResolver } from '@hokkyss/pptx-core';
 import {
   Emu,
   EmuDegree,
+  PptxConnectionPosition,
   PptxLine,
   PptxLineEnd,
   PptxLineEndLength,
@@ -9,6 +10,7 @@ import {
   PptxLineEndWidth,
   PptxPlaceholder,
   PptxShape,
+  PptxShapeAttachment,
 } from '../types/ast';
 import { defaultXmlParser, getXmlChild, getXmlChildren, XmlParser } from '../xml/xml-parser';
 import { parseFill } from './fill-parser';
@@ -135,6 +137,24 @@ function parseLineEnd(lineEndNode?: Record<string, unknown>): PptxLineEnd | unde
   };
 }
 
+const INDEX_TO_POSITION_MAP: Record<number, PptxConnectionPosition> = {
+  0: 'top',
+  1: 'left',
+  2: 'bottom',
+  3: 'right',
+};
+
+/** Helper to parse connector attachment points from <a:stCxn> or <a:endCxn> */
+function parseConnectionPoint(cxnNode?: Record<string, unknown>): PptxShapeAttachment | undefined {
+  if (!cxnNode) return undefined;
+  const rawId = cxnNode['@_id'];
+  if (rawId === undefined || rawId === null) return undefined;
+  const shapeId = String(rawId);
+  const rawIdx = Number(cxnNode['@_idx'] ?? 0);
+  const position = INDEX_TO_POSITION_MAP[rawIdx] || 'top';
+  return { position, shapeId };
+}
+
 /**
  * Parses a single OpenXML shape node (`<p:sp>`, `<p:pic>`, `<p:graphicFrame>`, `<p:grpSp>`, `<p:cxnSp>`).
  * @param node Raw XML object node.
@@ -147,12 +167,13 @@ export function parseSingleShape(
   shapeType: 'connector' | 'graphicFrame' | 'group' | 'picture' | 'shape',
   relationshipResolver?: RelationshipResolver,
 ): PptxShape {
-  // Non-visual shape properties node (nvSpPr, nvPicPr, nvGraphicFramePr, nvGrpSpPr)
+  // Non-visual shape properties node (nvSpPr, nvPicPr, nvGraphicFramePr, nvGrpSpPr, nvCxnSpPr)
   const nvPrNode
     = getXmlChild(node, 'nvSpPr')
       || getXmlChild(node, 'nvPicPr')
       || getXmlChild(node, 'nvGraphicFramePr')
       || getXmlChild(node, 'nvGrpSpPr')
+      || getXmlChild(node, 'nvCxnSpPr')
       || {};
 
   const cNvPrNode = getXmlChild(nvPrNode, 'cNvPr') || {};
@@ -329,11 +350,19 @@ export function parseSingleShape(
   }
 
   if (shapeType === 'connector') {
+    const cNvCxnSpPrNode = getXmlChild(nvPrNode, 'cNvCxnSpPr') || cNvChild;
+    const stCxnNode = getXmlChild(cNvCxnSpPrNode, 'stCxn');
+    const endCxnNode = getXmlChild(cNvCxnSpPrNode, 'endCxn');
+    const startConnection = parseConnectionPoint(stCxnNode);
+    const endConnection = parseConnectionPoint(endCxnNode);
+
     return {
       ...baseResult,
-      type: 'connector',
       elementType: 'connector',
       textBody,
+      type: 'connector',
+      ...(startConnection && { startConnection }),
+      ...(endConnection && { endConnection }),
     };
   }
 

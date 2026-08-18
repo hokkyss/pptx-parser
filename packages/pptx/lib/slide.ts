@@ -1,4 +1,5 @@
 import type {
+  PptxConnectionPosition,
   PptxConnectorElement,
   PptxElement,
   PptxFill,
@@ -9,6 +10,7 @@ import type {
   PptxLineEndType,
   PptxLineEndWidth,
   PptxPictureElement,
+  PptxShapeAttachment,
   PptxShapeElement,
   PptxSlide,
   PptxTransition,
@@ -16,6 +18,10 @@ import type {
   PptxTransitionSpeed,
   PptxTransitionType,
 } from '@hokkyss/pptx-core';
+
+export type ConnectionPosition = PptxConnectionPosition;
+export type ShapeAttachment = PptxShapeAttachment;
+export type ConnectorEndpoint = { x: Inches; y: Inches } | ShapeAttachment;
 
 export type {
   PptxLineEnd,
@@ -33,6 +39,7 @@ import {
   emuDegree,
   emuToInches,
   type Degrees,
+  type Emu,
   type Inches,
   inchesToEmu,
   type ThousandthsPercent,
@@ -450,20 +457,28 @@ export class Slide {
   }
 
   /**
-   * Adds a connector or line between two points with optional custom arrowheads.
+   * Adds a connector or line between two points or attached to shapes.
    * @example
    * ```ts
+   * // Attached to shapes
+   * slide.addConnector({
+   *   from: { shapeId: 'card-1', position: 'right' },
+   *   to: { shapeId: 'card-2', position: 'left' },
+   *   endArrow: 'triangle',
+   *   color: '0284C7',
+   * });
+   *
+   * // Arbitrary coordinates
    * slide.addConnector({
    *   from: { x: inches(1), y: inches(1) },
    *   to: { x: inches(4), y: inches(1) },
-   *   endArrow: 'triangle', // or { type: 'stealth', width: 'lg', length: 'lg' }
+   *   endArrow: 'triangle',
    *   startArrow: 'oval',
-   *   color: '0284C7',
    * });
    * ```
    */
   addConnector(options: AddConnectorOptions): this {
-    const connector = buildConnectorElement(options, this._elementCounter++);
+    const connector = buildConnectorElement(options, this._elementCounter++, this._ast.elements);
     if (options.zIndex === undefined) {
       connector.zIndex = this._ast.elements.length;
     }
@@ -572,18 +587,78 @@ function normalizeLineEnd(input?: PptxLineEnd | PptxLineEndType): PptxLineEnd | 
 }
 
 /**
+ * Resolves a connector endpoint (coordinate or shape attachment) to EMU coordinates and optional OpenXML attachment point.
+ */
+function resolveEndpoint(
+  endpoint: ConnectorEndpoint,
+  slideElements?: PptxElement[],
+): { connection?: PptxShapeAttachment; emuX: Emu; emuY: Emu } {
+  if ('shapeId' in endpoint) {
+    const shape = slideElements?.find((el) => el.id === endpoint.shapeId);
+    if (!shape) {
+      throw new Error(`Shape with id "${endpoint.shapeId}" was not found on this slide. Ensure the shape is added before attaching a connector to it.`);
+    }
+    const x = Number(shape.position?.x ?? 0);
+    const y = Number(shape.position?.y ?? 0);
+    const w = Number(shape.position?.cx ?? 0);
+    const h = Number(shape.position?.cy ?? 0);
+
+    let emuX: Emu;
+    let emuY: Emu;
+
+    switch (endpoint.position) {
+      case 'bottom':
+        emuX = emu(Math.round(x + w / 2));
+        emuY = emu(Math.round(y + h));
+        break;
+      case 'left':
+        emuX = emu(Math.round(x));
+        emuY = emu(Math.round(y + h / 2));
+        break;
+      case 'right':
+        emuX = emu(Math.round(x + w));
+        emuY = emu(Math.round(y + h / 2));
+        break;
+      case 'top':
+        emuX = emu(Math.round(x + w / 2));
+        emuY = emu(Math.round(y));
+        break;
+      default:
+        emuX = emu(Math.round(x));
+        emuY = emu(Math.round(y));
+    }
+
+    return {
+      connection: { position: endpoint.position, shapeId: endpoint.shapeId },
+      emuX,
+      emuY,
+    };
+  }
+
+  return {
+    emuX: inchesToEmu(endpoint.x),
+    emuY: inchesToEmu(endpoint.y),
+  };
+}
+
+/**
  * Builds a connector element AST node.
  */
 export function buildConnectorElement(
   options: AddConnectorOptions,
   fallbackId: number | string,
+  slideElements?: PptxElement[],
 ): PptxConnectorElement {
   const id = options.id || String(fallbackId);
   const name = options.name || `Connector ${id}`;
-  const x1 = inchesToEmu(options.from.x);
-  const y1 = inchesToEmu(options.from.y);
-  const x2 = inchesToEmu(options.to.x);
-  const y2 = inchesToEmu(options.to.y);
+
+  const fromResolved = resolveEndpoint(options.from, slideElements);
+  const toResolved = resolveEndpoint(options.to, slideElements);
+
+  const x1 = fromResolved.emuX;
+  const y1 = fromResolved.emuY;
+  const x2 = toResolved.emuX;
+  const y2 = toResolved.emuY;
   const minX = Math.min(Number(x1), Number(x2));
   const minY = Math.min(Number(y1), Number(y2));
   const cx = Math.abs(Number(x2) - Number(x1));
@@ -594,6 +669,7 @@ export function buildConnectorElement(
 
   return {
     elementType: 'connector',
+    ...(toResolved.connection && { endConnection: toResolved.connection }),
     geometry: { presetGeometry: options.shapeType || 'line' },
     id,
     isVisible: true,
@@ -615,6 +691,7 @@ export function buildConnectorElement(
     },
     rotation: emuDegree(0),
     shapeType: options.shapeType || 'line',
+    ...(fromResolved.connection && { startConnection: fromResolved.connection }),
     type: 'connector',
     zIndex: options.zIndex ?? 0,
   };
@@ -627,8 +704,8 @@ export interface AddConnectorOptions {
   dashStyle?: string;
   /** End arrowhead / line marker (alias for headEnd). OpenXML: `<a:headEnd>` */
   endArrow?: PptxLineEnd | PptxLineEndType;
-  /** Starting coordinate point `{ x: Inches, y: Inches }` */
-  from: { x: Inches; y: Inches };
+  /** Starting coordinate point `{ x: Inches, y: Inches }` or shape attachment `{ shapeId: string, position: 'top' | 'bottom' | 'left' | 'right' }` */
+  from: ConnectorEndpoint;
   /** Head / end arrowhead marker. OpenXML: `<a:headEnd>` */
   headEnd?: PptxLineEnd | PptxLineEndType;
   /** Optional custom ID */
@@ -641,8 +718,8 @@ export interface AddConnectorOptions {
   startArrow?: PptxLineEnd | PptxLineEndType;
   /** Tail / start arrowhead marker. OpenXML: `<a:tailEnd>` */
   tailEnd?: PptxLineEnd | PptxLineEndType;
-  /** Ending coordinate point `{ x: Inches, y: Inches }` */
-  to: { x: Inches; y: Inches };
+  /** Ending coordinate point `{ x: Inches, y: Inches }` or shape attachment `{ shapeId: string, position: 'top' | 'bottom' | 'left' | 'right' }` */
+  to: ConnectorEndpoint;
   /** Line thickness width in inches */
   width?: Inches;
   /** Visual stacking order */
@@ -665,7 +742,7 @@ export class GroupBuilder {
   private _elementCounter = 1;
 
   addConnector(options: AddConnectorOptions): this {
-    const connector = buildConnectorElement(options, this._elementCounter++);
+    const connector = buildConnectorElement(options, this._elementCounter++, this._elements);
     this._elements.push(connector);
     return this;
   }
