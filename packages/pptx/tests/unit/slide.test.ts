@@ -392,6 +392,80 @@ describe('Slide Class (Unit Tests)', () => {
     }).toThrow('Duplicate element ID "stage-1" detected on Slide 1');
   });
 
+  it('detects duplicate IDs across mixed element types (text, table, chart, connector, image, group)', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addText('Title Text', { id: 'elem-1', x: inches(1), y: inches(1) });
+
+    // Colliding with addTable
+    expect(() => {
+      slide.addTable([['Header'], ['Value']], { id: 'elem-1', x: inches(1), y: inches(2) });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+
+    // Colliding with addChart
+    expect(() => {
+      slide.addChart({ categories: ['Q1'], id: 'elem-1', series: [{ data: [100], name: 'Revenue' }] });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+
+    // Colliding with addConnector
+    expect(() => {
+      slide.addConnector({ from: { x: inches(1), y: inches(1) }, id: 'elem-1', to: { x: inches(3), y: inches(1) } });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+
+    // Colliding with addGroup
+    expect(() => {
+      slide.addGroup({ h: inches(2), id: 'elem-1', w: inches(2), x: inches(1), y: inches(1) }, (g) => {
+        g.addShape('rect', { h: inches(1), w: inches(1), x: inches(1), y: inches(1) });
+      });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+  });
+
+  it('detects duplicate IDs between top-level shapes and shapes nested inside groups', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'nested-card', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(() => {
+      slide.addGroup({ h: inches(3), id: 'my-group-1', w: inches(3), x: inches(1), y: inches(1) }, (g) => {
+        g.addShape('rect', { id: 'nested-card', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+      });
+    }).toThrow('Duplicate element ID "nested-card" detected on Slide 1');
+  });
+
+  it('allows ID reuse after an element is removed with removeElement', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'temp-id', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    expect(slide.removeElement('temp-id')).toBe(true);
+
+    // Re-adding with same ID should now succeed
+    expect(() => {
+      slide.addShape('ellipse', { id: 'temp-id', x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+    }).not.toThrow();
+
+    expect(slide.getElementById('temp-id')?.shapeType).toBe('ellipse');
+  });
+
+  it('auto-increment element counter avoids colliding with manual numeric IDs', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // User manually specifies id '1' and '2'
+    slide.addShape('roundRect', { id: '1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('roundRect', { id: '2', x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+
+    // Auto-generated shape should skip 1 and 2 and take 3 without throwing
+    expect(() => {
+      slide.addShape('roundRect', { x: inches(5), y: inches(1), w: inches(2), h: inches(2) });
+    }).not.toThrow();
+
+    const elements = slide.getElements();
+    expect(elements[2].id).toBe('3');
+  });
+
   it('allows the same element ID across different slides', () => {
     const pres = Presentation.create();
     const slide1 = pres.addSlide();

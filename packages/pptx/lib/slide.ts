@@ -148,16 +148,16 @@ export class Slide {
   }
 
   /**
-   * Registers an element into the map, enforcing uniqueness for custom IDs.
+   * Registers an element into the map, enforcing uniqueness across the slide.
    */
-  private _registerElement(el: PptxElement, isCustomId: boolean): void {
-    if (isCustomId && this._elementsById.has(el.id)) {
+  private _registerElement(el: PptxElement): void {
+    if (this._elementsById.has(el.id)) {
       throw new Error(`Duplicate element ID "${el.id}" detected on Slide ${this.slideNumber}. Element IDs must be unique within a slide.`);
     }
     this._elementsById.set(el.id, el);
     if (el.elementType === 'group' && el.children) {
       for (const child of el.children) {
-        this._registerElement(child, false);
+        this._registerElement(child);
       }
     }
   }
@@ -374,7 +374,6 @@ export class Slide {
         return this;
       }
 
-      const isCustomId = Boolean(options.id);
       const id = options.id || this._getNextElementId();
       const name = options.name || placeholderEl?.name || `placeholder:${options.placeholder}`;
       const fill = options.fill ? normalizeFill(options.fill) : placeholderEl?.fill;
@@ -400,14 +399,13 @@ export class Slide {
         zIndex: options.zIndex ?? this._ast.elements.length,
       };
 
-      this._registerElement(shape, isCustomId);
+      this._registerElement(shape);
       this._ast.elements.push(shape);
       delete this._ast.rawXml;
       return this;
     }
 
     // Default standalone text box
-    const isCustomId = Boolean(options.id);
     const id = options.id || this._getNextElementId();
     const name = options.name || `Text Box ${id}`;
     const fill = normalizeFill(options.fill);
@@ -432,7 +430,7 @@ export class Slide {
       zIndex: options.zIndex ?? 0,
     };
 
-    this._registerElement(shape, isCustomId);
+    this._registerElement(shape);
     this._ast.elements.push(shape);
     delete this._ast.rawXml;
     return this;
@@ -442,10 +440,9 @@ export class Slide {
    * Adds a geometric shape (rect, roundRect, ellipse, arrow, etc.) to the slide.
    */
   addShape(shapeType: string, options: AddShapeOptions): this {
-    const isCustomId = Boolean(options.id);
     const fallbackId = this._getNextElementId();
     const shape = buildShapeElement(shapeType, options, fallbackId);
-    this._registerElement(shape, isCustomId);
+    this._registerElement(shape);
     this._ast.elements.push(shape);
     delete this._ast.rawXml;
     return this;
@@ -459,7 +456,6 @@ export class Slide {
     options: AddImageOptions = {},
   ): this {
     const bytes = imageData instanceof Uint8Array ? imageData : new Uint8Array(imageData);
-    const isCustomId = Boolean(options.id);
     const id = options.id || this._getNextElementId();
     const name = options.name || `Picture ${id}`;
 
@@ -501,7 +497,7 @@ export class Slide {
       zIndex: options.zIndex ?? 0,
     };
 
-    this._registerElement(picElement, isCustomId);
+    this._registerElement(picElement);
     this._ast.elements.push(picElement);
     delete this._ast.rawXml;
     return this;
@@ -539,7 +535,7 @@ export class Slide {
       tableElement = TableBuilder.fromMatrix(dataOrBuilder, resolvedOptions, fallbackId);
     }
 
-    this._registerElement(tableElement, Boolean(options.id));
+    this._registerElement(tableElement);
     this._ast.elements.push(tableElement);
     delete this._ast.rawXml;
     return this;
@@ -567,14 +563,13 @@ export class Slide {
    * ```
    */
   addConnector(options: AddConnectorOptions): this {
-    const isCustomId = Boolean(options.id);
     const fallbackId = this._getNextElementId();
     const connector = buildConnectorElement(options, fallbackId, this._elementsById);
     if (options.zIndex === undefined) {
       connector.zIndex = this._ast.elements.length;
     }
 
-    this._registerElement(connector, isCustomId);
+    this._registerElement(connector);
     this._ast.elements.push(connector);
     delete this._ast.rawXml;
     return this;
@@ -584,10 +579,9 @@ export class Slide {
    * Adds an interactive data chart (bar, line, pie, area) to the slide.
    */
   addChart(options: AddChartOptions): this {
-    const isCustomId = Boolean(options.id);
     const fallbackId = this._getNextElementId();
     const chartElement = buildChartElement(options, fallbackId);
-    this._registerElement(chartElement, isCustomId);
+    this._registerElement(chartElement);
     this._ast.elements.push(chartElement);
     delete this._ast.rawXml;
     return this;
@@ -600,13 +594,12 @@ export class Slide {
     options: AddGroupOptions,
     builderCallback: (group: GroupBuilder) => void,
   ): this {
-    const isCustomId = Boolean(options.id);
     const id = options.id || this._getNextElementId();
     const name = options.name || `Group ${id}`;
-    const builder = new GroupBuilder();
+    const builder = new GroupBuilder(() => this._getNextElementId());
     builderCallback(builder);
     const groupElement = builder.build(id, name, options);
-    this._registerElement(groupElement, isCustomId);
+    this._registerElement(groupElement);
     this._ast.elements.push(groupElement);
     delete this._ast.rawXml;
     return this;
@@ -876,22 +869,27 @@ export interface AddGroupOptions {
 
 export class GroupBuilder {
   private _elements: PptxElement[] = [];
-  private _elementCounter = 1;
+  private _idGenerator: () => string;
+
+  constructor(idGenerator?: () => string) {
+    let counter = 1;
+    this._idGenerator = idGenerator || (() => String(counter++));
+  }
 
   addConnector(options: AddConnectorOptions): this {
-    const connector = buildConnectorElement(options, this._elementCounter++, this._elements);
+    const connector = buildConnectorElement(options, this._idGenerator(), this._elements);
     this._elements.push(connector);
     return this;
   }
 
   addShape(shapeType: string, options: AddShapeOptions): this {
-    const shape = buildShapeElement(shapeType, options, this._elementCounter++);
+    const shape = buildShapeElement(shapeType, options, this._idGenerator());
     this._elements.push(shape);
     return this;
   }
 
   addText(content: ParagraphConfig[] | string | TextRunConfig[], options: AddTextOptions): this {
-    const id = options.id || String(this._elementCounter++);
+    const id = options.id || this._idGenerator();
     const name = options.name || `Text Box ${id}`;
     const fill = normalizeFill(options.fill);
 
