@@ -366,4 +366,41 @@ describe('Slide Class (Unit Tests)', () => {
       });
     }).toThrow('Cannot attach connector to a group ("my-group")');
   });
+
+  it('provides O(1) shape lookup with getElementById and tracks deletions', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'card-alpha', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    expect(slide.getElementById('card-alpha')).toBeDefined();
+    expect(slide.getElementById('card-alpha')?.id).toBe('card-alpha');
+
+    // Remove element
+    const removed = slide.removeElement('card-alpha');
+    expect(removed).toBe(true);
+    expect(slide.getElementById('card-alpha')).toBeUndefined();
+  });
+
+  it('throws an error early when adding an element with duplicate ID on the same slide', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'stage-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(() => {
+      slide.addShape('ellipse', { id: 'stage-1', x: inches(4), y: inches(1), w: inches(2), h: inches(2) });
+    }).toThrow('Duplicate element ID "stage-1" detected on Slide 1');
+  });
+
+  it('allows the same element ID across different slides', () => {
+    const pres = Presentation.create();
+    const slide1 = pres.addSlide();
+    const slide2 = pres.addSlide();
+
+    slide1.addShape('roundRect', { id: 'card-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    slide2.addShape('roundRect', { id: 'card-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(slide1.getElementById('card-1')).toBeDefined();
+    expect(slide2.getElementById('card-1')).toBeDefined();
+  });
 });

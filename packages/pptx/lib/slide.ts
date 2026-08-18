@@ -107,11 +107,66 @@ export class Slide {
   private _ast: PptxSlide;
   private _presentation: Presentation;
   private _elementCounter: number = 1;
+  private _elementsById: Map<string, PptxElement> = new Map();
 
   constructor(ast: PptxSlide, presentation: Presentation) {
     this._ast = ast;
     this._presentation = presentation;
     this._elementCounter = (ast.elements?.length || 0) + 1;
+    this._indexElements(ast.elements || []);
+  }
+
+  /**
+   * Recursively indexes elements and nested group children into the internal map.
+   */
+  private _indexElements(elements: PptxElement[]): void {
+    for (const el of elements) {
+      if (el.id) {
+        this._elementsById.set(el.id, el);
+      }
+      if (el.elementType === 'group' && el.children) {
+        this._indexElements(el.children);
+      }
+    }
+  }
+
+  /**
+   * Registers an element into the map, enforcing uniqueness for custom IDs.
+   */
+  private _registerElement(el: PptxElement, isCustomId: boolean): void {
+    if (isCustomId && this._elementsById.has(el.id)) {
+      throw new Error(`Duplicate element ID "${el.id}" detected on Slide ${this.slideNumber}. Element IDs must be unique within a slide.`);
+    }
+    this._elementsById.set(el.id, el);
+    if (el.elementType === 'group' && el.children) {
+      for (const child of el.children) {
+        this._registerElement(child, false);
+      }
+    }
+  }
+
+  /**
+   * Recursively unregisters an element and its children from the map.
+   */
+  private _unregisterElement(el: PptxElement): void {
+    if (el.id) {
+      this._elementsById.delete(el.id);
+    }
+    if (el.elementType === 'group' && el.children) {
+      for (const child of el.children) {
+        this._unregisterElement(child);
+      }
+    }
+  }
+
+  /**
+   * Generates the next sequential element ID that does not collide with existing IDs.
+   */
+  private _getNextElementId(): string {
+    while (this._elementsById.has(String(this._elementCounter))) {
+      this._elementCounter++;
+    }
+    return String(this._elementCounter++);
   }
 
   /** Slide number (1-based index) */
@@ -139,6 +194,13 @@ export class Slide {
    */
   getElements(): PptxElement[] {
     return this._ast.elements || [];
+  }
+
+  /**
+   * Retrieves an element by its unique ID on this slide in O(1) time.
+   */
+  getElementById(id: string): PptxElement | undefined {
+    return this._elementsById.get(id);
   }
 
   /**
@@ -295,8 +357,8 @@ export class Slide {
         return this;
       }
 
-      // Create new shape element bound to this placeholder
-      const id = options.id || String(this._elementCounter++);
+      const isCustomId = Boolean(options.id);
+      const id = options.id || this._getNextElementId();
       const name = options.name || placeholderEl?.name || `placeholder:${options.placeholder}`;
       const fill = options.fill ? normalizeFill(options.fill) : placeholderEl?.fill;
 
@@ -321,13 +383,15 @@ export class Slide {
         zIndex: options.zIndex ?? this._ast.elements.length,
       };
 
+      this._registerElement(shape, isCustomId);
       this._ast.elements.push(shape);
       delete this._ast.rawXml;
       return this;
     }
 
     // Default standalone text box
-    const id = options.id || String(this._elementCounter++);
+    const isCustomId = Boolean(options.id);
+    const id = options.id || this._getNextElementId();
     const name = options.name || `Text Box ${id}`;
     const fill = normalizeFill(options.fill);
 
@@ -351,6 +415,7 @@ export class Slide {
       zIndex: options.zIndex ?? 0,
     };
 
+    this._registerElement(shape, isCustomId);
     this._ast.elements.push(shape);
     delete this._ast.rawXml;
     return this;
@@ -360,7 +425,10 @@ export class Slide {
    * Adds a geometric shape (rect, roundRect, ellipse, arrow, etc.) to the slide.
    */
   addShape(shapeType: string, options: AddShapeOptions): this {
-    const shape = buildShapeElement(shapeType, options, this._elementCounter++);
+    const isCustomId = Boolean(options.id);
+    const fallbackId = this._getNextElementId();
+    const shape = buildShapeElement(shapeType, options, fallbackId);
+    this._registerElement(shape, isCustomId);
     this._ast.elements.push(shape);
     delete this._ast.rawXml;
     return this;
@@ -374,7 +442,8 @@ export class Slide {
     options: AddImageOptions = {},
   ): this {
     const bytes = imageData instanceof Uint8Array ? imageData : new Uint8Array(imageData);
-    const id = options.id || String(this._elementCounter++);
+    const isCustomId = Boolean(options.id);
+    const id = options.id || this._getNextElementId();
     const name = options.name || `Picture ${id}`;
 
     let placeholderEl;
@@ -415,6 +484,7 @@ export class Slide {
       zIndex: options.zIndex ?? 0,
     };
 
+    this._registerElement(picElement, isCustomId);
     this._ast.elements.push(picElement);
     delete this._ast.rawXml;
     return this;
@@ -440,17 +510,19 @@ export class Slide {
     }
 
     let tableElement;
+    const fallbackId = this._getNextElementId();
 
     if (dataOrBuilder instanceof TableBuilder) {
-      tableElement = dataOrBuilder.build(this._elementCounter++);
+      tableElement = dataOrBuilder.build(fallbackId);
     } else if (typeof dataOrBuilder === 'function') {
       const builder = new TableBuilder(resolvedOptions);
       dataOrBuilder(builder);
-      tableElement = builder.build(this._elementCounter++);
+      tableElement = builder.build(fallbackId);
     } else {
-      tableElement = TableBuilder.fromMatrix(dataOrBuilder, resolvedOptions, this._elementCounter++);
+      tableElement = TableBuilder.fromMatrix(dataOrBuilder, resolvedOptions, fallbackId);
     }
 
+    this._registerElement(tableElement, Boolean(options.id));
     this._ast.elements.push(tableElement);
     delete this._ast.rawXml;
     return this;
@@ -478,11 +550,14 @@ export class Slide {
    * ```
    */
   addConnector(options: AddConnectorOptions): this {
-    const connector = buildConnectorElement(options, this._elementCounter++, this._ast.elements);
+    const isCustomId = Boolean(options.id);
+    const fallbackId = this._getNextElementId();
+    const connector = buildConnectorElement(options, fallbackId, this._elementsById);
     if (options.zIndex === undefined) {
       connector.zIndex = this._ast.elements.length;
     }
 
+    this._registerElement(connector, isCustomId);
     this._ast.elements.push(connector);
     delete this._ast.rawXml;
     return this;
@@ -492,7 +567,10 @@ export class Slide {
    * Adds an interactive data chart (bar, line, pie, area) to the slide.
    */
   addChart(options: AddChartOptions): this {
-    const chartElement = buildChartElement(options, this._elementCounter++);
+    const isCustomId = Boolean(options.id);
+    const fallbackId = this._getNextElementId();
+    const chartElement = buildChartElement(options, fallbackId);
+    this._registerElement(chartElement, isCustomId);
     this._ast.elements.push(chartElement);
     delete this._ast.rawXml;
     return this;
@@ -505,11 +583,13 @@ export class Slide {
     options: AddGroupOptions,
     builderCallback: (group: GroupBuilder) => void,
   ): this {
-    const id = options.id || String(this._elementCounter++);
+    const isCustomId = Boolean(options.id);
+    const id = options.id || this._getNextElementId();
     const name = options.name || `Group ${id}`;
     const builder = new GroupBuilder();
     builderCallback(builder);
     const groupElement = builder.build(id, name, options);
+    this._registerElement(groupElement, isCustomId);
     this._ast.elements.push(groupElement);
     delete this._ast.rawXml;
     return this;
@@ -520,6 +600,10 @@ export class Slide {
    */
   removeElement(elementId: string): boolean {
     const initialLen = this._ast.elements.length;
+    const removed = this._ast.elements.find((el) => el.id === elementId);
+    if (removed) {
+      this._unregisterElement(removed);
+    }
     this._ast.elements = this._ast.elements.filter((el) => el.id !== elementId);
     if (this._ast.elements.length !== initialLen) {
       delete this._ast.rawXml;
@@ -606,10 +690,12 @@ function findElementRecursively(elements: PptxElement[] | undefined, id: string)
  */
 function resolveEndpoint(
   endpoint: ConnectorEndpoint,
-  slideElements?: PptxElement[],
+  elementsSource?: Map<string, PptxElement> | PptxElement[],
 ): { connection?: PptxShapeAttachment; emuX: Emu; emuY: Emu } {
   if ('shapeId' in endpoint) {
-    const shape = findElementRecursively(slideElements, endpoint.shapeId);
+    const shape = elementsSource instanceof Map
+      ? elementsSource.get(endpoint.shapeId)
+      : findElementRecursively(elementsSource, endpoint.shapeId);
     if (!shape) {
       throw new Error(`Shape with id "${endpoint.shapeId}" was not found on this slide. Ensure the shape is added before attaching a connector to it.`);
     }
@@ -665,7 +751,7 @@ function resolveEndpoint(
 export function buildConnectorElement(
   options: AddConnectorOptions,
   fallbackId: number | string,
-  slideElements?: PptxElement[],
+  slideElements?: Map<string, PptxElement> | PptxElement[],
 ): PptxConnectorElement {
   const id = options.id || String(fallbackId);
   const name = options.name || `Connector ${id}`;

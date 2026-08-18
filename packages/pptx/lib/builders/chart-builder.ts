@@ -62,7 +62,7 @@ export interface AddChartOptions {
  */
 export function buildChartElement(
   options: AddChartOptions,
-  counter: number = 1,
+  counter: number | string = 1,
 ): PptxElement {
   const id = options.id || String(counter);
   const name = options.name || `Chart ${id}`;

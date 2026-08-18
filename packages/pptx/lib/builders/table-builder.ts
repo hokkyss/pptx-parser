@@ -145,7 +145,7 @@ export class TableBuilder {
   /**
    * Compiles the table configuration into a strongly-typed `PptxTableElement` AST node.
    */
-  build(counter: number = 1): PptxTableElement {
+  build(counter: number | string = 1): PptxTableElement {
     const totalColWidthsInches = this.colWidths.reduce((acc, w) => acc + (w || 0), 0);
     const widthEmu = this.options.w
       ? inchesToEmu(this.options.w)
@@ -196,7 +196,7 @@ export class TableBuilder {
   /**
    * Static helper constructing a `PptxTableElement` directly from a 2D matrix.
    */
-  static fromMatrix(matrix: TableMatrix, options: AddTableOptions = {}, counter: number = 1): PptxTableElement {
+  static fromMatrix(matrix: TableMatrix, options: AddTableOptions = {}, counter: number | string = 1): PptxTableElement {
     const builder = new TableBuilder(options);
 
     for (let rIdx = 0; rIdx < matrix.length; rIdx++) {
