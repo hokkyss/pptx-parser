@@ -57,6 +57,14 @@ export interface AddShapeOptions {
   fill?: FillInput;
   h: Inches;
   hyperlink?: PptxHyperlink | string;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide
+   * - Must be unique among all elements on the SAME slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   line?: {
     color?: string;

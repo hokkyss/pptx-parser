@@ -37,6 +37,14 @@ export interface AddChartOptions {
   grouping?: 'clustered' | 'percentStacked' | 'stacked' | 'standard';
   h?: Inches;
   holeSize?: number;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide
+   * - Must be unique among all elements on the SAME slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   legend?: {
     color?: string;

@@ -40,6 +40,14 @@ export interface AddTableOptions {
   columns?: Array<{ w?: Inches } | Inches>;
   h?: Inches;
   header?: Partial<CellConfig>;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide
+   * - Must be unique among all elements on the SAME slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   name?: string;
   placeholder?: number | string;

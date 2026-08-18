@@ -74,6 +74,14 @@ import type { Presentation } from './presentation';
 export interface AddTextOptions extends TextOptions {
   fill?: PptxFill | string;
   h?: Inches;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide
+   * - Must be unique among all elements on the SAME slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   name?: string;
   placeholder?: number | string;
@@ -89,6 +97,15 @@ export interface AddImageOptions {
   fileName?: string;
   h?: Inches;
   hyperlink?: PptxHyperlink | string;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for O(1) shape querying (`slide.getElementById`), element deletion (`slide.removeElement`),
+   *   and connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   mediaId?: string;
   name?: string;
@@ -812,7 +829,15 @@ export interface AddConnectorOptions {
   from: ConnectorEndpoint;
   /** Head / end arrowhead marker. OpenXML: `<a:headEnd>` */
   headEnd?: PptxLineEnd | PptxLineEndType;
-  /** Optional custom ID */
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for O(1) shape querying (`slide.getElementById`), element deletion (`slide.removeElement`),
+   *   and connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   /** Optional element name */
   name?: string;
@@ -832,6 +857,14 @@ export interface AddConnectorOptions {
 
 export interface AddGroupOptions {
   h: Inches;
+  /**
+   * Unique element identifier for the group container.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Note: Connectors cannot attach directly to a group ID. Attach connectors to child shape IDs inside the group instead.
+   */
   id?: string;
   name?: string;
   rotation?: Degrees;
