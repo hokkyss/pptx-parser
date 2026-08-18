@@ -323,16 +323,19 @@ describe('Slide Class (Unit Tests)', () => {
     // Full roundtrip write and load
     const bytes = await pres.toArrayBuffer();
     const reloaded = await Presentation.load(bytes);
-    const reloadedConnector = reloaded.slides[0].getElements()[2] as PptxConnectorElement;
+    const reloadedSlide = reloaded.slides[0];
+    const shape1 = reloadedSlide.getElements()[0];
+    const shape2 = reloadedSlide.getElements()[1];
+    const reloadedConnector = reloadedSlide.getElements()[2] as PptxConnectorElement;
 
     expect(reloadedConnector.elementType).toBe('connector');
     expect(reloadedConnector.startConnection).toEqual({
       position: 'right',
-      shapeId: 'step-1',
+      shapeId: shape1.id,
     });
     expect(reloadedConnector.endConnection).toEqual({
       position: 'left',
-      shapeId: 'step-2',
+      shapeId: shape2.id,
     });
   });
 
