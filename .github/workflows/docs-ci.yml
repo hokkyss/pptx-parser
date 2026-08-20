@@ -1,0 +1,66 @@
+name: CI (@monorepo/docs)
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'apps/docs/**'
+      - 'packages/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+    strategy:
+      matrix:
+        platform: [none, netlify, cloudflare]
+    
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Create .env file
+        working-directory: apps/docs
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          echo "$ENV_FILE" > .env
+
+      - name: Build (None)
+        if: matrix.platform == 'none'
+        run: pnpm --filter @monorepo/docs... run build
+
+      - name: Build (Netlify)
+        if: matrix.platform == 'netlify'
+        env:
+          NETLIFY: true
+        run: pnpm --filter @monorepo/docs... run build
+
+      - name: Build (Cloudflare)
+        if: matrix.platform == 'cloudflare'
+        env:
+          CLOUDFLARE: true
+          CLOUDFLARE_ENV: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+        run: pnpm --filter @monorepo/docs... run build

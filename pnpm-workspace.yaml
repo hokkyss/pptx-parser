@@ -1,7 +1,8 @@
 packages:
   - apps/*
   - packages/*
-  - "!packages/cli/templates/**/*"
+  - libs/*
+  - "!libs/cli/templates/**/*"
 
 catalogs:
   eslint:
