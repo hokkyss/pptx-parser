@@ -18,7 +18,7 @@ program
  * 
  * @param {string} templateName 
  * @param {string} destName 
- * @param {'package'} type 
+ * @param {'app' | 'package'} type 
  */
 function copyTemplate(templateName, destName, type) {
   const srcDir = path.join(__dirname, '..', 'templates', templateName);
@@ -32,7 +32,7 @@ function copyTemplate(templateName, destName, type) {
     }
     rootDir = parent;
   }
-  const destDir = path.join(rootDir, 'packages', destName);
+  const destDir = path.join(rootDir, type === 'app' ? 'apps' : 'packages', destName);
 
   if (!fs.existsSync(srcDir)) {
     console.error(`Template ${templateName} not found at ${srcDir}`);
@@ -70,6 +70,7 @@ function copyTemplate(templateName, destName, type) {
           let content = fs.readFileSync(srcPath, 'utf8');
           // Replace template name references
           content = content.replace(/@monorepo\/template/g, `@monorepo/${destName}`);
+          content = content.replace(/apps\/template/g, `apps/${destName}`);
           content = content.replace(/packages\/template/g, `packages/${destName}`);
           content = content.replace(/monorepo-template/g, destName);
           fs.writeFileSync(destPath, content);
@@ -80,7 +81,42 @@ function copyTemplate(templateName, destName, type) {
 
   walkAndCopy(srcDir, destDir);
   console.log(`Successfully created ${type} ${destName} at ${destDir}`);
+
+  if (type === 'app') {
+    const workflowsSrc = path.join(__dirname, '..', 'templates', 'workflows');
+    const workflowsDest = path.join(rootDir, '.github', 'workflows');
+    if (fs.existsSync(workflowsSrc)) {
+      if (!fs.existsSync(workflowsDest)) {
+        fs.mkdirSync(workflowsDest, { recursive: true });
+      }
+      
+      const files = fs.readdirSync(workflowsSrc);
+      for (const file of files) {
+        if (!file.endsWith('.yml') && !file.endsWith('.yaml')) continue;
+        const srcPath = path.join(workflowsSrc, file);
+        
+        const destPath = path.join(workflowsDest, `${destName}-${file}`);
+        
+        let content = fs.readFileSync(srcPath, 'utf8');
+        content = content.replace(/@monorepo\/template/g, `@monorepo/${destName}`);
+        content = content.replace(/apps\/template/g, `apps/${destName}`);
+        content = content.replace(/packages\/template/g, `packages/${destName}`);
+        content = content.replace(/monorepo-template/g, destName);
+        
+        fs.writeFileSync(destPath, content);
+      }
+      console.log(`Successfully generated workflows for ${destName} at ${workflowsDest}`);
+    }
+  }
 }
+
+program
+  .command('app')
+  .description('Scaffold a new app')
+  .argument('<name>', 'Name of the app')
+  .action((name) => {
+    copyTemplate('app', name, 'app');
+  });
 
 program
   .command('package')
