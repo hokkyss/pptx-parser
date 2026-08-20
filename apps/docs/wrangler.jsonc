@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "docs",
+  "compatibility_date": "2026-06-19",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "src/server.cloudflare.ts",
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "browser": {
+    "binding": "BROWSER",
+    "remote": true
+  },
+  "env": {
+    "production": {
+      "name": "docs-production",
+      "browser": {
+        "binding": "BROWSER",
+        "remote": true
+      }
+    },
+    "development": {
+      "name": "docs-development",
+      "browser": {
+        "binding": "BROWSER",
+        "remote": true
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+@import "@monorepo/design-system/index.css" source(none);
+@import "@fontsource-variable/geist" source(none);
+
+@source ".";
+@source "../node_modules/@monorepo/design-system";
