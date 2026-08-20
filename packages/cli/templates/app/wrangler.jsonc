@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "monorepo-template",
+  "compatibility_date": "2026-06-19",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "src/server.cloudflare.ts",
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "browser": {
+    "binding": "BROWSER",
+    "remote": true
+  },
+  "env": {
+    "production": {
+      "name": "monorepo-template-production",
+      "browser": {
+        "binding": "BROWSER",
+        "remote": true
+      }
+    },
+    "development": {
+      "name": "monorepo-template-development",
+      "browser": {
+        "binding": "BROWSER",
+        "remote": true
+      }
+    }
+  }
+}
