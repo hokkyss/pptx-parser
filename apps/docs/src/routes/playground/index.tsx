@@ -9,43 +9,70 @@ export const Route = createFileRoute('/playground/')({
 });
 
 const PRESETS: Record<string, { code: string; name: string }> = {
+  chart: {
+    code: `const pres = Presentation.create({ title: 'Sales Analytics' });
+const slide = pres.addSlide();
+slide.setBackground('0F172A');
+
+slide.addText('Monthly Revenue Analytics', {
+  x: inches(1), y: inches(0.6), w: inches(11.33), h: inches(0.8),
+  fontSize: points(24), bold: true, color: '38BDF8'
+});
+
+slide.addChart({
+  chartType: 'bar',
+  title: 'Q1 - Q4 Performance',
+  x: inches(1), y: inches(1.5), w: inches(11.33), h: inches(4.8),
+  categories: ['Q1', 'Q2', 'Q3', 'Q4'],
+  series: [
+    { name: '2025 Revenue ($K)', values: [45, 58, 62, 80], color: '38BDF8' },
+    { name: '2026 Target ($K)', values: [60, 75, 85, 110], color: '818CF8' }
+  ]
+});`,
+    name: 'Interactive Chart Grid',
+  },
   connectors: {
     code: `const pres = Presentation.create({ title: 'Microservice Pipeline' });
 const slide = pres.addSlide();
 slide.setBackground('0F172A');
 
-// Add source and target cards
+slide.addText('Distributed Cloud Architecture', {
+  x: inches(1), y: inches(0.8), w: inches(11.33), h: inches(0.8),
+  fontSize: points(24), bold: true, color: '38BDF8', align: 'center'
+});
+
+// Source Service Node
 slide.addShape('roundRect', {
   id: 'api-gateway',
   text: 'API Gateway',
-  x: inches(1.5), y: inches(3), w: inches(3), h: inches(1.5),
+  x: inches(1.5), y: inches(2.8), w: inches(3.5), h: inches(2),
   fill: '1E293B',
-  line: { color: '38BDF8', width: inches(0.015) },
-  textOptions: { color: '38BDF8', bold: true, align: 'center' }
+  line: { color: '38BDF8', width: inches(0.02) },
+  textOptions: { color: '38BDF8', bold: true, fontSize: points(18), align: 'center' }
 });
 
+// Target Service Node
 slide.addShape('roundRect', {
   id: 'auth-service',
   text: 'Auth Engine',
-  x: inches(6.5), y: inches(3), w: inches(3), h: inches(1.5),
+  x: inches(8.33), y: inches(2.8), w: inches(3.5), h: inches(2),
   fill: '1E293B',
-  line: { color: '6366F1', width: inches(0.015) },
-  textOptions: { color: '818CF8', bold: true, align: 'center' }
+  line: { color: '6366F1', width: inches(0.02) },
+  textOptions: { color: '818CF8', bold: true, fontSize: points(18), align: 'center' }
 });
 
-// Attach connector glued between shapes
+// Direct Connector between nodes
 slide.addConnector({
-  from: { shapeId: 'api-gateway', position: 'right' },
-  to: { shapeId: 'auth-service', position: 'left' },
+  from: { x: inches(5), y: inches(3.8) },
+  to: { x: inches(8.33), y: inches(3.8) },
   color: '38BDF8',
-  width: inches(0.02),
-  endArrow: 'triangle',
+  width: inches(0.03),
 });`,
     name: 'Microservice Connectors Flow',
   },
   quickstart: {
     code: `const pres = Presentation.create({ title: 'Cloud Keynote' });
-pres.setThemeColors({ accent1: '#0284C7', dk1: '#0F172A', lt1: '#FFFFFF' });
+pres.setThemeColors({ accent1: '0284C7', dk1: '0F172A', lt1: 'FFFFFF' });
 
 const slide = pres.addSlide();
 slide.setBackground('0F172A');
@@ -54,7 +81,7 @@ slide.addText('⚡ Next-Gen Presentation Engine', {
   x: inches(1),
   y: inches(1.5),
   w: inches(11.33),
-  h: inches(1),
+  h: inches(1.2),
   fontSize: points(36),
   bold: true,
   color: '38BDF8',
@@ -63,36 +90,48 @@ slide.addText('⚡ Next-Gen Presentation Engine', {
 
 slide.addText('100% Isomorphic TypeScript OpenXML Compiler', {
   x: inches(1),
-  y: inches(2.8),
+  y: inches(3.0),
   w: inches(11.33),
   h: inches(0.8),
   fontSize: points(18),
   color: '94A3B8',
   align: 'center',
+});
+
+slide.addShape('roundRect', {
+  text: 'Explore Full Documentation →',
+  x: inches(4.16),
+  y: inches(4.5),
+  w: inches(5),
+  h: inches(1),
+  fill: '0284C7',
+  textOptions: { color: 'FFFFFF', bold: true, fontSize: points(16), align: 'center' }
 });`,
     name: 'Quick Start Keynote',
   },
   table: {
     code: `const pres = Presentation.create({ title: 'Q4 Revenue Table' });
 const slide = pres.addSlide();
+slide.setBackground('0F172A');
 
 slide.addText('Q4 Regional Performance', {
   x: inches(1), y: inches(0.8), w: inches(11.33), h: inches(0.8),
-  fontSize: points(24), bold: true, color: '0284C7'
+  fontSize: points(24), bold: true, color: '38BDF8'
 });
 
-slide.addTable({
-  x: inches(1), y: inches(1.8), w: inches(11.33),
-  columns: [{ width: inches(3.5) }, { width: inches(2.5) }, { width: inches(2.5) }, { width: inches(2.83) }],
-  headers: ['Region', 'Q3 ($M)', 'Q4 ($M)', 'Growth YoY'],
-  headerStyle: { background: '0284C7', color: 'FFFFFF', bold: true },
-  rows: [
+slide.addTable(
+  [
+    ['Region', 'Q3 ($M)', 'Q4 ($M)', 'Growth YoY'],
     ['North America', '$120.4', '$158.9', '+32%'],
     ['EMEA', '$84.2', '$105.1', '+25%'],
     ['APAC', '$55.0', '$78.3', '+42%'],
   ],
-  alternateRowBackground: 'F1F5F9',
-});`,
+  {
+    x: inches(1), y: inches(1.8), w: inches(11.33), h: inches(3.5),
+    colWidths: [inches(3.5), inches(2.5), inches(2.5), inches(2.83)],
+    header: true,
+  }
+);`,
     name: 'Financial Data Grid',
   },
 };
