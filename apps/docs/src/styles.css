@@ -1,8 +1,33 @@
 @import "@monorepo/design-system/index.css" source(none);
-@import "@fontsource-variable/geist" source(none);
 
 @source ".";
 @source "../node_modules/@monorepo/design-system";
+
+:root {
+  --info: oklch(0.65 0.16 250);
+  --info-foreground: oklch(0.12 0 0);
+  --success: oklch(0.6 0.15 150);
+  --success-foreground: oklch(0.12 0 0);
+  --warning: oklch(0.7 0.18 80);
+  --warning-foreground: oklch(0.12 0 0);
+  --danger: oklch(0.65 0.2 25);
+  --danger-foreground: oklch(0.98 0 0);
+  --important: oklch(0.7 0.15 300);
+  --important-foreground: oklch(0.12 0 0);
+}
+
+@variant dark {
+  --info: oklch(0.65 0.16 250);
+  --info-foreground: oklch(0.98 0 0);
+  --success: oklch(0.6 0.15 150);
+  --success-foreground: oklch(0.98 0 0);
+  --warning: oklch(0.7 0.18 80);
+  --warning-foreground: oklch(0.98 0 0);
+  --danger: oklch(0.7 0.2 25);
+  --danger-foreground: oklch(0.98 0 0);
+  --important: oklch(0.7 0.15 300);
+  --important-foreground: oklch(0.98 0 0);
+}
 
 pre code.hljs {
   padding: 0;

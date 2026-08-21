@@ -7,6 +7,8 @@ import rehypeKatex from 'rehype-katex';
 import remarkGemoji from 'remark-gemoji';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import remarkCallout from '../lib/plugins/remark-callout.plugin';
+import MarkdownCallout from './markdown-callout.component';
 
 interface CodeBlockProps extends ComponentPropsWithoutRef<'code'> {
   children?: ReactNode;
@@ -18,7 +20,7 @@ interface MarkdownRendererProps {
 }
 
 /**
- * Markdown renderer supporting GFM tables, math (KaTeX), emojis, and syntax highlighting.
+ * Markdown renderer supporting GFM tables, math (KaTeX), emojis, syntax highlighting, and GitHub-style callouts.
  * @param root0 Component props
  * @param root0.content Raw markdown string to render
  * @returns React node
@@ -54,6 +56,16 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
               );
             }
             return <CodeBlock className={className} {...props}>{children}</CodeBlock>;
+          },
+          div: (props) => {
+            if (
+              props.className === 'markdown-callout'
+              || props.className === 'markdown-callout-title'
+              || props.className === 'markdown-callout-description'
+            ) {
+              return <MarkdownCallout {...props} />;
+            }
+            return <div {...props} />;
           },
           h1: ({ children }) => (
             <h1 className="text-3xl font-bold tracking-tight text-foreground mt-8 mb-4 border-b border-border/40 pb-2">
@@ -98,7 +110,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           [rehypeHighlight, { ignoreMissing: true }],
           rehypeKatex,
         ]}
-        remarkPlugins={[remarkGfm, remarkGemoji, remarkMath]}
+        remarkPlugins={[remarkGfm, remarkGemoji, remarkMath, remarkCallout]}
       >
         {content}
       </ReactMarkdown>

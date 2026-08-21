@@ -27,7 +27,7 @@ Traditional JavaScript office document manipulation libraries suffer from critic
 - 🔄 **Perfect Round-Trip Symmetry**: Parse existing corporate decks into a structured AST, mutate text, swap chart series, or replace layout placeholders, and serialize back to standard ECMA-376 archives without loss of formatting.
 - 🎨 **Enterprise Theming & Typography**: Native OpenXML DrawingML color schemes (`setThemeColors`), Major/Minor font pairs (`setThemeFonts`), and custom master layouts.
 - 📊 **Native OpenXML Charts & Tables**: 8+ native chart topologies (Bar, Column, Line, Area, Doughnut, Pie, Radar) with per-datapoint customization (`<c:dPt>`) and multi-column styled tables.
-- 🪢 **Shape Attachment & Glue Connectors**: Attach connectors directly to shape bounding box connection sites (`top`, `bottom`, `left`, `right`) so lines automatically follow shapes when moved in PowerPoint.
+- 🪢 **Vector Lines & Connectors**: Create straight, bent, or curved connectors with customizable strokes, dashes, and coordinates.
 
 ---
 

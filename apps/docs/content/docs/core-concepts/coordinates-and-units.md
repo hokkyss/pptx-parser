@@ -31,13 +31,13 @@ In OpenXML DrawingML and PowerPoint:
 
 ## Branded Types
 
-To prevent coordinate unit math bugs, `@hokkyss/pptx` utilizes TypeScript **Branded Types**:
+To prevent coordinate unit math bugs, `@hokkyss/pptx` and `@hokkyss/pptx-core` provide TypeScript **Branded Types**:
 
 ```typescript
 import { inches, points, degrees, emu } from '@hokkyss/pptx';
 
 // Physical dimensions
-const x = inches(1.5);      // Inches
+const x = inches(1.5);       // Inches
 const fontSize = points(16); // Points
 const rotation = degrees(45);// Degrees
 const rawEmu = emu(914400);  // 1 Inch = 914,400 EMUs
@@ -45,9 +45,13 @@ const rawEmu = emu(914400);  // 1 Inch = 914,400 EMUs
 
 ### Unit Conversion Table
 
-| Unit | Value in EMUs | Constructor Function | Converter Utility |
-| :--- | :--- | :--- | :--- |
-| **Inches** | `914,400` EMUs | `inches(val)` | `toInches(u)` |
-| **Points** | `12,700` EMUs | `points(val)` | `toPoints(u)` |
-| **Degrees** | `60,000` EMU Degrees | `degrees(val)` | `toDegrees(u)` |
-| **EMU** | `1` EMU | `emu(val)` | `toEmu(u)` |
+| Unit | Value in EMUs | Constructor Function | To EMU Conversion | From EMU Conversion |
+| :--- | :--- | :--- | :--- | :--- |
+| **Inches** | `914,400` EMUs | `inches(val)` | `inchesToEmu(inchVal)` | `emuToInches(emuVal)` |
+| **Points** | `12,700` EMUs | `points(val)` | `pointsToEmu(ptVal)` | `emuToPoints(emuVal)` |
+| **Centimeters** | `360,000` EMUs | `centimeters(val)` | `cmToEmu(cmVal)` | `emuToCm(emuVal)` |
+| **Pixels** | Depends on DPI (96) | `pixels(val)` | `pxToEmu(pxVal, 96)` | `emuToPx(emuVal, 96)` |
+| **Degrees** | `60,000` EMU Degrees | `degrees(val)` | `degreesToEmuDegree(degVal)` | `rotationToDegrees(rotVal)` |
+| **EMU** | `1` EMU | `emu(val)` | Identity | Identity |
+| **HundredthsPoint** | `100` = 1 pt | `hundredthsPoint(val)` | `pointsToHundredthsPoint(pt)` | `hundredthsPointToPoints(cpt)` |
+| **ThousandthsPercent** | `100,000` = 100% | `thousandthsPercent(val)` | `percentToThousandthsPercent(pct)` | `thousandthsPercentToPercent(tpct)` |

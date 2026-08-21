@@ -12,7 +12,8 @@ Generate native PowerPoint charts rendered by Office Open XML DrawingML chart sp
 ```typescript
 import { inches } from '@hokkyss/pptx';
 
-slide.addChart('bar', {
+slide.addChart({
+  chartType: 'bar',
   title: 'Throughput by Runtime Engine (k ops/s)',
   categories: ['Parser Core', 'XML Serializer', 'Full Deck Gen'],
   series: [
@@ -32,5 +33,6 @@ slide.addChart('bar', {
   w: inches(11.33),
   h: inches(4.5),
   legend: { position: 'bottom' },
+  showGridlines: true,
 });
 ```

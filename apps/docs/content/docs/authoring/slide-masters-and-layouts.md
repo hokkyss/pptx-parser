@@ -1,6 +1,6 @@
 ---
 title: "Slide Masters & Layouts"
-description: "Create reusable slide layouts with semantic placeholders (title, body, subtitle, picture)."
+description: "Inspect slide masters, discover child layouts, and instantiate slides bound to master templates."
 order: 2
 section: "authoring"
 ---
@@ -10,25 +10,22 @@ section: "authoring"
 Slide Masters and Slide Layouts allow defining reusable templates with semantic placeholders that slides can instantiate and populate.
 
 ```typescript
-// Add custom slide layout to presentation master
-const master = pres.addSlideMaster({
-  name: 'Corporate Master',
-});
+import { Presentation } from '@hokkyss/pptx';
 
-master.addLayout({
-  name: 'master:title-with-body',
-  placeholders: [
-    { type: 'title', x: inches(1), y: inches(1), w: inches(11.33), h: inches(1) },
-    { type: 'body', x: inches(1), y: inches(2.2), w: inches(11.33), h: inches(4.5) },
-  ],
-});
+const pres = await Presentation.load(templateBuffer);
 
-// Instantiate slide with that layout
+// 1. Inspect masters and child layouts
+const master = pres.getMaster('Office Theme');
+const layouts = master?.getLayouts();
+
+// 2. Instantiate slide bound to a specific layout
 const slide = pres.addSlide({
-  layout: 'master:title-with-body',
+  master,
+  layout: 'Title and Content',
 });
 
-// Populate placeholders
+// 3. Populate semantic placeholders
 slide.addText('Annual Strategy', { placeholder: 'title' });
-slide.addText('• Expansion into APAC region\n• Launching v2 API', { placeholder: 'body' });
+slide.addText('• Expansion into APAC region
+• Launching v2 API', { placeholder: 'body' });
 ```

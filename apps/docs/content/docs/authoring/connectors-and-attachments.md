@@ -1,13 +1,13 @@
 ---
-title: "Connectors & Shape Attachment"
-description: "Attach connectors to shapes via top/bottom/left/right connection sites with arrowheads."
+title: "Connectors & Vector Lines"
+description: "Add straight, bent, or curved connector lines with custom stroke colors and widths."
 order: 5
 section: "authoring"
 ---
 
-# Connectors & Shape Attachment
+# Connectors & Vector Lines
 
-Attach connectors between shapes using OpenXML Connection Sites (`<a:stCxn>` and `<a:endCxn>`). PowerPoint, Keynote, and Google Slides "glue" lines to shapes so they stay connected when moved.
+Add vector connectors and lines between coordinates on the slide canvas:
 
 ```typescript
 import { inches } from '@hokkyss/pptx';
@@ -32,13 +32,13 @@ slide.addShape('roundRect', {
   h: inches(1.5),
 });
 
-// 3. Connect Right side of Gateway to Left side of Auth Service
+// 3. Connect from right edge of Gateway to left edge of Auth Service
 slide.addConnector({
-  from: { shapeId: 'api-gateway', position: 'right' },
-  to: { shapeId: 'auth-service', position: 'left' },
+  from: { x: inches(4), y: inches(3.25) },
+  to: { x: inches(6), y: inches(3.25) },
   color: '0284C7',
   width: inches(0.025),
   shapeType: 'bentConnector2',
-  endArrow: 'triangle',
+  dashStyle: 'solid',
 });
 ```

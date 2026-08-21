@@ -12,8 +12,15 @@ Use `@hokkyss/pptx-reader` to parse any PowerPoint `.pptx` binary into a strongl
 ```typescript
 import { parsePptx } from '@hokkyss/pptx-reader';
 
-const doc = await parsePptx(arrayBuffer);
+const doc = await parsePptx(arrayBuffer, {
+  includeMedia: true,
+  lazyMedia: false,
+  parseAnimations: true,
+  parseTransitions: true,
+  customXml: false,
+});
 
 console.log('Title:', doc.metadata.title);
 console.log('Slides:', doc.slides.length);
+console.log('Themes:', doc.themes.length);
 ```
