@@ -5,9 +5,9 @@ import DocsToc from '../../components/docs-toc.component';
 import MarkdownRenderer from '../../components/markdown-renderer.component';
 import getDocQuery from '../../lib/content/queries/get-doc.query';
 
-export const Route = createFileRoute('/api/$')({
+export const Route = createFileRoute('/api-reference/$')({
   loader: ({ context, params }) => {
-    return context.queryClient.ensureQueryData(getDocQuery(`api/${params._splat}`));
+    return context.queryClient.ensureQueryData(getDocQuery(`api-reference/${params._splat}`));
   },
   component: ApiPage,
 });
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/api/$')({
  */
 function ApiPage() {
   const { _splat } = Route.useParams();
-  const { data: doc }: { data: GetDocResponseDto } = useSuspenseQuery(getDocQuery(`api/${_splat}`));
+  const { data: doc }: { data: GetDocResponseDto } = useSuspenseQuery(getDocQuery(`api-reference/${_splat}`));
   const pkgName = doc.package ?? 'API';
 
   return (

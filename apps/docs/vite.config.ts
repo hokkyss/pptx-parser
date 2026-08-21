@@ -21,6 +21,7 @@ const getBuildNumber = () => {
 };
 
 export default defineConfig((ctx) => ({
+  assetsInclude: ['content/**/*.md'],
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
     __BUILD_NUMBER__: JSON.stringify(getBuildNumber()),

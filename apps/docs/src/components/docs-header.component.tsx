@@ -47,7 +47,7 @@ export default function DocsHeader() {
               activeProps={{ className: 'text-foreground font-semibold bg-muted/60' }}
               className="px-3 py-1.5 rounded-md hover:text-foreground hover:bg-muted/40 transition flex items-center gap-1.5"
               params={{ _splat: 'pptx/presentation' }}
-              to="/api/$"
+              to="/api-reference/$"
             >
               <CodeIcon className="h-4 w-4 text-purple-400" />
               API Reference

@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { ListDocsResponseDto } from '../lib/content/dto/list-docs.dto';
 
 interface DocsSidebarProps {
-  baseRoute?: '/api' | '/docs';
+  baseRoute?: '/api-reference' | '/docs';
   sections: ListDocsResponseDto['sections'];
 }
 
@@ -30,8 +30,8 @@ export default function DocsSidebar({ baseRoute = '/docs', sections }: DocsSideb
                       className: 'bg-primary/10 text-primary font-semibold border-r-2 border-primary',
                     }}
                     className="block px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition"
-                    params={{ _splat: item.path.replace(/^docs\//, '').replace(/^api\//, '') }}
-                    to={baseRoute === '/api' ? '/api/$' : '/docs/$'}
+                    params={{ _splat: item.path.replace(/^docs\//, '').replace(/^api-reference\//, '') }}
+                    to={baseRoute === '/api-reference' ? '/api-reference/$' : '/docs/$'}
                   >
                     {item.title}
                   </Link>

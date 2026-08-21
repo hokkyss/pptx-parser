@@ -9,12 +9,16 @@ const sectionLabels: Record<string, string> = {
   'getting-started': 'Getting Started',
   'parsing-and-mutation': 'Parsing & Mutation',
   performance: 'Performance & Benchmarks',
+  pptx: '@hokkyss/pptx',
+  'pptx-core': '@hokkyss/pptx-core',
+  'pptx-reader': '@hokkyss/pptx-reader',
+  'pptx-writer': '@hokkyss/pptx-writer',
   'runtimes-and-deploy': 'Runtimes & Deployment',
 };
 
 const getDocSection = (pathStr: string) => {
   const parts = pathStr.split('/');
-  if (parts[0] === 'docs' && parts[1]) {
+  if ((parts[0] === 'docs' || parts[0] === 'api-reference') && parts[1]) {
     return parts[1];
   }
   return parts[0];
