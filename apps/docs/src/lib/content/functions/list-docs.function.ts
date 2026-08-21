@@ -1,0 +1,59 @@
+import { createServerFn } from '@tanstack/react-start';
+import { setResponseHeader } from '@tanstack/react-start/server';
+import { getAllDocs } from '../content-manifest';
+import { listDocsRequestDto, listDocsResponseDto } from '../dto/list-docs.dto';
+
+const sectionLabels: Record<string, string> = {
+  authoring: 'Authoring Guide',
+  'core-concepts': 'Core Concepts',
+  'getting-started': 'Getting Started',
+  'parsing-and-mutation': 'Parsing & Mutation',
+  performance: 'Performance & Benchmarks',
+  'runtimes-and-deploy': 'Runtimes & Deployment',
+};
+
+const getDocSection = (pathStr: string) => {
+  const parts = pathStr.split('/');
+  if (parts[0] === 'docs' && parts[1]) {
+    return parts[1];
+  }
+  return parts[0];
+};
+
+const listDocsFunction = createServerFn({
+  method: 'GET',
+})
+  .validator(listDocsRequestDto)
+  .handler(({ data }) => {
+    setResponseHeader('X-Cache-Maxage', '2592000');
+    setResponseHeader('X-Stale-After', '604800');
+
+    const allDocs = getAllDocs();
+    const filteredDocs = data.section
+      ? allDocs.filter((d) => d.path.startsWith(data.section!))
+      : allDocs;
+
+    const grouped: Record<string, { description?: string; order?: number; path: string; title: string }[]> = {};
+
+    for (const doc of filteredDocs) {
+      const sec = getDocSection(doc.path);
+      if (!grouped[sec]) {
+        grouped[sec] = [];
+      }
+      grouped[sec].push({
+        description: doc.description,
+        order: doc.order ?? 99,
+        path: doc.path,
+        title: doc.title,
+      });
+    }
+
+    const sections = Object.entries(grouped).map(([secKey, items]) => ({
+      items: items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99)),
+      title: sectionLabels[secKey] || secKey.toUpperCase(),
+    }));
+
+    return listDocsResponseDto.parse({ sections });
+  });
+
+export default listDocsFunction;

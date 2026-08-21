@@ -1,3 +1,4 @@
+import type { ExecutionContext } from '@cloudflare/workers-types';
 import ApplicationError from '@monorepo/common/errors/application-error';
 import { AsyncLocalStorage } from 'node:async_hooks';
 

@@ -7,8 +7,8 @@ import queryClientConfig from './configs/query-client/query-client.config';
 import { routeTree } from './routeTree.gen';
 
 /**
- *
- * @param pathname
+ * Creates and initializes the TanStack Start router instance.
+ * @returns Configured router instance
  */
 export function getRouter() {
   const startServerContext = getGlobalStartContext();

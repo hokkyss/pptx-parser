@@ -7,9 +7,10 @@ interface GetApplicationThemeQueryProps<Selected = ApplicationTheme> {
 }
 
 /**
- *
- * @param root0
- * @param root0.selector
+ * Returns query options for retrieving the active application theme.
+ * @param root0 Query props
+ * @param root0.selector Optional selector function
+ * @returns Query options
  */
 export default function getApplicationThemeQuery<Selected = ApplicationTheme>({
   selector,

@@ -1,3 +1,4 @@
+import type { ExecutionContext } from '@cloudflare/workers-types';
 import { consoleLoggingIntegration, withSentry } from '@sentry/cloudflare';
 import {
   createStartHandler,
@@ -9,7 +10,7 @@ const startHandler = createStartHandler({
   handler: defaultStreamHandler,
 });
 
-export default withSentry((env) => ({
+export default withSentry((env: { SENTRY_DSN?: string; SENTRY_ENVIRONMENT?: string }) => ({
   dsn: env.SENTRY_DSN,
   // Enable logs to be sent to Sentry
   enableLogs: true,
@@ -24,7 +25,7 @@ export default withSentry((env) => ({
   sendDefaultPii: true,
   skipOpenTelemetrySetup: false,
 }), {
-  fetch: (req, _env, ctx) => {
+  fetch: (req: Request, _env: unknown, ctx: ExecutionContext) => {
     return runWithExecutionContext(() => startHandler(req), ctx);
   },
 });

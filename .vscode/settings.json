@@ -67,5 +67,8 @@
   "tailwindCSS.lint.suggestCanonicalClasses": "error",
   "tailwindCSS.codeActions": true,
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-  "reactCompilerMarker.babelPluginPath": "apps/public-tanstack-start/node_modules/babel-plugin-react-compiler"
+  "reactCompilerMarker.babelPluginPath": "apps/public-tanstack-start/node_modules/babel-plugin-react-compiler",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
 }

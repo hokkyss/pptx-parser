@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main
-      - dev
     paths:
       - 'apps/docs/**'
-      - 'packages/**'
+      - 'libs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
