@@ -1,62 +1,57 @@
-import type { ReactNode } from 'react';
-import { CheckCircleIcon, InfoIcon, ShieldWarningIcon, WarningIcon } from '@phosphor-icons/react';
+import type { ComponentPropsWithoutRef } from 'react';
+import Alert from '@monorepo/design-system/alert';
+import AlertDescription from '@monorepo/design-system/alert-description';
+import AlertTitle from '@monorepo/design-system/alert-title';
+import cn from '@monorepo/design-system/cn';
+import { InfoIcon, LightbulbIcon, ProhibitIcon, WarningCircleIcon, WarningIcon } from '@phosphor-icons/react';
 
-interface MarkdownCalloutProps {
-  children: ReactNode;
-  title?: string;
-  type?: 'caution' | 'important' | 'note' | 'tip' | 'warning';
+export type CalloutType = 'caution' | 'important' | 'note' | 'tip' | 'warning';
+
+export interface MarkdownCalloutProps extends ComponentPropsWithoutRef<'div'> {
+  'data-callout-type'?: CalloutType;
 }
 
+const ICON_MAP: Record<CalloutType, typeof InfoIcon> = {
+  caution: ProhibitIcon,
+  important: WarningCircleIcon,
+  note: InfoIcon,
+  tip: LightbulbIcon,
+  warning: WarningIcon,
+};
+
+const STYLE_MAP: Record<CalloutType, string> = {
+  caution: 'bg-danger/10 text-danger border-danger/20 [&>svg]:text-danger',
+  important: 'bg-important/10 text-important border-important/20 [&>svg]:text-important',
+  note: 'bg-info/10 text-info border-info/20 [&>svg]:text-info',
+  tip: 'bg-success/10 text-success border-success/20 [&>svg]:text-success',
+  warning: 'bg-warning/10 text-warning border-warning/20 [&>svg]:text-warning',
+};
+
 /**
- * Callout alert box component matching GitHub note/tip/warning/caution alerts.
- * @param root0 Component props
- * @param root0.children Content inside the callout
- * @param root0.title Optional custom title
- * @param root0.type Alert severity level
+ * Callout alert component for markdown callouts matching Portfolio design system.
+ * @param props Component props
  * @returns React node
  */
-export default function MarkdownCallout({
-  children,
-  title,
-  type = 'note',
-}: MarkdownCalloutProps) {
-  const config = {
-    caution: {
-      bg: 'bg-rose-500/10 border-rose-500/30 text-rose-300',
-      defaultTitle: 'Caution',
-      icon: <ShieldWarningIcon className="h-5 w-5 text-rose-400 shrink-0" />,
-    },
-    important: {
-      bg: 'bg-purple-500/10 border-purple-500/30 text-purple-300',
-      defaultTitle: 'Important',
-      icon: <InfoIcon className="h-5 w-5 text-purple-400 shrink-0" />,
-    },
-    note: {
-      bg: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
-      defaultTitle: 'Note',
-      icon: <InfoIcon className="h-5 w-5 text-blue-400 shrink-0" />,
-    },
-    tip: {
-      bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
-      defaultTitle: 'Tip',
-      icon: <CheckCircleIcon className="h-5 w-5 text-emerald-400 shrink-0" />,
-    },
-    warning: {
-      bg: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
-      defaultTitle: 'Warning',
-      icon: <WarningIcon className="h-5 w-5 text-amber-400 shrink-0" />,
-    },
-  }[type];
+export default function MarkdownCallout(props: MarkdownCalloutProps) {
+  if (props.className === 'markdown-callout') {
+    const type = props['data-callout-type'] ?? 'note';
+    const Icon = ICON_MAP[type] || InfoIcon;
 
-  return (
-    <div className={`my-6 rounded-lg border p-4 ${config.bg}`}>
-      <div className="flex items-center gap-2 font-semibold">
-        {config.icon}
-        <span>{title || config.defaultTitle}</span>
-      </div>
-      <div className="mt-2 text-sm leading-relaxed text-foreground/90">
-        {children}
-      </div>
-    </div>
-  );
+    return (
+      <Alert className={cn(STYLE_MAP[type], 'my-6')}>
+        <Icon className="size-4" />
+        {props.children}
+      </Alert>
+    );
+  }
+
+  if (props.className === 'markdown-callout-title') {
+    return <AlertTitle className="font-semibold">{props.children}</AlertTitle>;
+  }
+
+  if (props.className === 'markdown-callout-description') {
+    return <AlertDescription className="text-foreground/90">{props.children}</AlertDescription>;
+  }
+
+  return <div {...props} />;
 }

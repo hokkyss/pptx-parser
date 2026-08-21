@@ -146,9 +146,6 @@ importers:
       '@date-fns/tz':
         specifier: ^1.4.1
         version: 1.5.0
-      '@fontsource-variable/geist':
-        specifier: ^5.2.8
-        version: 5.3.0
       '@hokkyss/pptx':
         specifier: workspace:^
         version: link:../../packages/pptx
@@ -236,6 +233,9 @@ importers:
       ts-pattern:
         specifier: ^5.9.0
         version: 5.9.0
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
       yaml:
         specifier: ^2.7.0
         version: 2.9.0
@@ -285,6 +285,9 @@ importers:
       '@types/katex':
         specifier: ^0.16.7
         version: 0.16.8
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.1
@@ -294,6 +297,9 @@ importers:
       '@types/react-dom':
         specifier: catalog:react19
         version: 19.2.4(@types/react@19.2.18)
+      '@types/unist':
+        specifier: ^3.0.3
+        version: 3.0.3
       '@vitejs/devtools':
         specifier: ^0.3.3
         version: 0.3.4(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(@netlify/blobs@10.7.13)(crossws@0.4.10(srvx@0.12.5))(esbuild@0.28.2)(rolldown@1.2.3)(rollup@4.62.4)(typescript@5.9.3)(vite@8.2.1)
@@ -377,9 +383,6 @@ importers:
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.7.0(@date-fns/tz@1.5.0)(@types/react@19.2.18)(date-fns@4.4.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@fontsource-variable/geist':
-        specifier: ^5.2.8
-        version: 5.3.0
       '@fontsource-variable/ibm-plex-sans':
         specifier: ^5.3.0
         version: 5.3.0
@@ -1486,9 +1489,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@fontsource-variable/geist@5.3.0':
-    resolution: {integrity: sha512-j0m+vLQuG5XAYoHtGCVu0spvlGreR3EzpECUVzkFmI1mTVnAO38l/NEPDCFgZ177JxzYJCLSmTQibIiYPilGrA==}
 
   '@fontsource-variable/ibm-plex-sans@5.3.0':
     resolution: {integrity: sha512-agG8tXFEo0hD9+J7npa4vbbWult52eMLVaQ6WQRlhs/iCAojrMAoejru85W9HTVXHfyUj96KM7gp/KGAS87XaQ==}
@@ -4973,6 +4973,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -9167,8 +9168,6 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
 
   '@floating-ui/utils@0.2.12': {}
-
-  '@fontsource-variable/geist@5.3.0': {}
 
   '@fontsource-variable/ibm-plex-sans@5.3.0': {}
 

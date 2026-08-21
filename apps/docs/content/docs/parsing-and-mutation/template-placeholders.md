@@ -7,12 +7,24 @@ section: "parsing-and-mutation"
 
 # Template Mutation & Placeholders
 
+Load existing corporate presentation templates, find placeholders, and inject dynamic content:
+
 ```typescript
 import { Presentation } from '@hokkyss/pptx';
 
+// 1. Load corporate master template
 const pres = await Presentation.load(templateBuffer);
-const slide = pres.addSlide({ layout: 'master:title-with-body' });
+
+// 2. Add slide bound to a layout
+const slide = pres.addSlide({ layout: 'Title and Content' });
+
+// 3. Populate title and body placeholders
 slide.addText('Quarterly Sales Report', { placeholder: 'title' });
-slide.addText('• Revenue up 34% YoY\n• Net Retention at 128%', { placeholder: 'body' });
-await pres.save('populated_deck.pptx');
+slide.addText([
+  { level: 0, text: '• Revenue up 34% YoY' },
+  { level: 0, text: '• Net Retention at 128%' },
+], { placeholder: 'body' });
+
+// 4. Export mutated presentation
+const buffer = await pres.toBuffer();
 ```

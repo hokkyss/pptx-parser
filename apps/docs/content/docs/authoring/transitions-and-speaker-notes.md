@@ -14,18 +14,6 @@ slide.setTransition('fade', {
   throughBlack: true,
 });
 
-// Rich formatted presenter notes
-slide.setNotes([
-  {
-    runs: [
-      { text: 'Key takeaway for investors: ', bold: true },
-      { text: 'Sub-millisecond execution latency at scale.' },
-    ],
-  },
-  {
-    bullet: true,
-    level: 0,
-    text: 'Emphasize 100% isomorphic browser & edge support.',
-  },
-]);
+// Speaker notes (supports plain text or structured runs)
+slide.setNotes('Emphasize 100% isomorphic browser & edge support.');
 ```

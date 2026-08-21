@@ -1,32 +1,38 @@
 ---
 title: "Themes & Typography"
-description: "Programmatic theme color palettes (dk1..lt2, accent1..6) and major/minor font scheme mappings."
+description: "DrawingML theme schemes (accent1-6, dk1/2, lt1/2, hlink) and Major/Minor font schemes."
 order: 3
 section: "core-concepts"
 ---
 
 # Themes & Typography
 
-DrawingML uses a 12-slot color palette scheme (`<a:clrScheme>`) and a Major/Minor font scheme (`<a:fontScheme>`) to maintain visual consistency across presentation decks.
+OpenXML presentations define visual branding through DrawingML Themes (`ppt/theme/theme1.xml`).
+
+## The 12 Theme Color Slots
 
 ```typescript
-pres
-  .setThemeName('Corporate Enterprise')
-  .setThemeColors({
-    accent1: '#0284C7', // Primary Brand Color
-    accent2: '#6366F1', // Secondary Accent
-    accent3: '#10B981', // Success / Positive
-    accent4: '#F59E0B', // Warning / Metric
-    accent5: '#EF4444', // Destructive / Alert
-    accent6: '#8B5CF6', // Purple Accent
-    dk1: '#0F172A',     // Primary Dark (Text on light background)
-    dk2: '#1E293B',     // Secondary Dark
-    lt1: '#FFFFFF',     // Primary Light (Text on dark background)
-    lt2: '#F8FAFC',     // Secondary Light
-  })
-  .setThemeFonts({
-    major: 'Inter',     // Headings & Slide Titles (+mj-lt)
-    minor: 'Roboto',    // Body Copy & Tables (+mn-lt)
-    name: 'Modern Sans',
-  });
+pres.setThemeColors({
+  accent1: '#0284C7', // Primary Brand / Charts Series 1
+  accent2: '#10B981', // Secondary Brand / Charts Series 2
+  accent3: '#F59E0B', // Warning / Highlights
+  accent4: '#EF4444', // Danger
+  accent5: '#8B5CF6', // Purple Accent
+  accent6: '#EC4899', // Pink Accent
+  dk1: '#0F172A',     // Primary Dark Text (Slate 900)
+  dk2: '#334155',     // Secondary Dark Text (Slate 700)
+  lt1: '#FFFFFF',     // Canvas White Background
+  lt2: '#F8FAFC',     // Card Surface Light (Slate 50)
+  hlink: '#0284C7',   // Hyperlink Color
+  folHlink: '#6366F1' // Visited Hyperlink Color
+});
+```
+
+## Major & Minor Font Schemes
+
+```typescript
+pres.setThemeFonts({
+  major: 'Inter',   // Heading Title typography
+  minor: 'Roboto',  // Body content typography
+});
 ```

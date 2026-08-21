@@ -44,6 +44,8 @@ slide.addText([
   y: inches(1.5),
   w: inches(11.33),
   h: inches(5.0),
-  lineSpacing: 1.25,
+  lineSpacing: points(24),
+  spaceBefore: points(8),
+  spaceAfter: points(8),
 });
 ```

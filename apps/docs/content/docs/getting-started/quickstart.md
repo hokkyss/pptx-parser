@@ -69,7 +69,13 @@ slide.addText([
   h: inches(4.5),
 });
 
-// 6. Save to disk
-await pres.save('cloud_keynote.pptx');
-console.log('✨ Generated cloud_keynote.pptx successfully!');
+// 6. Serialize to binary Uint8Array
+const buffer = await pres.toBuffer();
+
+// In Node.js:
+// import fs from 'node:fs/promises';
+// await fs.writeFile('cloud_keynote.pptx', buffer);
+
+// In Browsers:
+// const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
 ```

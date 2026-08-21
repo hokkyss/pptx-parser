@@ -1,18 +1,18 @@
 ---
 title: "Architecture"
-description: "Understand the 3-tier architecture, AST schemas, and round-trip fidelity guarantee."
+description: "Isomorphic design, memory efficiency, and layered AST architecture."
 order: 4
 section: "getting-started"
 ---
 
 # Architecture
 
-`@hokkyss/pptx` is engineered around a **decoupled, three-tier compiler architecture** that separates the user-facing fluent authoring API from the underlying OpenXML DrawingML AST and zip archive codecs.
+The architecture of `@hokkyss/pptx` is built around a layered, modular pipeline designed for high performance and zero native dependencies.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                       @hokkyss/pptx                        │
-│         (High-Level Fluent SDK & Authoring API)             │
+│                      @hokkyss/pptx                          │
+│     (Fluent Presentation, Slide, Layout, Builder APIs)      │
 └──────────────┬───────────────────────────────┬──────────────┘
                │                               │
                ▼                               ▼

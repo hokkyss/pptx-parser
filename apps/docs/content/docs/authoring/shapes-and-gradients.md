@@ -17,12 +17,12 @@ slide.addShape('roundRect', {
   y: inches(2),
   w: inches(4.5),
   h: inches(2.5),
-  gradient: {
+  fill: {
     type: 'linear',
     angle: degrees(90),
     stops: [
       { position: 0, color: '0284C7', opacity: 1.0 },
-      { position: 100, color: '0F172A', opacity: 0.85 },
+      { position: 1, color: '0F172A', opacity: 0.85 },
     ],
   },
   line: {

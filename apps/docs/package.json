@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@date-fns/tz": "^1.4.1",
-    "@fontsource-variable/geist": "^5.2.8",
     "@hokkyss/pptx": "workspace:^",
     "@hokkyss/pptx-core": "workspace:^",
     "@hokkyss/pptx-reader": "workspace:^",
@@ -47,6 +46,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "ts-pattern": "^5.9.0",
+    "unist-util-visit": "^5.1.0",
     "yaml": "^2.7.0",
     "zod": "catalog:zod4",
     "zustand": "^5.0.11"
@@ -65,9 +65,11 @@
     "@tanstack/react-router-devtools": "catalog:tanstackStart",
     "@tanstack/router-plugin": "catalog:tanstackStart",
     "@types/katex": "^0.16.7",
+    "@types/mdast": "^4.0.4",
     "@types/node": "^22.10.2",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
+    "@types/unist": "^3.0.3",
     "@vitejs/devtools": "^0.3.3",
     "@vitejs/plugin-react": "catalog:viteReact",
     "@vitejs/plugin-rsc": "^0.5.27",
