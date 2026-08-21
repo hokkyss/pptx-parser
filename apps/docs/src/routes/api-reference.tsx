@@ -3,8 +3,8 @@ import { createFileRoute, Outlet } from '@tanstack/react-router';
 import DocsSidebar from '../components/docs-sidebar.component';
 import listDocsQuery from '../lib/content/queries/list-docs.query';
 
-export const Route = createFileRoute('/api')({
-  loader: ({ context }) => context.queryClient.ensureQueryData(listDocsQuery('api/')),
+export const Route = createFileRoute('/api-reference')({
+  loader: ({ context }) => context.queryClient.ensureQueryData(listDocsQuery('api-reference/')),
   component: ApiLayout,
 });
 
@@ -13,11 +13,11 @@ export const Route = createFileRoute('/api')({
  * @returns React node
  */
 function ApiLayout() {
-  const { data } = useSuspenseQuery(listDocsQuery('api/'));
+  const { data } = useSuspenseQuery(listDocsQuery('api-reference/'));
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex gap-8">
-      <DocsSidebar baseRoute="/api" sections={data.sections} />
+      <DocsSidebar baseRoute="/api-reference" sections={data.sections} />
       <div className="flex-1 min-w-0 py-8">
         <Outlet />
       </div>
