@@ -17,7 +17,7 @@ jobs:
     name: Build (${{ matrix.platform }})
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+      name: docs-production
     strategy:
       matrix:
         platform: [none, netlify, cloudflare]
@@ -61,5 +61,5 @@ jobs:
         if: matrix.platform == 'cloudflare'
         env:
           CLOUDFLARE: true
-          CLOUDFLARE_ENV: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+          CLOUDFLARE_ENV: docs-production
         run: pnpm --filter @monorepo/docs... run build
