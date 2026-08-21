@@ -33,9 +33,9 @@ export default defineConfig((ctx) => ({
         external: process.env.CLOUDFLARE
           ? []
           : [
-            'readable-stream',
-            '@sentry/tanstackstart-react',
-          ],
+              'readable-stream',
+              '@sentry/tanstackstart-react',
+            ],
       },
     },
     ssr: {
@@ -43,9 +43,9 @@ export default defineConfig((ctx) => ({
         external: process.env.CLOUDFLARE
           ? []
           : [
-            'readable-stream',
-            '@sentry/tanstackstart-react',
-          ],
+              'readable-stream',
+              '@sentry/tanstackstart-react',
+            ],
       },
     },
   },

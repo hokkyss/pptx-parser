@@ -3,8 +3,8 @@ import { mutationOptions } from '@tanstack/react-query';
 import setApplicationThemeFunction from '../functions/set-application-theme.function';
 
 /**
- *
- * @param props
+ * Returns mutation options for updating the user application theme.
+ * @returns Mutation options
  */
 export default function setApplicationThemeMutation() {
   return mutationOptions({

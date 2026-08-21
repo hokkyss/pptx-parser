@@ -26,16 +26,16 @@ import { createIsomorphicFn } from '@tanstack/react-start';
  * ```
  */
 const getOrigin = createIsomorphicFn()
-    .server((request: Request) => {
-        try {
-            return new URL(request.url).origin;
-        } catch {
-            // fallback – identical to the upstream implementation
-        }
-        return 'http://localhost';
-    })
-    .client(() => {
-        throw new ApplicationError(500, 'getOrigin function can only run in server environment');
-    });
+  .server((request: Request) => {
+    try {
+      return new URL(request.url).origin;
+    } catch {
+      // fallback – identical to the upstream implementation
+    }
+    return 'http://localhost';
+  })
+  .client(() => {
+    throw new ApplicationError(500, 'getOrigin function can only run in server environment');
+  });
 
 export default getOrigin;

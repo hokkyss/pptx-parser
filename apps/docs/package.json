@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "build:netlify": "NETLIFY=true vite build",
     "build:cloudflare:dev": "CLOUDFLARE=true CLOUDFLARE_ENV=development vite build",
     "build:cloudflare:prod": "CLOUDFLARE=true CLOUDFLARE_ENV=production vite build",
@@ -16,6 +18,10 @@
   "dependencies": {
     "@date-fns/tz": "^1.4.1",
     "@fontsource-variable/geist": "^5.2.8",
+    "@hokkyss/pptx": "workspace:^",
+    "@hokkyss/pptx-core": "workspace:^",
+    "@hokkyss/pptx-reader": "workspace:^",
+    "@hokkyss/pptx-writer": "workspace:^",
     "@monorepo/common": "workspace:^",
     "@monorepo/design-system": "workspace:^",
     "@monorepo/seo": "workspace:^",
@@ -29,17 +35,27 @@
     "@tanstack/react-start": "catalog:tanstackStart",
     "date-fns": "^4.1.0",
     "dedent": "^1.7.2",
+    "highlight.js": "^11.11.1",
+    "katex": "^0.16.21",
+    "monaco-editor": "^0.52.2",
     "react": "catalog:react19",
     "react-dom": "catalog:react19",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
+    "remark-gemoji": "^8.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "ts-pattern": "^5.9.0",
+    "yaml": "^2.7.0",
     "zod": "catalog:zod4",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.39.0",
     "@cloudflare/workers-types": "^4.20260619.1",
-    "@netlify/vite-plugin": "^2.12.5",
     "@monorepo/eslint": "workspace:^",
+    "@netlify/vite-plugin": "^2.12.5",
     "@rolldown/plugin-babel": "catalog:viteReact",
     "@tailwindcss/vite": "catalog:tailwindcss",
     "@tanstack/devtools-event-client": "^0.4.4",
@@ -48,6 +64,7 @@
     "@tanstack/react-query-devtools": "catalog:tanstackQuery",
     "@tanstack/react-router-devtools": "catalog:tanstackStart",
     "@tanstack/router-plugin": "catalog:tanstackStart",
+    "@types/katex": "^0.16.7",
     "@types/node": "^22.10.2",
     "@types/react": "catalog:react19",
     "@types/react-dom": "catalog:react19",
@@ -62,5 +79,5 @@
     "vitest": "catalog:vite",
     "wrangler": "^4.95.0"
   },
-  "version": "2.0.0"
+  "version": "1.0.0"
 }

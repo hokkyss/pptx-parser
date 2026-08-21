@@ -60,7 +60,9 @@ const cacheMiddleware = createMiddleware({
   });
 
 /**
- * @param response
+ * Processes caching headers on a response.
+ * @param response Web Response object
+ * @returns Tuple of cloned response and boolean flag
  */
 function processCacheHeaders(response: Response): [Response, shouldCache: boolean] {
   const xCacheMaxage = response.headers.get('X-Cache-Maxage');

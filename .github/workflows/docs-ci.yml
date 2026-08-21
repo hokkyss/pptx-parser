@@ -4,10 +4,9 @@ on:
   pull_request:
     branches:
       - main
-      - dev
     paths:
       - 'apps/docs/**'
-      - 'packages/**'
+      - 'libs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

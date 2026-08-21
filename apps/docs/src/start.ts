@@ -3,9 +3,9 @@ import functionLoggerMiddleware from './clients/logger/middlewares/function-logg
 import loggerInstanceMiddleware from './clients/logger/middlewares/logger-instance.middleware';
 import requestIdMiddleware from './clients/logger/middlewares/request-id.middleware';
 import queryClientMiddleware from './clients/query/middlewares/query.middleware';
+import cacheMiddleware from './lib/common/middlewares/cache.middleware';
 import nonceMiddleware from './lib/common/middlewares/nonce.middleware';
 import applicationErrorSerializationAdapter from './lib/common/serialization-adapters/application-error.serialization-adapter';
-import cacheMiddleware from './lib/common/middlewares/cache.middleware';
 
 const isFunctionCalledFromClient = createMiddleware({ type: 'function' })
   .client(async (ctx) => {

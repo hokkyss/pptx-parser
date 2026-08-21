@@ -3,3 +3,8 @@
 
 @source ".";
 @source "../node_modules/@monorepo/design-system";
+
+pre code.hljs {
+  padding: 0;
+  background: transparent;
+}
