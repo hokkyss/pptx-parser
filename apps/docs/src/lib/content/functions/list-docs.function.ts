@@ -3,7 +3,7 @@ import { setResponseHeader } from '@tanstack/react-start/server';
 import { getAllDocs } from '../content-manifest';
 import { listDocsRequestDto, listDocsResponseDto } from '../dto/list-docs.dto';
 
-const sectionLabels: Record<string, string> = {
+const sectionLabels = {
   authoring: 'Authoring Guide',
   'core-concepts': 'Core Concepts',
   'getting-started': 'Getting Started',
@@ -14,7 +14,20 @@ const sectionLabels: Record<string, string> = {
   'pptx-reader': '@hokkyss/pptx-reader',
   'pptx-writer': '@hokkyss/pptx-writer',
   'runtimes-and-deploy': 'Runtimes & Deployment',
-};
+} as const satisfies Record<string, string>;
+
+const sectionOrder: (keyof typeof sectionLabels)[] = [
+  'getting-started',
+  'core-concepts',
+  'parsing-and-mutation',
+  'authoring',
+  'performance',
+  'runtimes-and-deploy',
+  'pptx',
+  'pptx-core',
+  'pptx-reader',
+  'pptx-writer',
+];
 
 const getDocSection = (pathStr: string) => {
   const parts = pathStr.split('/');
@@ -52,10 +65,18 @@ const listDocsFunction = createServerFn({
       });
     }
 
-    const sections = Object.entries(grouped).map(([secKey, items]) => ({
-      items: items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99)),
-      title: sectionLabels[secKey] || secKey.toUpperCase(),
-    }));
+    const sections = Object.entries(grouped)
+      .sort(([aKey], [bKey]) => {
+        const aIdx = sectionOrder.indexOf(aKey as keyof typeof sectionLabels);
+        const bIdx = sectionOrder.indexOf(bKey as keyof typeof sectionLabels);
+        const resolvedA = aIdx === -1 ? 999 : aIdx;
+        const resolvedB = bIdx === -1 ? 999 : bIdx;
+        return resolvedA - resolvedB;
+      })
+      .map(([secKey, items]) => ({
+        items: items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99)),
+        title: sectionLabels[secKey as keyof typeof sectionLabels] || secKey.toUpperCase(),
+      }));
 
     return listDocsResponseDto.parse({ sections });
   });

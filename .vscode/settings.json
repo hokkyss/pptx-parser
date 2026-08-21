@@ -35,7 +35,8 @@
     "**/.yarn": true,
     "**/routeTree.gen.ts": true,
     "**/.pnp.*": true,
-    "**/app/**/*": true
+    "**/app/**/*": true,
+    ".agents/**/*": true
   },
   "eslint.debug": true,
   "typescript.enablePromptUseWorkspaceTsdk": true,
