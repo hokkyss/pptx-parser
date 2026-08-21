@@ -1,12 +1,10 @@
 name: Deploy @monorepo/docs to Cloudflare
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/docs/**'
-      - 'libs/**'
+  release:
+    types: [published]
+  workflow_call:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,7 +15,7 @@ jobs:
     name: Deploy to Cloudflare
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+      name: docs-production
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -48,7 +46,7 @@ jobs:
         env:
           CLOUDFLARE: true
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          CLOUDFLARE_ENV: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+          CLOUDFLARE_ENV: docs-production
         run: |
           pnpm --filter @monorepo/docs... run build
 
@@ -60,7 +58,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Purge Cloudflare Cache (production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || github.event_name == 'release' || github.event_name == 'workflow_call' || github.ref_type == 'tag' }}
         uses: nathanvaughn/actions-cloudflare-purge@v4.0.0
         with:
           cf_zone: ${{ secrets.CLOUDFLARE_ZONE_ID }}
