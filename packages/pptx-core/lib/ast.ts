@@ -10,7 +10,14 @@ import type { PptxFill } from './color';
 import type { PptxMediaAsset } from './media';
 import type { PptxTable } from './table';
 import type { PptxHyperlink, PptxHyperlinkAction, PptxTextBody } from './text';
-import type { PptxLine, PptxTheme } from './theme';
+import type {
+  PptxLine,
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
+  PptxTheme,
+} from './theme';
 import type { Emu, EmuDegree, HundredthsPoint, ThousandthsPercent } from './units';
 
 export type {
@@ -23,6 +30,10 @@ export type {
   PptxHyperlink,
   PptxHyperlinkAction,
   PptxLine,
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
   PptxMediaAsset,
   PptxTable,
   PptxTextBody,
@@ -195,9 +206,22 @@ export interface PptxChartElement extends PptxBaseElement {
   type: 'graphicFrame';
 }
 
+/** Cardinal attachment positions on a shape for connectors */
+export type PptxConnectionPosition = 'bottom' | 'left' | 'right' | 'top';
+
+/** Shape attachment target for a connector */
+export interface PptxShapeAttachment {
+  position: PptxConnectionPosition;
+  shapeId: string;
+}
+
 /** Connector line element */
 export interface PptxConnectorElement extends PptxBaseElement {
   elementType: 'connector';
+  /** Shape attachment target for the end of the connector line. OpenXML: `<a:endCxn>` */
+  endConnection?: PptxShapeAttachment;
+  /** Shape attachment target for the start of the connector line. OpenXML: `<a:stCxn>` */
+  startConnection?: PptxShapeAttachment;
   type: 'connector';
 }
 

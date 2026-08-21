@@ -26,7 +26,14 @@ export function serializeSlideBackground(slide: PptxSlide): Record<string, unkno
 }
 
 /**
- *
+ * Checks if a string represents a positive unsigned integer (>= 1).
+ */
+function isUnsignedInt(str?: string): boolean {
+  return typeof str === 'string' && /^[1-9]\d*$/.test(str);
+}
+
+/**
+ * Normalizes element and all its children with valid numeric OpenXML drawing IDs.
  */
 function normalizeElementWithUniqueIds(
   el: PptxElement,
@@ -48,7 +55,7 @@ function normalizeElementWithUniqueIds(
 }
 
 /**
- *
+ * Serializes a chart graphicFrame element.
  */
 export function serializeChartGraphicFrame(
   elem: PptxElement,
@@ -102,11 +109,13 @@ export function serializeSlide(
   const cxnSpList: Record<string, unknown>[] = [];
 
   const usedIds = new Set<string>(['1']); // 1 is reserved for the root container group
+  const idMap = new Map<string, string>();
   let nextId = 2;
 
   const getUniqueId = (preferredId?: string): string => {
-    if (preferredId && preferredId !== '1' && !usedIds.has(preferredId)) {
+    if (preferredId && isUnsignedInt(preferredId) && preferredId !== '1' && !usedIds.has(preferredId)) {
       usedIds.add(preferredId);
+      idMap.set(preferredId, preferredId);
       return preferredId;
     }
     while (usedIds.has(String(nextId))) {
@@ -114,6 +123,9 @@ export function serializeSlide(
     }
     const id = String(nextId++);
     usedIds.add(id);
+    if (preferredId) {
+      idMap.set(preferredId, id);
+    }
     return id;
   };
 
@@ -135,7 +147,23 @@ export function serializeSlide(
     } else if (elWithId.elementType === 'group') {
       grpSpList.push(serializeGroup(elWithId));
     } else if (elWithId.elementType === 'connector') {
-      cxnSpList.push(serializeConnector(elWithId));
+      // Map attached shape IDs to their normalized numeric IDs
+      const mappedConnector = {
+        ...elWithId,
+        endConnection: elWithId.endConnection
+          ? {
+              ...elWithId.endConnection,
+              shapeId: idMap.get(elWithId.endConnection.shapeId) ?? elWithId.endConnection.shapeId,
+            }
+          : undefined,
+        startConnection: elWithId.startConnection
+          ? {
+              ...elWithId.startConnection,
+              shapeId: idMap.get(elWithId.startConnection.shapeId) ?? elWithId.startConnection.shapeId,
+            }
+          : undefined,
+      };
+      cxnSpList.push(serializeConnector(mappedConnector));
     }
   }
 

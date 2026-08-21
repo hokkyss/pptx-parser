@@ -57,6 +57,14 @@ export interface AddShapeOptions {
   fill?: FillInput;
   h: Inches;
   hyperlink?: PptxHyperlink | string;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide
+   * - Must be unique among all elements on the SAME slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   line?: {
     color?: string;
@@ -142,7 +150,7 @@ const PRESET_GEOMETRY_MAP: Record<string, string> = {
 export function buildShapeElement(
   shapeType: string,
   options: AddShapeOptions,
-  counter: number = 1,
+  counter: number | string = 1,
 ): PptxShapeElement {
   const resolvedShapeType = PRESET_GEOMETRY_MAP[shapeType] || shapeType;
   const id = options.id || String(counter);
