@@ -150,13 +150,13 @@ function PlaygroundPage() {
   };
 
   return (
-    <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col h-[calc(100vh-4rem)]">
+    <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col min-h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]">
       {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border/40 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border/40 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <LightningIcon className="h-6 w-6 text-primary" />
-            Live PowerPoint Playground
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <LightningIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
+            <span>Live PowerPoint Playground</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Write TypeScript code and compile .pptx files in real time in your browser.
@@ -166,7 +166,7 @@ function PlaygroundPage() {
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-muted-foreground">Preset:</span>
           <select
-            className="px-3 py-1.5 rounded-lg bg-background border border-input text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="px-2.5 py-1.5 rounded-lg bg-background border border-input text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             onChange={(e) => handleSelectPreset(e.target.value)}
             value={selectedPreset}
           >
@@ -179,20 +179,22 @@ function PlaygroundPage() {
 
       {/* Split Pane Editor & Live Preview */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-        <ClientOnly fallback={<div className="h-full bg-muted rounded-lg animate-pulse border border-border" />}>
-          <div className="flex flex-col h-full">
-            <div className="text-xs font-mono text-muted-foreground mb-2 flex items-center justify-between">
+        <ClientOnly fallback={<div className="h-[400px] lg:h-full bg-muted rounded-lg animate-pulse border border-border" />}>
+          <div className="flex flex-col h-[400px] sm:h-[460px] lg:h-full min-h-0">
+            <div className="text-xs font-mono text-muted-foreground mb-2 flex items-center justify-between px-1">
               <span>TypeScript Editor (Monaco)</span>
-              <span>@hokkyss/pptx in scope</span>
+              <span className="hidden sm:inline">@hokkyss/pptx in scope</span>
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 rounded-xl overflow-hidden border border-border">
               <MonacoEditor onChange={setCode} value={code} />
             </div>
           </div>
         </ClientOnly>
 
-        <ClientOnly fallback={<div className="h-full bg-muted rounded-xl animate-pulse border border-border" />}>
-          <SlideCanvas code={code} />
+        <ClientOnly fallback={<div className="h-[350px] lg:h-full bg-muted rounded-xl animate-pulse border border-border" />}>
+          <div className="flex flex-col min-h-[350px] lg:h-full">
+            <SlideCanvas code={code} />
+          </div>
         </ClientOnly>
       </div>
     </div>

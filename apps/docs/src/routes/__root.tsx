@@ -12,7 +12,10 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import vsDarkCss from 'highlight.js/styles/vs-dark.min.css?url';
+import vsCss from 'highlight.js/styles/vs.min.css?url';
+import katexCss from 'katex/dist/katex.min.css?url';
 import DocsHeader from '../components/docs-header.component';
+import MobileBottomNav from '../components/mobile-bottom-nav.component';
 import getApplicationThemeQuery from '../lib/common/queries/get-application-theme.query';
 import appCss from '../styles.css?url';
 
@@ -22,14 +25,17 @@ interface MyRouterContext {
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   async loader(ctx) {
-    const [, err] = await tryit(ctx.context.queryClient.ensureQueryData(getApplicationThemeQuery()));
+    const [theme, err] = await tryit(ctx.context.queryClient.ensureQueryData(getApplicationThemeQuery()));
     if (err) throw err;
-    return {};
+    return {
+      theme,
+    };
   },
-  head: () => ({
+  head: ({ loaderData }) => ({
     links: [
       { fetchPriority: 'high', href: appCss, rel: 'stylesheet' },
-      { href: vsDarkCss, rel: 'stylesheet' },
+      { href: katexCss, rel: 'stylesheet' },
+      { href: loaderData?.theme === 'dark' ? vsDarkCss : vsCss, rel: 'stylesheet' },
     ],
     meta: [
       { charSet: 'utf-8' },
@@ -59,10 +65,11 @@ function RootDocument({ children }: { children: ReactNode }) {
         <ThemeProvider theme={theme}>
           <Toaster position="bottom-right" />
           <DocsHeader />
-          <main className="flex-1">
+          <main className="flex-1 pb-20 md:pb-0">
             {children}
           </main>
-          <footer className="border-t border-border/40 py-8 px-4 text-center text-xs text-muted-foreground">
+          <MobileBottomNav />
+          <footer className="border-t border-border/40 py-8 px-4 text-center text-xs text-muted-foreground pb-24 md:pb-8">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
               <span>MIT Licensed © 2026 hokkyss. Built for ultra-fast isomorphic presentation generation.</span>
               <div className="flex items-center gap-4">
