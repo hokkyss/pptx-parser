@@ -48,12 +48,12 @@ export default function SlideCanvas({ code }: SlideCanvasProps) {
 
   // Determine slide background color
   const backgroundColor = useMemo(() => {
-    if (!activeSlide?.background?.fill) return '#0F172A';
+    if (!activeSlide?.background?.fill) return 'var(--card)';
     const fill = activeSlide.background.fill;
     if (fill.type === 'solid' && fill.solidColor) {
-      return resolveHexColor(fill.solidColor.value, '#0F172A');
+      return resolveHexColor(fill.solidColor.value, 'var(--card)');
     }
-    return '#0F172A';
+    return 'var(--card)';
   }, [activeSlide]);
 
   const handleDownload = () => {
@@ -95,8 +95,8 @@ export default function SlideCanvas({ code }: SlideCanvasProps) {
             <span
               className={
                 evalResult.error
-                  ? 'h-2.5 w-2.5 rounded-full bg-rose-500'
-                  : 'h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse'
+                  ? 'h-2.5 w-2.5 rounded-full bg-destructive'
+                  : 'h-2.5 w-2.5 rounded-full bg-success animate-pulse'
               }
             />
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -148,8 +148,8 @@ export default function SlideCanvas({ code }: SlideCanvasProps) {
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-2 sm:p-4 overflow-auto">
         {evalResult.error
           ? (
-              <div className="w-full max-w-lg p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono space-y-2">
-                <div className="flex items-center gap-2 font-bold text-rose-400">
+              <div className="w-full max-w-lg p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-mono space-y-2">
+                <div className="flex items-center gap-2 font-bold text-destructive">
                   <WarningCircleIcon className="h-4 w-4 shrink-0" />
                   <span>Compilation Error</span>
                 </div>
@@ -200,7 +200,7 @@ export default function SlideCanvas({ code }: SlideCanvasProps) {
                             const y1 = Number(connector.position.y);
                             const x2 = x1 + Number(connector.position.cx);
                             const y2 = y1 + Number(connector.position.cy);
-                            const color = resolveHexColor(connector.line?.fill?.solidColor?.value, '#38BDF8');
+                            const color = resolveHexColor(connector.line?.fill?.solidColor?.value, 'var(--primary)');
                             const strokeWidth = Math.max(15000, Number(connector.line?.width || 20000));
 
                             return (
@@ -261,7 +261,7 @@ export default function SlideCanvas({ code }: SlideCanvasProps) {
                 )}
 
         {downloadError && (
-          <p className="text-xs text-rose-400 mt-2 font-mono">{downloadError}</p>
+          <p className="text-xs text-destructive mt-2 font-mono">{downloadError}</p>
         )}
       </div>
     </div>
@@ -327,16 +327,16 @@ function RenderChart({ chart }: { chart: PptxChart }) {
   const maxVal = Math.max(...series.flatMap((s) => s.values || [0]), 1);
 
   return (
-    <div className="w-full h-full rounded-xl bg-slate-900/90 border border-slate-800 p-[1.5cqw] flex flex-col justify-between text-white">
+    <div className="w-full h-full rounded-xl bg-card border border-border p-[1.5cqw] flex flex-col justify-between text-foreground">
       {chart.title && (
-        <div className="flex items-center gap-2 font-bold text-[1.5cqw] text-sky-400">
+        <div className="flex items-center gap-2 font-bold text-[1.5cqw] text-primary">
           <ChartBarIcon className="h-[1.8cqw] w-[1.8cqw]" />
           <span>{chart.title}</span>
         </div>
       )}
 
       {/* Bar visual layout */}
-      <div className="flex-1 flex items-end justify-between gap-[1.5cqw] my-[1cqw] pt-[1cqw] border-b border-slate-700/60 pb-1">
+      <div className="flex-1 flex items-end justify-between gap-[1.5cqw] my-[1cqw] pt-[1cqw] border-b border-border/60 pb-1">
         {categories.map((cat, cIdx) => (
           <div className="flex-1 flex flex-col items-center gap-1 h-full justify-end" key={`chart-cat-${cat}`}>
             <div className="w-full flex items-end justify-center gap-1 h-4/5">
@@ -344,7 +344,7 @@ function RenderChart({ chart }: { chart: PptxChart }) {
                 const val = s.values?.[cIdx] ?? 0;
                 const heightPct = `${Math.max(5, (val / maxVal) * 100)}%`;
                 const seriesColor = s.fill?.solidColor?.value;
-                const barColor = resolveHexColor(typeof seriesColor === 'string' ? seriesColor : undefined, '#38BDF8');
+                const barColor = resolveHexColor(typeof seriesColor === 'string' ? seriesColor : undefined, 'var(--primary)');
 
                 return (
                   <div
@@ -359,7 +359,7 @@ function RenderChart({ chart }: { chart: PptxChart }) {
                 );
               })}
             </div>
-            <span className="text-[0.9cqw] text-slate-400 truncate max-w-full font-mono">{cat}</span>
+            <span className="text-[0.9cqw] text-muted-foreground truncate max-w-full font-mono">{cat}</span>
           </div>
         ))}
       </div>
@@ -368,7 +368,7 @@ function RenderChart({ chart }: { chart: PptxChart }) {
       <div className="flex items-center justify-center gap-4 text-[0.9cqw]">
         {series.map((s) => {
           const seriesColor = s.fill?.solidColor?.value;
-          const legendColor = resolveHexColor(typeof seriesColor === 'string' ? seriesColor : undefined, '#38BDF8');
+          const legendColor = resolveHexColor(typeof seriesColor === 'string' ? seriesColor : undefined, 'var(--primary)');
 
           return (
             <div className="flex items-center gap-1.5" key={`legend-${s.name}`}>
@@ -376,7 +376,7 @@ function RenderChart({ chart }: { chart: PptxChart }) {
                 className="h-[0.8cqw] w-[0.8cqw] rounded-full"
                 style={{ backgroundColor: legendColor }}
               />
-              <span className="text-slate-300">{s.name}</span>
+              <span className="text-muted-foreground">{s.name}</span>
             </div>
           );
         })}
@@ -449,7 +449,7 @@ function RenderSlideElement({ element }: { element: PptxElement }) {
           <p className={`leading-snug ${textAlignClass}`} key={`p-${element.id}-${pIdx}`}>
             {paragraph.runs.map((run, rIdx) => {
               const runColor = run.properties?.color;
-              const color = resolveHexColor(typeof runColor === 'string' ? runColor : undefined, '#FFFFFF');
+              const color = resolveHexColor(typeof runColor === 'string' ? runColor : undefined, 'var(--foreground)');
               const fontSizePt = (Number(run.properties?.fontSize) || 1400) / 100;
               const fontSizeCqw = `${Math.max(0.8, fontSizePt * 0.104166)}cqw`;
 
@@ -496,7 +496,7 @@ function RenderTable({ table }: { table: PptxTable }) {
                 const fill = cellColor
                   ? resolveHexColor(cellColor)
                   : rIdx === 0
-                    ? '#1E293B'
+                    ? 'var(--muted)'
                     : 'transparent';
 
                 const runs = cell.textBody?.paragraphs?.[0]?.runs || [];
@@ -516,7 +516,7 @@ function RenderTable({ table }: { table: PptxTable }) {
                         <span
                           key={`tbl-cell-run-${rIdx}-${cIdx}-${i}`}
                           style={{
-                            color: resolveHexColor(typeof textColor === 'string' ? textColor : undefined, rIdx === 0 ? '#38BDF8' : '#F8FAFC'),
+                            color: resolveHexColor(typeof textColor === 'string' ? textColor : undefined, rIdx === 0 ? 'var(--primary)' : 'var(--foreground)'),
                             fontWeight: r.properties?.bold || rIdx === 0 ? '700' : '400',
                           }}
                         >

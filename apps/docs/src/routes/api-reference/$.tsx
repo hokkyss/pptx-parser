@@ -25,7 +25,7 @@ function ApiPage() {
     <div className="flex justify-between gap-8 lg:gap-12">
       <div className="flex-1 min-w-0 max-w-4xl xl:max-w-5xl">
         <div className="mb-6 pb-4 border-b border-border/40">
-          <span className="text-xs font-mono text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+          <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
             {pkgName}
           </span>
           <h1 className="text-3xl font-bold tracking-tight text-foreground mt-2">

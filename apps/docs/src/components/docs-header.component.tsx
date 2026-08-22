@@ -13,13 +13,13 @@ export default function DocsHeader() {
         {/* Left: Logo & Brand */}
         <div className="flex items-center gap-6">
           <Link className="flex items-center gap-2.5 group" to="/">
-            <div className="h-8 w-8 rounded-lg bg-linear-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-md group-hover:scale-105 transition">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-base shadow-md group-hover:scale-105 transition">
               P
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-base tracking-tight text-foreground flex items-center gap-1.5">
                 @hokkyss/pptx
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">v1.0</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">v1.0</span>
               </span>
             </div>
           </Link>
@@ -32,7 +32,7 @@ export default function DocsHeader() {
               params={{ _splat: 'getting-started/overview' }}
               to="/docs/$"
             >
-              <BookOpenIcon className="h-4 w-4 text-sky-400" />
+              <BookOpenIcon className="h-4 w-4 text-primary" />
               Docs
             </Link>
             <Link
@@ -40,7 +40,7 @@ export default function DocsHeader() {
               className="px-3 py-1.5 rounded-md hover:text-foreground hover:bg-muted/40 transition flex items-center gap-1.5"
               to="/cookbook"
             >
-              <SparkleIcon className="h-4 w-4 text-amber-400" />
+              <SparkleIcon className="h-4 w-4 text-primary" />
               Cookbook
             </Link>
             <Link
@@ -49,7 +49,7 @@ export default function DocsHeader() {
               params={{ _splat: 'pptx/presentation' }}
               to="/api-reference/$"
             >
-              <CodeIcon className="h-4 w-4 text-purple-400" />
+              <CodeIcon className="h-4 w-4 text-primary" />
               API Reference
             </Link>
             <Link
@@ -57,7 +57,7 @@ export default function DocsHeader() {
               className="px-3 py-1.5 rounded-md hover:text-foreground hover:bg-muted/40 transition flex items-center gap-1.5"
               to="/playground"
             >
-              <PlayIcon className="h-4 w-4 text-emerald-400" />
+              <PlayIcon className="h-4 w-4 text-primary" />
               Playground
             </Link>
             <Link
@@ -65,7 +65,7 @@ export default function DocsHeader() {
               className="px-3 py-1.5 rounded-md hover:text-foreground hover:bg-muted/40 transition flex items-center gap-1.5"
               to="/showcase"
             >
-              <CubeIcon className="h-4 w-4 text-rose-400" />
+              <CubeIcon className="h-4 w-4 text-primary" />
               Showcase
             </Link>
           </nav>

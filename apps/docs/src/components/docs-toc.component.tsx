@@ -25,7 +25,7 @@ export default function DocsToc({ toc }: DocsTocProps) {
             style={{ paddingLeft: `${(item.level - 2) * 12}px` }}
           >
             <a
-              className="text-muted-foreground hover:text-sky-400 transition block leading-snug"
+              className="text-muted-foreground hover:text-primary transition block leading-snug"
               href={`#${item.id}`}
             >
               {item.text}
