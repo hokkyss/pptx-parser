@@ -27,7 +27,7 @@ interface MarkdownRendererProps {
  */
 export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <article className="prose dark:prose-invert max-w-none text-foreground leading-relaxed">
+    <article className="prose prose-brand dark:prose-invert max-w-none text-foreground leading-relaxed">
       <ReactMarkdown
         components={{
           a: ({ children, href, ...props }) => (
@@ -143,9 +143,9 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
     <div className="relative my-6 group rounded-xl overflow-hidden border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between px-4 py-2.5 bg-muted/80 border-b border-border text-xs font-mono text-muted-foreground">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-500/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-destructive/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-warning/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-success/80" />
           <span className="ml-1.5 font-semibold text-foreground">{language || 'text'}</span>
         </div>
         <button
@@ -159,8 +159,8 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
           {copied
             ? (
                 <>
-                  <CheckIcon className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-emerald-500">Copied</span>
+                  <CheckIcon className="h-3.5 w-3.5 text-success" />
+                  <span className="text-success">Copied</span>
                 </>
               )
             : (
@@ -171,7 +171,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
               )}
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto text-sm leading-relaxed font-mono bg-slate-950 text-slate-200">
+      <pre className="p-4 overflow-x-auto text-sm leading-relaxed font-mono bg-card text-card-foreground">
         <code className={className} {...props}>
           {children}
         </code>

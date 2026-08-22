@@ -29,7 +29,7 @@ export default function ThemeSwitcher() {
     >
       {theme === 'dark'
         ? (
-            <SunIcon className="h-4 w-4 text-amber-400" />
+            <SunIcon className="h-4 w-4 text-foreground" />
           )
         : (
             <MoonIcon className="h-4 w-4 text-foreground" />

@@ -155,7 +155,7 @@ function PlaygroundPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-border/40 mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <LightningIcon className="h-6 w-6 text-amber-500" />
+            <LightningIcon className="h-6 w-6 text-primary" />
             Live PowerPoint Playground
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">

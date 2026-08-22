@@ -11,6 +11,7 @@ import {
   Scripts,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import vsDarkCss from 'highlight.js/styles/vs-dark.min.css?url';
 import DocsHeader from '../components/docs-header.component';
 import getApplicationThemeQuery from '../lib/common/queries/get-application-theme.query';
 import appCss from '../styles.css?url';
@@ -28,8 +29,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
     links: [
       { fetchPriority: 'high', href: appCss, rel: 'stylesheet' },
-      { href: 'https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css', rel: 'stylesheet' },
-      { href: 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css', rel: 'stylesheet' },
+      { href: vsDarkCss, rel: 'stylesheet' },
     ],
     meta: [
       { charSet: 'utf-8' },

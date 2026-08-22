@@ -30,7 +30,7 @@ function ShowcasePage() {
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center max-w-2xl mx-auto mb-12">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 text-xs font-semibold mb-3 border border-rose-500/20">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3 border border-primary/20">
           <CubeIcon className="h-3.5 w-3.5" />
           14-Slide Comprehensive Suite
         </div>
@@ -62,7 +62,7 @@ function ShowcasePage() {
 
             <div className="mt-4 pt-4 border-t border-border/30 text-xs font-mono text-muted-foreground flex justify-between items-center">
               <span>pnpm demo:showcase</span>
-              <span className="text-emerald-400">ECMA-376 Valid</span>
+              <span className="text-success">ECMA-376 Valid</span>
             </div>
           </div>
         ))}

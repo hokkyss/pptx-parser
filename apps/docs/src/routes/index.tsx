@@ -20,13 +20,42 @@ slide.addText('Distributed Edge Compute', {
   color: '38BDF8',
   fontSize: points(32),
   bold: true,
-  x: inches(1), y: inches(1), w: inches(11), h: inches(0.8)
+  x: inches(1),
+  y: inches(1),
+  w: inches(11),
+  h: inches(0.8)
 });
 
 // 3. Attach connected cards
-slide.addShape('roundRect', { id: 'gateway', text: 'Edge Gateway', x: inches(1), y: inches(2.5), w: inches(3), h: inches(1.5) });
-slide.addShape('roundRect', { id: 'auth', text: 'Auth Service', x: inches(6), y: inches(2.5), w: inches(3), h: inches(1.5) });
-slide.addConnector({ from: { shapeId: 'gateway', position: 'right' }, to: { shapeId: 'auth', position: 'left' }, endArrow: 'triangle' });
+slide.addShape('roundRect', {
+  id: 'gateway',
+  text: 'Edge Gateway',
+  x: inches(1),
+  y: inches(2.5),
+  w: inches(3),
+  h: inches(1.5)
+});
+
+slide.addShape('roundRect', {
+  id: 'auth',
+  text: 'Auth Service',
+  x: inches(6),
+  y: inches(2.5),
+  w: inches(3),
+  h: inches(1.5)
+});
+
+slide.addConnector({
+  from: {
+    shapeId: 'gateway',
+    position: 'right'
+  },
+  to: {
+    shapeId: 'auth',
+    position: 'left'
+  },
+  endArrow: 'triangle'
+});
 
 // 4. Save (or toArrayBuffer() in browser/workers)
 await pres.save('deck.pptx');
@@ -49,7 +78,7 @@ function HomePage() {
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground max-w-4xl mx-auto leading-tight">
           Parse, Construct & Mutate
           {' '}
-          <span className="bg-linear-to-r from-sky-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent">PowerPoint (.pptx)</span>
+          <span className="text-primary">PowerPoint (.pptx)</span>
           {' '}
           in Pure TypeScript
         </h1>
@@ -71,7 +100,7 @@ function HomePage() {
             className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold text-sm border border-border shadow-sm transition active:scale-95"
             to="/playground"
           >
-            <LightningIcon className="h-4 w-4 text-amber-500" />
+            <LightningIcon className="h-4 w-4 text-primary" />
             Try Live Playground
           </Link>
         </div>
@@ -79,19 +108,19 @@ function HomePage() {
         {/* Feature Pill Grid */}
         <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-5xl mx-auto text-left">
           <div className="p-5 rounded-2xl bg-card text-card-foreground border border-border shadow-sm hover:border-primary/40 transition">
-            <span className="text-2xl font-bold text-sky-500 font-mono">190 KB</span>
+            <span className="text-2xl font-bold text-primary font-mono">190 KB</span>
             <p className="text-xs text-muted-foreground mt-1">Lightweight & tree-shakeable</p>
           </div>
           <div className="p-5 rounded-2xl bg-card text-card-foreground border border-border shadow-sm hover:border-primary/40 transition">
-            <span className="text-2xl font-bold text-emerald-500 font-mono">0.10 ms</span>
+            <span className="text-2xl font-bold text-primary font-mono">0.10 ms</span>
             <p className="text-xs text-muted-foreground mt-1">Sub-millisecond parse latency</p>
           </div>
           <div className="p-5 rounded-2xl bg-card text-card-foreground border border-border shadow-sm hover:border-primary/40 transition">
-            <span className="text-2xl font-bold text-purple-500 font-mono">100%</span>
+            <span className="text-2xl font-bold text-primary font-mono">100%</span>
             <p className="text-xs text-muted-foreground mt-1">Round-trip AST fidelity</p>
           </div>
           <div className="p-5 rounded-2xl bg-card text-card-foreground border border-border shadow-sm hover:border-primary/40 transition">
-            <span className="text-2xl font-bold text-amber-500 font-mono">0 Native</span>
+            <span className="text-2xl font-bold text-primary font-mono">0 Native</span>
             <p className="text-xs text-muted-foreground mt-1">Pure TypeScript & fflate</p>
           </div>
         </div>
