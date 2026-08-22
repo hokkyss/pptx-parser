@@ -1,6 +1,4 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { CheckIcon, CopyIcon } from '@phosphor-icons/react';
-import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
@@ -8,6 +6,7 @@ import remarkGemoji from 'remark-gemoji';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkCallout from '../lib/plugins/remark-callout.plugin';
+import CodeCopyButton from './code-copy-button.component';
 import MarkdownCallout from './markdown-callout.component';
 
 interface CodeBlockProps extends ComponentPropsWithoutRef<'code'> {
@@ -20,7 +19,7 @@ interface MarkdownRendererProps {
 }
 
 /**
- * Markdown renderer supporting GFM tables, math (KaTeX), emojis, syntax highlighting, and GitHub-style callouts.
+ * React Server Component (RSC) markdown renderer supporting GFM tables, math (KaTeX), emojis, syntax highlighting, and GitHub-style callouts.
  * @param root0 Component props
  * @param root0.content Raw markdown string to render
  * @returns React node
@@ -92,7 +91,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           },
           table: ({ children }) => (
             <div className="my-6 overflow-x-auto rounded-lg border border-border max-w-full">
-              <table className="w-full text-left text-sm border-collapse min-w-[500px] sm:min-w-full">{children}</table>
+              <table className="w-full text-left text-sm border-collapse min-w-125 sm:min-w-full">{children}</table>
             </div>
           ),
           td: ({ children }) => (
@@ -119,25 +118,16 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
 }
 
 /**
- * Renders a syntax-highlighted code block with a one-click copy button.
+ * Server Component rendering syntax-highlighted code blocks with an embedded client copy button.
  * @param root0 Component props
  * @param root0.children Code text content
  * @param root0.className CSS class containing language name
  * @returns React node
  */
 function CodeBlock({ children, className, ...props }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false);
   const codeText = extractNodeText(children).replace(/\n$/, '');
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(codeText);
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  };
 
   return (
     <div className="relative my-6 group rounded-xl overflow-hidden border border-border bg-card shadow-sm max-w-full">
@@ -148,28 +138,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
           <span className="h-2.5 w-2.5 rounded-full bg-success/80" />
           <span className="ml-1.5 font-semibold text-foreground">{language || 'text'}</span>
         </div>
-        <button
-          className="flex items-center gap-1.5 px-2 py-1 rounded bg-secondary hover:bg-secondary/80 text-secondary-foreground transition border border-border/50 active:scale-95"
-          onClick={() => {
-            void handleCopy();
-          }}
-          title="Copy code"
-          type="button"
-        >
-          {copied
-            ? (
-                <>
-                  <CheckIcon className="h-3.5 w-3.5 text-success" />
-                  <span className="text-success">Copied</span>
-                </>
-              )
-            : (
-                <>
-                  <CopyIcon className="h-3.5 w-3.5" />
-                  <span>Copy</span>
-                </>
-              )}
-        </button>
+        <CodeCopyButton code={codeText} />
       </div>
       <pre className="p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm leading-relaxed font-mono bg-card text-card-foreground">
         <code className={className} {...props}>

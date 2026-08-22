@@ -1,3 +1,5 @@
+'use client';
+
 import type { ComponentPropsWithoutRef } from 'react';
 import Alert from '@monorepo/design-system/alert';
 import AlertDescription from '@monorepo/design-system/alert-description';

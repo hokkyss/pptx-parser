@@ -1,9 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import type { GetDocResponseDto } from '../../lib/content/dto/get-doc.dto';
 import DocsToc from '../../components/docs-toc.component';
-import MarkdownRenderer from '../../components/markdown-renderer.component';
-import getDocQuery from '../../lib/content/queries/get-doc.query';
+import getDocQuery, { type GetDocRscResponse } from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/api-reference/$')({
   loader: ({ context, params }) => {
@@ -18,7 +16,7 @@ export const Route = createFileRoute('/api-reference/$')({
  */
 function ApiPage() {
   const { _splat } = Route.useParams();
-  const { data: doc }: { data: GetDocResponseDto } = useSuspenseQuery(getDocQuery(`api-reference/${_splat}`));
+  const { data: doc }: { data: GetDocRscResponse } = useSuspenseQuery(getDocQuery(`api-reference/${_splat}`));
   const pkgName = doc.package ?? 'API';
 
   return (
@@ -34,7 +32,7 @@ function ApiPage() {
           {doc.description && <p className="mt-2 text-sm text-muted-foreground">{doc.description}</p>}
         </div>
 
-        <MarkdownRenderer content={doc.content} />
+        {doc.Renderable}
       </div>
 
       <DocsToc toc={doc.toc} />

@@ -1,10 +1,8 @@
 import { ArrowRightIcon, LightningIcon, SparkleIcon } from '@phosphor-icons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
+import { renderServerComponent } from '@tanstack/react-start/rsc';
 import MarkdownRenderer from '../components/markdown-renderer.component';
-
-export const Route = createFileRoute('/')({
-  component: HomePage,
-});
 
 const CODE_TEASER_SNIPPET = `\`\`\`typescript
 import { Presentation, inches, points } from '@hokkyss/pptx';
@@ -61,11 +59,28 @@ slide.addConnector({
 await pres.save('deck.pptx');
 \`\`\``;
 
+const getTeaserRsc = createServerFn({ method: 'GET' }).handler(async () => {
+  const Renderable = await renderServerComponent(
+    <MarkdownRenderer content={CODE_TEASER_SNIPPET} />,
+  );
+  return { Renderable };
+});
+
+export const Route = createFileRoute('/')({
+  loader: async () => {
+    const { Renderable } = await getTeaserRsc();
+    return { Teaser: Renderable };
+  },
+  component: HomePage,
+});
+
 /**
  * Home landing page component with hero and code teaser.
  * @returns React node
  */
 function HomePage() {
+  const { Teaser } = Route.useLoaderData();
+
   return (
     <div className="flex flex-col items-center">
       {/* Hero Section */}
@@ -128,7 +143,7 @@ function HomePage() {
 
       {/* Code Teaser Section */}
       <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24">
-        <MarkdownRenderer content={CODE_TEASER_SNIPPET} />
+        {Teaser}
       </section>
     </div>
   );

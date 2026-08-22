@@ -1,9 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import type { GetDocResponseDto } from '../../lib/content/dto/get-doc.dto';
 import DocsToc from '../../components/docs-toc.component';
-import MarkdownRenderer from '../../components/markdown-renderer.component';
-import getDocQuery from '../../lib/content/queries/get-doc.query';
+import getDocQuery, { type GetDocRscResponse } from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/docs/$')({
   loader: ({ context, params }) => {
@@ -20,7 +18,7 @@ export const Route = createFileRoute('/docs/$')({
 function DocPage() {
   const { _splat } = Route.useParams();
   const docPath = `docs/${_splat}`;
-  const { data: doc }: { data: GetDocResponseDto } = useSuspenseQuery(getDocQuery(docPath));
+  const { data: doc }: { data: GetDocRscResponse } = useSuspenseQuery(getDocQuery(docPath));
 
   return (
     <div className="flex justify-between gap-8 lg:gap-12">
@@ -36,7 +34,7 @@ function DocPage() {
           )}
         </div>
 
-        <MarkdownRenderer content={doc.content} />
+        {doc.Renderable}
       </div>
 
       <DocsToc toc={doc.toc} />
