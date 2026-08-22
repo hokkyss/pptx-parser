@@ -87,9 +87,9 @@ export default function SlideCanvas({ code }: SlideCanvasProps) {
   );
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-xl border border-border p-5 shadow-sm min-h-0">
+    <div className="flex flex-col h-full bg-card rounded-xl border border-border p-3 sm:p-5 shadow-sm min-h-0">
       {/* Top Action & Navigation Bar */}
-      <div className="flex items-center justify-between pb-4 border-b border-border gap-2">
+      <div className="flex flex-wrap items-center justify-between pb-3 sm:pb-4 border-b border-border gap-2">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span

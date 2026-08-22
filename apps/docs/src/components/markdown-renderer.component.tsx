@@ -68,7 +68,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             return <div {...props} />;
           },
           h1: ({ children }) => (
-            <h1 className="text-3xl font-bold tracking-tight text-foreground mt-8 mb-4 border-b border-border/40 pb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-8 mb-4 border-b border-border/40 pb-2">
               {children}
             </h1>
           ),
@@ -76,7 +76,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             const text = extractNodeText(children);
             const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             return (
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground mt-8 mb-3 scroll-mt-20" id={id}>
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground mt-8 mb-3 scroll-mt-20" id={id}>
                 {children}
               </h2>
             );
@@ -85,14 +85,14 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             const text = extractNodeText(children);
             const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             return (
-              <h3 className="text-xl font-medium tracking-tight text-foreground mt-6 mb-2 scroll-mt-20" id={id}>
+              <h3 className="text-lg sm:text-xl font-medium tracking-tight text-foreground mt-6 mb-2 scroll-mt-20" id={id}>
                 {children}
               </h3>
             );
           },
           table: ({ children }) => (
-            <div className="my-6 overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-left text-sm border-collapse">{children}</table>
+            <div className="my-6 overflow-x-auto rounded-lg border border-border max-w-full">
+              <table className="w-full text-left text-sm border-collapse min-w-[500px] sm:min-w-full">{children}</table>
             </div>
           ),
           td: ({ children }) => (
@@ -140,8 +140,8 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   };
 
   return (
-    <div className="relative my-6 group rounded-xl overflow-hidden border border-border bg-card shadow-sm">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-muted/80 border-b border-border text-xs font-mono text-muted-foreground">
+    <div className="relative my-6 group rounded-xl overflow-hidden border border-border bg-card shadow-sm max-w-full">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-muted/80 border-b border-border text-xs font-mono text-muted-foreground">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-destructive/80" />
           <span className="h-2.5 w-2.5 rounded-full bg-warning/80" />
@@ -149,7 +149,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
           <span className="ml-1.5 font-semibold text-foreground">{language || 'text'}</span>
         </div>
         <button
-          className="flex items-center gap-1.5 px-2 py-1 rounded bg-secondary hover:bg-secondary/80 text-secondary-foreground transition border border-border/50"
+          className="flex items-center gap-1.5 px-2 py-1 rounded bg-secondary hover:bg-secondary/80 text-secondary-foreground transition border border-border/50 active:scale-95"
           onClick={() => {
             void handleCopy();
           }}
@@ -171,7 +171,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
               )}
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto text-sm leading-relaxed font-mono bg-card text-card-foreground">
+      <pre className="p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm leading-relaxed font-mono bg-card text-card-foreground">
         <code className={className} {...props}>
           {children}
         </code>
