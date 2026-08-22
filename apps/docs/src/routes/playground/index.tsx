@@ -179,8 +179,8 @@ function PlaygroundPage() {
 
       {/* Split Pane Editor & Live Preview */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-        <ClientOnly fallback={<div className="h-[400px] lg:h-full bg-muted rounded-lg animate-pulse border border-border" />}>
-          <div className="flex flex-col h-[400px] sm:h-[460px] lg:h-full min-h-0">
+        <ClientOnly fallback={<div className="h-100 lg:h-full bg-muted rounded-lg animate-pulse border border-border" />}>
+          <div className="flex flex-col h-100 sm:h-115 lg:h-full min-h-0">
             <div className="text-xs font-mono text-muted-foreground mb-2 flex items-center justify-between px-1">
               <span>TypeScript Editor (Monaco)</span>
               <span className="hidden sm:inline">@hokkyss/pptx in scope</span>
@@ -191,8 +191,8 @@ function PlaygroundPage() {
           </div>
         </ClientOnly>
 
-        <ClientOnly fallback={<div className="h-[350px] lg:h-full bg-muted rounded-xl animate-pulse border border-border" />}>
-          <div className="flex flex-col min-h-[350px] lg:h-full">
+        <ClientOnly fallback={<div className="h-87.5 lg:h-full bg-muted rounded-xl animate-pulse border border-border" />}>
+          <div className="flex flex-col min-h-87.5 lg:h-full">
             <SlideCanvas code={code} />
           </div>
         </ClientOnly>

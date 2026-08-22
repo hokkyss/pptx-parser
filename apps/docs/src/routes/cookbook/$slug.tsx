@@ -1,10 +1,8 @@
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import type { GetDocResponseDto } from '../../lib/content/dto/get-doc.dto';
 import DocsToc from '../../components/docs-toc.component';
-import MarkdownRenderer from '../../components/markdown-renderer.component';
-import getDocQuery from '../../lib/content/queries/get-doc.query';
+import getDocQuery, { type GetDocRscResponse } from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/cookbook/$slug')({
   loader: ({ context, params }) => {
@@ -19,7 +17,7 @@ export const Route = createFileRoute('/cookbook/$slug')({
  */
 function RecipePage() {
   const { slug } = Route.useParams();
-  const { data: doc }: { data: GetDocResponseDto } = useSuspenseQuery(getDocQuery(`cookbook/${slug}`));
+  const { data: doc }: { data: GetDocRscResponse } = useSuspenseQuery(getDocQuery(`cookbook/${slug}`));
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10 flex justify-between gap-8 lg:gap-12">
@@ -34,7 +32,7 @@ function RecipePage() {
           {doc.description && <p className="mt-2 text-sm text-muted-foreground">{doc.description}</p>}
         </div>
 
-        <MarkdownRenderer content={doc.content} />
+        {doc.Renderable}
       </div>
 
       <DocsToc toc={doc.toc} />
