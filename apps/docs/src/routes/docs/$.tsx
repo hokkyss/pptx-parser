@@ -1,12 +1,11 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
 import DocsToc from '../../components/docs-toc.component';
-import getDocQuery, { type GetDocRscResponse } from '../../lib/content/queries/get-doc.query';
+import getDocQuery from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/docs/$')({
   loader: ({ context, params }) => {
-    const docPath = `docs/${params._splat}`;
-    return context.queryClient.ensureQueryData(getDocQuery(docPath));
+    return context.queryClient.ensureQueryData(getDocQuery(`docs/${params._splat}`));
   },
   component: DocPage,
 });
@@ -16,9 +15,11 @@ export const Route = createFileRoute('/docs/$')({
  * @returns React node
  */
 function DocPage() {
-  const { _splat } = Route.useParams();
-  const docPath = `docs/${_splat}`;
-  const { data: doc }: { data: GetDocRscResponse } = useSuspenseQuery(getDocQuery(docPath));
+  const splat = useParams({
+    from: '/docs/$',
+    select: (p) => p._splat,
+  });
+  const { data: doc } = useSuspenseQuery(getDocQuery(`docs/${splat}`));
 
   return (
     <div className="flex justify-between gap-8 lg:gap-12">

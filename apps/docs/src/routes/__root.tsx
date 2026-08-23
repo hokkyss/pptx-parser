@@ -12,7 +12,6 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import vsDarkCss from 'highlight.js/styles/vs-dark.min.css?url';
-import vsCss from 'highlight.js/styles/vs.min.css?url';
 import katexCss from 'katex/dist/katex.min.css?url';
 import DocsHeader from '../components/docs-header.component';
 import MobileBottomNav from '../components/mobile-bottom-nav.component';
@@ -31,11 +30,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       theme,
     };
   },
-  head: ({ loaderData }) => ({
+  head: () => ({
     links: [
       { fetchPriority: 'high', href: appCss, rel: 'stylesheet' },
       { href: katexCss, rel: 'stylesheet' },
-      { href: loaderData?.theme === 'dark' ? vsDarkCss : vsCss, rel: 'stylesheet' },
+      { href: vsDarkCss, rel: 'stylesheet' },
     ],
     meta: [
       { charSet: 'utf-8' },
@@ -45,6 +44,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     ],
   }),
   shellComponent: RootDocument,
+  shouldReload: false,
 });
 
 /**

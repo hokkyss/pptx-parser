@@ -18,7 +18,7 @@ export function getRouter() {
     context: {
       queryClient,
     },
-    defaultPreload: 'intent',
+    defaultPreload: 'viewport',
     routeTree,
     ssr: {
       nonce: startServerContext?.nonce,

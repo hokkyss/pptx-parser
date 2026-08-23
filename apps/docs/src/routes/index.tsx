@@ -59,6 +59,7 @@ slide.addConnector({
 await pres.save('deck.pptx');
 \`\`\``;
 
+// TODO: TanStack Query
 const getTeaserRsc = createServerFn({ method: 'GET' }).handler(async () => {
   const Renderable = await renderServerComponent(
     <MarkdownRenderer content={CODE_TEASER_SNIPPET} />,
@@ -69,6 +70,7 @@ const getTeaserRsc = createServerFn({ method: 'GET' }).handler(async () => {
 export const Route = createFileRoute('/')({
   loader: async () => {
     const { Renderable } = await getTeaserRsc();
+
     return { Teaser: Renderable };
   },
   component: HomePage,
