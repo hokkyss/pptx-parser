@@ -30,6 +30,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./version": {
+      "types": "./dist/version.d.ts",
+      "default": "./dist/version.js"
     }
   },
   "files": [
@@ -48,6 +52,7 @@
   },
   "devDependencies": {
     "@monorepo/eslint": "workspace:^",
+    "@monorepo/vite-plugins": "workspace:^",
     "@types/node": "^24.0.14",
     "eslint": "catalog:eslint",
     "typescript": "catalog:ts5",
