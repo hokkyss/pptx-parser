@@ -1,22 +1,29 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { Await, createFileRoute, useParams } from '@tanstack/react-router';
+import { Suspense } from 'react';
+import DocPageSkeleton from '../../components/doc-page-skeleton.component';
 import DocsToc from '../../components/docs-toc.component';
-import getDocQuery, { type GetDocRscResponse } from '../../lib/content/queries/get-doc.query';
+import getDocQuery from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/api-reference/$')({
+  component: ApiPageWrapper,
   loader: ({ context, params }) => {
-    return context.queryClient.ensureQueryData(getDocQuery(`api-reference/${params._splat}`));
+    return {
+      docPromise: context.queryClient.ensureQueryData(getDocQuery(`api-reference/${params._splat}`)),
+    };
   },
-  component: ApiPage,
 });
 
 /**
- * API reference documentation page component.
+ * API reference page content component rendered after Suspense resolution.
  * @returns React node
  */
-function ApiPage() {
-  const { _splat } = Route.useParams();
-  const { data: doc }: { data: GetDocRscResponse } = useSuspenseQuery(getDocQuery(`api-reference/${_splat}`));
+function ApiPageContent() {
+  const splat = useParams({
+    from: '/api-reference/$',
+    select: (p) => p._splat,
+  });
+  const { data: doc } = useSuspenseQuery(getDocQuery(`api-reference/${splat}`));
   const pkgName = doc.package ?? 'API';
 
   return (
@@ -37,5 +44,21 @@ function ApiPage() {
 
       <DocsToc toc={doc.toc} />
     </div>
+  );
+}
+
+/**
+ * API reference page route wrapper with unawaited loader and Suspense.
+ * @returns React node
+ */
+function ApiPageWrapper() {
+  const { docPromise } = Route.useLoaderData();
+
+  return (
+    <Suspense fallback={<DocPageSkeleton />}>
+      <Await promise={docPromise}>
+        {() => <ApiPageContent />}
+      </Await>
+    </Suspense>
   );
 }

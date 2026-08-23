@@ -1,87 +1,28 @@
+import Skeleton from '@monorepo/design-system/skeleton';
 import { ArrowRightIcon, LightningIcon, SparkleIcon } from '@phosphor-icons/react';
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { createServerFn } from '@tanstack/react-start';
-import { renderServerComponent } from '@tanstack/react-start/rsc';
-import MarkdownRenderer from '../components/markdown-renderer.component';
-
-const CODE_TEASER_SNIPPET = `\`\`\`typescript
-import { Presentation, inches, points } from '@hokkyss/pptx';
-
-// 1. Initialize presentation
-const pres = Presentation.create({ title: 'Cloud Architecture' });
-
-// 2. Add slide with theme & multilevel bullets
-const slide = pres.addSlide();
-slide.setBackground('0F172A');
-
-slide.addText('Distributed Edge Compute', {
-  color: '38BDF8',
-  fontSize: points(32),
-  bold: true,
-  x: inches(1),
-  y: inches(1),
-  w: inches(11),
-  h: inches(0.8)
-});
-
-// 3. Attach connected cards
-slide.addShape('roundRect', {
-  id: 'gateway',
-  text: 'Edge Gateway',
-  x: inches(1),
-  y: inches(2.5),
-  w: inches(3),
-  h: inches(1.5)
-});
-
-slide.addShape('roundRect', {
-  id: 'auth',
-  text: 'Auth Service',
-  x: inches(6),
-  y: inches(2.5),
-  w: inches(3),
-  h: inches(1.5)
-});
-
-slide.addConnector({
-  from: {
-    shapeId: 'gateway',
-    position: 'right'
-  },
-  to: {
-    shapeId: 'auth',
-    position: 'left'
-  },
-  endArrow: 'triangle'
-});
-
-// 4. Save (or toArrayBuffer() in browser/workers)
-await pres.save('deck.pptx');
-\`\`\``;
-
-// TODO: TanStack Query
-const getTeaserRsc = createServerFn({ method: 'GET' }).handler(async () => {
-  const Renderable = await renderServerComponent(
-    <MarkdownRenderer content={CODE_TEASER_SNIPPET} />,
-  );
-  return { Renderable };
-});
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { Await, createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
+import { Suspense } from 'react';
+import renderTeaserQuery from '../lib/content/queries/render-teaser.query';
 
 export const Route = createFileRoute('/')({
-  loader: async () => {
-    const { Renderable } = await getTeaserRsc();
-
-    return { Teaser: Renderable };
-  },
   component: HomePage,
+  loader: (ctx) => {
+    return {
+      teaserPromise: ctx.context.queryClient.ensureQueryData(renderTeaserQuery()),
+    };
+  },
 });
 
 /**
- * Home landing page component with hero and code teaser.
+ * Home landing page component with hero and deferred code teaser.
  * @returns React node
  */
 function HomePage() {
-  const { Teaser } = Route.useLoaderData();
+  const teaserPromise = useLoaderData({
+    from: '/',
+    select: (d) => d.teaserPromise,
+  });
 
   return (
     <div className="flex flex-col items-center">
@@ -145,8 +86,23 @@ function HomePage() {
 
       {/* Code Teaser Section */}
       <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24">
-        {Teaser}
+        <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+          <Await promise={teaserPromise}>
+            {() => <Teaser />}
+          </Await>
+        </Suspense>
       </section>
     </div>
   );
+}
+
+/**
+ *
+ */
+function Teaser() {
+  const { data: renderedTeaser } = useSuspenseQuery({
+    ...renderTeaserQuery(),
+  });
+
+  return renderedTeaser;
 }

@@ -1,20 +1,64 @@
 import { ArrowRightIcon, SparkleIcon } from '@phosphor-icons/react';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { Await, createFileRoute, Link } from '@tanstack/react-router';
+import { Suspense } from 'react';
+import CookbookSkeleton from '../../components/cookbook-skeleton.component';
 import listDocsQuery from '../../lib/content/queries/list-docs.query';
 
 export const Route = createFileRoute('/cookbook/')({
-  loader: ({ context }) => context.queryClient.ensureQueryData(listDocsQuery('cookbook/')),
-  component: CookbookPage,
+  component: CookbookPageWrapper,
+  loader: ({ context }) => {
+    return {
+      recipesPromise: context.queryClient.ensureQueryData(listDocsQuery('cookbook/')),
+    };
+  },
 });
 
 /**
- * Cookbook recipes grid page component.
+ * Cookbook grid content rendered after Suspense resolution.
  * @returns React node
  */
-function CookbookPage() {
+function CookbookGridContent() {
   const { data } = useSuspenseQuery(listDocsQuery('cookbook/'));
   const recipes = data.sections.flatMap((s) => s.items);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      {recipes.map((item) => (
+        <Link
+          className="p-5 sm:p-6 rounded-2xl bg-card text-card-foreground border border-border hover:border-primary/50 hover:bg-card/80 transition flex flex-col justify-between group shadow-sm active:scale-98"
+          key={item.path}
+          params={{ slug: item.path.replace(/^cookbook\//, '') }}
+          to="/cookbook/$slug"
+        >
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+              Recipe
+            </span>
+            <h3 className="text-base sm:text-lg font-bold text-card-foreground mt-3 group-hover:text-primary transition">
+              {item.title}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+              {item.description || 'Full walkthrough code and pattern architecture.'}
+            </p>
+          </div>
+
+          <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold text-primary group-hover:translate-x-1 transition">
+            <span>View Recipe Walkthrough</span>
+            <ArrowRightIcon className="h-3.5 w-3.5" />
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Cookbook recipes page wrapper with unawaited loader and Suspense.
+ * @returns React node
+ */
+function CookbookPageWrapper() {
+  const { recipesPromise } = Route.useLoaderData();
 
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
@@ -31,33 +75,11 @@ function CookbookPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {recipes.map((item) => (
-          <Link
-            className="p-5 sm:p-6 rounded-2xl bg-card text-card-foreground border border-border hover:border-primary/50 hover:bg-card/80 transition flex flex-col justify-between group shadow-sm active:scale-98"
-            key={item.path}
-            params={{ slug: item.path.replace(/^cookbook\//, '') }}
-            to="/cookbook/$slug"
-          >
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                Recipe
-              </span>
-              <h3 className="text-base sm:text-lg font-bold text-card-foreground mt-3 group-hover:text-primary transition">
-                {item.title}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                {item.description || 'Full walkthrough code and pattern architecture.'}
-              </p>
-            </div>
-
-            <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold text-primary group-hover:translate-x-1 transition">
-              <span>View Recipe Walkthrough</span>
-              <ArrowRightIcon className="h-3.5 w-3.5" />
-            </div>
-          </Link>
-        ))}
-      </div>
+      <Suspense fallback={<CookbookSkeleton />}>
+        <Await promise={recipesPromise}>
+          {() => <CookbookGridContent />}
+        </Await>
+      </Suspense>
     </div>
   );
 }

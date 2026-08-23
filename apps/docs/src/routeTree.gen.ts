@@ -17,7 +17,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiReferenceIndexRouteImport } from './routes/api-reference/index'
 import { Route as ApiReferenceSplatRouteImport } from './routes/api-reference/$'
-import { Route as ApiReferenceHealthRouteImport } from './routes/api-reference/health'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as CookbookIndexRouteImport } from './routes/cookbook/index'
 import { Route as CookbookSlugRouteImport } from './routes/cookbook/$slug'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
@@ -65,10 +65,10 @@ const ApiReferenceSplatRoute = ApiReferenceSplatRouteImport.update({
   path: '/$',
   getParentRoute: () => ApiReferenceRoute,
 } as any)
-const ApiReferenceHealthRoute = ApiReferenceHealthRouteImport.update({
-  id: '/health',
-  path: '/health',
-  getParentRoute: () => ApiReferenceRoute,
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CookbookIndexRoute = CookbookIndexRouteImport.update({
   id: '/cookbook/',
@@ -109,7 +109,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api-reference/$': typeof ApiReferenceSplatRoute
-  '/api-reference/health': typeof ApiReferenceHealthRoute
+  '/api/health': typeof ApiHealthRoute
   '/cookbook/$slug': typeof CookbookSlugRoute
   '/docs/$': typeof DocsSplatRoute
   '/api-reference/': typeof ApiReferenceIndexRoute
@@ -124,7 +124,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api-reference/$': typeof ApiReferenceSplatRoute
-  '/api-reference/health': typeof ApiReferenceHealthRoute
+  '/api/health': typeof ApiHealthRoute
   '/cookbook/$slug': typeof CookbookSlugRoute
   '/docs/$': typeof DocsSplatRoute
   '/api-reference': typeof ApiReferenceIndexRoute
@@ -142,7 +142,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api-reference/$': typeof ApiReferenceSplatRoute
-  '/api-reference/health': typeof ApiReferenceHealthRoute
+  '/api/health': typeof ApiHealthRoute
   '/cookbook/$slug': typeof CookbookSlugRoute
   '/docs/$': typeof DocsSplatRoute
   '/api-reference/': typeof ApiReferenceIndexRoute
@@ -161,7 +161,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api-reference/$'
-    | '/api-reference/health'
+    | '/api/health'
     | '/cookbook/$slug'
     | '/docs/$'
     | '/api-reference/'
@@ -176,7 +176,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api-reference/$'
-    | '/api-reference/health'
+    | '/api/health'
     | '/cookbook/$slug'
     | '/docs/$'
     | '/api-reference'
@@ -193,7 +193,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api-reference/$'
-    | '/api-reference/health'
+    | '/api/health'
     | '/cookbook/$slug'
     | '/docs/$'
     | '/api-reference/'
@@ -210,6 +210,7 @@ export interface RootRouteChildren {
   ManifestDotwebmanifestRoute: typeof ManifestDotwebmanifestRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   CookbookSlugRoute: typeof CookbookSlugRoute
   CookbookIndexRoute: typeof CookbookIndexRoute
   PlaygroundIndexRoute: typeof PlaygroundIndexRoute
@@ -274,12 +275,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiReferenceSplatRouteImport
       parentRoute: typeof ApiReferenceRoute
     }
-    '/api-reference/health': {
-      id: '/api-reference/health'
-      path: '/health'
-      fullPath: '/api-reference/health'
-      preLoaderRoute: typeof ApiReferenceHealthRouteImport
-      parentRoute: typeof ApiReferenceRoute
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/cookbook/': {
       id: '/cookbook/'
@@ -328,13 +329,11 @@ declare module '@tanstack/react-router' {
 
 interface ApiReferenceRouteChildren {
   ApiReferenceSplatRoute: typeof ApiReferenceSplatRoute
-  ApiReferenceHealthRoute: typeof ApiReferenceHealthRoute
   ApiReferenceIndexRoute: typeof ApiReferenceIndexRoute
 }
 
 const ApiReferenceRouteChildren: ApiReferenceRouteChildren = {
   ApiReferenceSplatRoute: ApiReferenceSplatRoute,
-  ApiReferenceHealthRoute: ApiReferenceHealthRoute,
   ApiReferenceIndexRoute: ApiReferenceIndexRoute,
 }
 
@@ -361,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManifestDotwebmanifestRoute: ManifestDotwebmanifestRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiHealthRoute: ApiHealthRoute,
   CookbookSlugRoute: CookbookSlugRoute,
   CookbookIndexRoute: CookbookIndexRoute,
   PlaygroundIndexRoute: PlaygroundIndexRoute,

@@ -1,19 +1,25 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { Await, createFileRoute, Outlet } from '@tanstack/react-router';
+import { Suspense } from 'react';
 import DocsSidebar from '../components/docs-sidebar.component';
 import MobileSidebarSheet from '../components/mobile-sidebar-sheet.component';
+import SidebarLayoutSkeleton from '../components/sidebar-layout-skeleton.component';
 import listDocsQuery from '../lib/content/queries/list-docs.query';
 
 export const Route = createFileRoute('/api-reference')({
-  loader: ({ context }) => context.queryClient.ensureQueryData(listDocsQuery('api-reference/')),
-  component: ApiLayout,
+  component: ApiLayoutWrapper,
+  loader: ({ context }) => {
+    return {
+      docsPromise: context.queryClient.ensureQueryData(listDocsQuery('api-reference/')),
+    };
+  },
 });
 
 /**
- * API reference shell layout component with sidebar and outlet.
+ * API reference shell layout content rendered after Suspense resolution.
  * @returns React node
  */
-function ApiLayout() {
+function ApiLayoutContent() {
   const { data } = useSuspenseQuery(listDocsQuery('api-reference/'));
 
   return (
@@ -31,5 +37,27 @@ function ApiLayout() {
         <Outlet />
       </div>
     </div>
+  );
+}
+
+/**
+ * API reference shell layout wrapper with unawaited loader and Suspense.
+ * @returns React node
+ */
+function ApiLayoutWrapper() {
+  const { docsPromise } = Route.useLoaderData();
+
+  return (
+    <Suspense
+      fallback={(
+        <SidebarLayoutSkeleton>
+          <Outlet />
+        </SidebarLayoutSkeleton>
+      )}
+    >
+      <Await promise={docsPromise}>
+        {() => <ApiLayoutContent />}
+      </Await>
+    </Suspense>
   );
 }

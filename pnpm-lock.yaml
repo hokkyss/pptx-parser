@@ -589,6 +589,27 @@ importers:
         specifier: catalog:vite
         version: 8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
 
+  libs/vite-plugins:
+    devDependencies:
+      '@monorepo/eslint':
+        specifier: workspace:^
+        version: link:../eslint
+      '@types/node':
+        specifier: ^24.0.14
+        version: 24.13.3
+      eslint:
+        specifier: catalog:eslint
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: catalog:ts5
+        version: 5.9.3
+      vite:
+        specifier: catalog:vite
+        version: 8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0)
+      vite-plugin-dts:
+        specifier: catalog:vite
+        version: 4.5.4(@types/node@24.13.3)(rollup@4.62.4)(typescript@5.9.3)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+
   packages/pptx:
     dependencies:
       '@hokkyss/pptx-core':
@@ -604,6 +625,9 @@ importers:
       '@monorepo/eslint':
         specifier: workspace:^
         version: link:../../libs/eslint
+      '@monorepo/vite-plugins':
+        specifier: workspace:^
+        version: link:../../libs/vite-plugins
       '@types/node':
         specifier: ^24.0.14
         version: 24.13.3
@@ -628,6 +652,9 @@ importers:
       '@monorepo/eslint':
         specifier: workspace:^
         version: link:../../libs/eslint
+      '@monorepo/vite-plugins':
+        specifier: workspace:^
+        version: link:../../libs/vite-plugins
       '@types/node':
         specifier: ^24.0.14
         version: 24.13.3
@@ -662,6 +689,9 @@ importers:
       '@monorepo/eslint':
         specifier: workspace:^
         version: link:../../libs/eslint
+      '@monorepo/vite-plugins':
+        specifier: workspace:^
+        version: link:../../libs/vite-plugins
       '@types/node':
         specifier: ^24.0.14
         version: 24.13.3
@@ -699,6 +729,9 @@ importers:
       '@monorepo/eslint':
         specifier: workspace:^
         version: link:../../libs/eslint
+      '@monorepo/vite-plugins':
+        specifier: workspace:^
+        version: link:../../libs/vite-plugins
       '@types/node':
         specifier: ^24.0.14
         version: 24.13.3

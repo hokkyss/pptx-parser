@@ -1,19 +1,25 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { Await, createFileRoute, Outlet } from '@tanstack/react-router';
+import { Suspense } from 'react';
 import DocsSidebar from '../components/docs-sidebar.component';
 import MobileSidebarSheet from '../components/mobile-sidebar-sheet.component';
+import SidebarLayoutSkeleton from '../components/sidebar-layout-skeleton.component';
 import listDocsQuery from '../lib/content/queries/list-docs.query';
 
 export const Route = createFileRoute('/docs')({
-  loader: ({ context }) => context.queryClient.ensureQueryData(listDocsQuery('docs/')),
-  component: DocsLayout,
+  component: DocsLayoutWrapper,
+  loader: ({ context }) => {
+    return {
+      docsPromise: context.queryClient.ensureQueryData(listDocsQuery('docs/')),
+    };
+  },
 });
 
 /**
- * Documentation shell layout component with sidebar and outlet.
+ * Documentation shell layout content rendered after Suspense resolution.
  * @returns React node
  */
-function DocsLayout() {
+function DocsLayoutContent() {
   const { data } = useSuspenseQuery(listDocsQuery('docs/'));
 
   return (
@@ -31,5 +37,27 @@ function DocsLayout() {
         <Outlet />
       </div>
     </div>
+  );
+}
+
+/**
+ * Documentation shell layout wrapper with unawaited loader and Suspense.
+ * @returns React node
+ */
+function DocsLayoutWrapper() {
+  const { docsPromise } = Route.useLoaderData();
+
+  return (
+    <Suspense
+      fallback={(
+        <SidebarLayoutSkeleton>
+          <Outlet />
+        </SidebarLayoutSkeleton>
+      )}
+    >
+      <Await promise={docsPromise}>
+        {() => <DocsLayoutContent />}
+      </Await>
+    </Suspense>
   );
 }

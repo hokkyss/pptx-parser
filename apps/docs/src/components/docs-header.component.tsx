@@ -1,3 +1,4 @@
+import pptxVersion from '@hokkyss/pptx/version';
 import { BookOpenIcon, CodeIcon, CubeIcon, GithubLogoIcon, PlayIcon, SparkleIcon } from '@phosphor-icons/react';
 import { Link } from '@tanstack/react-router';
 import ThemeSwitcher from './theme-switcher.component';
@@ -19,7 +20,10 @@ export default function DocsHeader() {
             <div className="flex flex-col">
               <span className="font-bold text-base tracking-tight text-foreground flex items-center gap-1.5">
                 @hokkyss/pptx
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">v1.0</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">
+                  v
+                  {pptxVersion}
+                </span>
               </span>
             </div>
           </Link>

@@ -24,10 +24,11 @@ interface MyRouterContext {
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   async loader(ctx) {
-    const [theme, err] = await tryit(ctx.context.queryClient.ensureQueryData(getApplicationThemeQuery()));
+    const [, err] = await tryit(ctx.context.queryClient.ensureQueryData(getApplicationThemeQuery()));
+
     if (err) throw err;
+
     return {
-      theme,
     };
   },
   head: () => ({

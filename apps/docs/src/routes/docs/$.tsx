@@ -1,25 +1,26 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, useParams } from '@tanstack/react-router';
+import { Await, createFileRoute } from '@tanstack/react-router';
+import { Suspense } from 'react';
+import DocPageSkeleton from '../../components/doc-page-skeleton.component';
 import DocsToc from '../../components/docs-toc.component';
 import getDocQuery from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/docs/$')({
+  component: DocPageWrapper,
   loader: ({ context, params }) => {
-    return context.queryClient.ensureQueryData(getDocQuery(`docs/${params._splat}`));
+    return {
+      docPromise: context.queryClient.ensureQueryData(getDocQuery(`docs/${params._splat}`)),
+    };
   },
-  component: DocPage,
 });
 
 /**
- * Documentation page renderer component.
+ * Documentation page content component rendered after Suspense resolution.
  * @returns React node
  */
-function DocPage() {
-  const splat = useParams({
-    from: '/docs/$',
-    select: (p) => p._splat,
-  });
-  const { data: doc } = useSuspenseQuery(getDocQuery(`docs/${splat}`));
+function DocPageContent() {
+  const { _splat } = Route.useParams();
+  const { data: doc } = useSuspenseQuery(getDocQuery(`docs/${_splat}`));
 
   return (
     <div className="flex justify-between gap-8 lg:gap-12">
@@ -40,5 +41,21 @@ function DocPage() {
 
       <DocsToc toc={doc.toc} />
     </div>
+  );
+}
+
+/**
+ * Documentation page route wrapper with unawaited loader and Suspense.
+ * @returns React node
+ */
+function DocPageWrapper() {
+  const { docPromise } = Route.useLoaderData();
+
+  return (
+    <Suspense fallback={<DocPageSkeleton />}>
+      <Await promise={docPromise}>
+        {() => <DocPageContent />}
+      </Await>
+    </Suspense>
   );
 }
