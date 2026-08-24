@@ -290,4 +290,42 @@ describe('Shape Serializer helper direct exports', () => {
     expect(serializeGeometry({})).toEqual({ 'a:prstGeom': { '@_prst': 'rect', 'a:avLst': {} } });
     expect(serializeShadow(undefined)).toBeUndefined();
   });
+
+  it('covers various dashStyles, lines, shadows and shape locks', () => {
+    const lineObj = serializeLine({
+      dashStyle: 'dashDot',
+      fill: { solidColor: { type: 'srgb', value: '123456' }, type: 'solid' },
+      width: emu(12700),
+    });
+    expect(lineObj?.['@_w']).toBe(12700);
+    expect(lineObj?.['a:prstDash']).toEqual({ '@_val': 'dashDot' });
+
+    const geom1 = serializeGeometry('rect', [{ name: 'adj', value: 50000 }]);
+    expect(geom1['a:prstGeom']).toBeDefined();
+
+    const shadowObj = serializeShadow({
+      blurRadius: emu(50800),
+      color: '333333',
+      direction: emuDegree(5400000),
+      distance: emu(38100),
+      opacity: 0.5,
+    });
+    expect(shadowObj).toBeDefined();
+
+    const shape: PptxShapeElement = {
+      elementType: 'shape',
+      id: '50',
+      isLocked: true,
+      isVisible: false,
+      locks: { noGrp: true, noMove: true, noResize: true, noRot: true },
+      name: 'Locked Shape',
+      placeholder: { idx: '0', type: 'title' },
+      position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+      shapeType: 'ellipse',
+      type: 'shape',
+      zIndex: 0,
+    };
+    const shapeXml = serializeShape(shape);
+    expect(shapeXml).toBeDefined();
+  });
 });

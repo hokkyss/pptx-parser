@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxTextBody } from '@hokkyss/pptx-core';
-import { emu, hundredthsPoint } from '@hokkyss/pptx-core';
+import { emu, hundredthsPoint, thousandthsPercent } from '@hokkyss/pptx-core';
 import {
   serializeBodyProperties,
   serializeBulletProperties,
@@ -225,5 +225,40 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
 
     const fallbackClr = serializeColorNode('custom-named-color');
     expect(fallbackClr['a:srgbClr']).toBeDefined();
+  });
+
+  it('covers rich text runs, line spacing in points and percentage', () => {
+    const tBodyObj = serializeTextBody({
+      bodyProperties: { anchor: 'ctr' },
+      paragraphs: [
+        {
+          properties: {
+            alignment: 'right',
+            lineSpacing: { points: hundredthsPoint(2000), type: 'points' },
+          },
+          runs: [
+            {
+              properties: {
+                bold: true,
+                fontSize: hundredthsPoint(1600),
+                italic: true,
+                strikethrough: 'sngStrike',
+                subscript: true,
+                superscript: true,
+                underline: 'sng',
+              },
+              text: 'Styled Run',
+            },
+          ],
+        },
+        {
+          properties: {
+            lineSpacing: { percent: thousandthsPercent(120000), type: 'percent' },
+          },
+          runs: [{ text: 'P% line spacing' }],
+        },
+      ],
+    });
+    expect(tBodyObj).toBeDefined();
   });
 });

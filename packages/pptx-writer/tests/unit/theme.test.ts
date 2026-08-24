@@ -28,4 +28,27 @@ describe('Theme Serializer', () => {
     expect(xml).toContain('val="0284C7"');
     expect(xml).toContain('<a:extraClrScheme>');
   });
+
+  it('serializes custom color scheme name object', () => {
+    const theme: PptxTheme = {
+      id: 'theme1.xml',
+      colorScheme: {
+        accent1: '0284C7',
+        accent2: '10B981',
+        accent3: 'F59E0B',
+        accent4: 'EF4444',
+        accent5: '8B5CF6',
+        accent6: 'EC4899',
+        dk1: '000000',
+        dk2: '111111',
+        folHlink: '6366F1',
+        hlink: '3B82F6',
+        lt1: 'FFFFFF',
+        lt2: 'EEEEEE',
+        name: 'CustomPalette',
+      },
+    };
+    const xml = serializeTheme(theme);
+    expect(xml).toContain('name="CustomPalette"');
+  });
 });

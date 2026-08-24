@@ -44,4 +44,18 @@ describe('Content Types Serializer extended options', () => {
     expect(xml).toContain('PartName="/customXml/item1.xml"');
     expect(xml).toContain('PartName="/ppt/slideLayouts/slideLayout1.xml"');
   });
+
+  it('covers custom media extensions with dots and fallback counts', () => {
+    const ctXml = serializeContentTypes({
+      layoutCount: 2,
+      masterCount: 2,
+      mediaExtensions: ['.png', 'svg', 'customext'],
+      themeCount: 2,
+    });
+    expect(ctXml).toContain('Extension="svg"');
+    expect(ctXml).toContain('Extension="customext"');
+    expect(ctXml).toContain('slideLayout2.xml');
+    expect(ctXml).toContain('slideMaster2.xml');
+    expect(ctXml).toContain('theme2.xml');
+  });
 });

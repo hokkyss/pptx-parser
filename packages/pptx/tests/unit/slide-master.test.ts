@@ -134,5 +134,9 @@ describe('Slide Master API (Unit Tests)', () => {
     // Name fallback from ast.theme.name
     delete (master.ast as { name?: string }).name;
     expect(master.name).toBe('Office Theme');
+
+    // LayoutIds undefined fallback
+    delete (master.ast as { layoutIds?: string[] }).layoutIds;
+    expect(master.getLayouts().length).toBeGreaterThan(0);
   });
 });

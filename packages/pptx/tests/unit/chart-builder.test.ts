@@ -122,3 +122,44 @@ it('supports series fill object and axis customizations (catAxis, valAxis, textC
   expect(chartEl.chart?.valAxis?.gridlineColor).toBe('CCCCCC');
   expect(chartEl.chart?.valAxis?.showGridlines).toBe(true);
 });
+
+describe('ChartBuilder edge cases', () => {
+  it('covers optional axes, empty series options and series without names', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addChart({
+      chartType: 'column',
+      series: [{ values: [10, 20] }],
+    });
+    const chart1 = slide.getElements()[0];
+    expect(chart1.chart?.series[0].name).toBe('Series 1');
+    expect(chart1.chart?.categories).toEqual([]);
+
+    slide.addChart({
+      catAxis: {
+        axisColor: 'FF0000',
+        color: '333333',
+        fontSize: 12,
+        gridlineColor: 'CCCCCC',
+        showGridlines: true,
+      },
+      valAxis: {
+        axisColor: '00FF00',
+        color: '666666',
+        fontSize: 14,
+        gridlineColor: 'E5E5E5',
+        showGridlines: false,
+      },
+      series: [],
+    });
+    const chart2 = slide.getElements()[1];
+    expect(chart2.chart?.catAxis?.axisColor).toBe('FF0000');
+    expect(chart2.chart?.valAxis?.showGridlines).toBe(false);
+
+    // Empty series options
+    slide.addChart({});
+    const chart3 = slide.getElements()[2];
+    expect(chart3.chart?.series).toEqual([]);
+  });
+});

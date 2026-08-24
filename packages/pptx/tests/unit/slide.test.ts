@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { PptxConnectorElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
+import { GroupBuilder } from '../../lib/slide';
 
 describe('Slide Class (Unit Tests)', () => {
   it('adds a simple text box to the slide', () => {
@@ -712,5 +713,43 @@ describe('Slide Class initial elements counter collision', () => {
 
     expect(slide.getElements()[0].id).toBe('2');
     expect(slide.getElements()[1].id).toBe('3');
+  });
+
+  it('covers fallback elements, background reset, text rotation, jpeg images, and group builders', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Elements fallback
+    // @ts-expect-error Resetting elements
+    delete slide.ast.elements;
+    expect(slide.getElements()).toEqual([]);
+    slide.ast.elements = [];
+
+    // Background unset
+    // @ts-expect-error Unsetting background
+    slide.setBackground(null);
+    expect(slide.ast.background).toBeUndefined();
+
+    // Text with rotation
+    slide.addText('Rotated Text', { h: inches(1), rotation: 45, w: inches(3), x: inches(1), y: inches(1) });
+    expect(slide.getElements()[0].rotation).toBe(2700000);
+
+    // Image from ArrayBuffer with jpeg extension
+    const buffer = new ArrayBuffer(4);
+    slide.addImage(buffer, { fileName: 'photo.jpeg', h: inches(2), w: inches(2), x: inches(1), y: inches(1) });
+    expect(pres.ast.media[0].mimeType).toBe('image/jpeg');
+
+    // Group builder default counter and position fallbacks
+    const gb = new GroupBuilder();
+    gb.addText('Text in group', { h: inches(1), id: 'g-txt', rotation: 30, w: inches(2), x: inches(1), y: inches(1) });
+    gb.addText('Default pos text', {});
+    const groupElement = gb.build('grp-1', 'Group 1', { h: inches(4), rotation: 15, w: inches(4), x: inches(1), y: inches(1) });
+    expect(groupElement.rotation).toBe(900000);
+    expect(groupElement.children).toHaveLength(2);
+
+    // Placeholder matching by name & ctrTitle placeholder
+    slide.addShape('rect', { h: inches(1), id: 'ph-title', name: 'Title 1', w: inches(4), x: inches(1), y: inches(1) });
+    slide.addText('Title Content', { h: inches(1), placeholder: 'Title 1', w: inches(4), x: inches(1), y: inches(1) });
+    slide.addText('Centered Title', { h: inches(1), placeholder: 'ctrTitle', w: inches(5), x: inches(1), y: inches(1) });
   });
 });

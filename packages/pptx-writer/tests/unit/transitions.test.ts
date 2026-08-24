@@ -102,7 +102,16 @@ describe('Slide Transition Serializer (@hokkyss/pptx-writer)', () => {
     expect(serializeTransition({ type: 'cut', speed: 'medium' })?.['@_spd']).toBe('med');
     expect(serializeTransition({ type: 'cut', speed: 'fast' })?.['@_spd']).toBe('fast');
     expect(serializeTransition({ type: 'cut', durationMs: 400 })?.['@_spd']).toBe('fast');
-    expect(serializeTransition({ type: 'cut', durationMs: 1200 })?.['@_spd']).toBe('med');
-    expect(serializeTransition({ type: 'cut', durationMs: 3000 })?.['@_spd']).toBe('slow');
+    expect(serializeTransition({ durationMs: 1200, type: 'cut' })?.['@_spd']).toBe('med');
+    expect(serializeTransition({ durationMs: 3000, type: 'cut' })?.['@_spd']).toBe('slow');
+  });
+
+  it('covers transition directions and speeds', () => {
+    const t1 = serializeTransition({ direction: 'left', speed: 'fast', type: 'push' });
+    expect(t1).toBeDefined();
+    const t2 = serializeTransition({ direction: 'down', speed: 'slow', type: 'wipe' });
+    expect(t2).toBeDefined();
+    const t3 = serializeTransition({ duration: 1000, type: 'fade' });
+    expect(t3).toBeDefined();
   });
 });

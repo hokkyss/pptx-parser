@@ -93,4 +93,17 @@ describe('parseTransition object input', () => {
     expect(t?.direction).toBe('right');
     expect(t?.speed).toBe('med');
   });
+
+  it('parses transition from object with explicit duration and push direction', () => {
+    const trans = parseTransition({
+      'p:transition': {
+        '@_dur': 500,
+        '@_spd': 'fast',
+        'p:push': { '@_dir': 'r' },
+      },
+    });
+    expect(trans?.type).toBe('push');
+    expect(trans?.direction).toBe('right');
+    expect(trans?.speed).toBe('fast');
+  });
 });

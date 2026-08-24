@@ -232,4 +232,32 @@ describe('Shape Parser connector arrowheads and attachment parsing', () => {
       expect(conn.endConnection?.position).toBe('left');
     }
   });
+
+  it('covers custom geometry, line arrow heads, and dash styles', () => {
+    const xml = `<?xml version="1.0"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="1" name="Shape 1"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+        <p:spPr>
+          <a:xfrm rot="2700000" flipH="1" flipV="1"><a:off x="100" y="200"/><a:ext cx="1000" cy="1000"/></a:xfrm>
+          <a:custGeom><a:avLst/><a:pathLst><a:path w="100" h="100"><a:moveTo><a:pt x="0" y="0"/></a:moveTo></a:path></a:pathLst></a:custGeom>
+          <a:ln w="25400" cap="rnd" cmpd="s">
+            <a:solidFill><a:srgbClr val="0000FF"/></a:solidFill>
+            <a:prstDash val="dash"/>
+            <a:headEnd type="oval" w="med" len="med"/>
+            <a:tailEnd type="stealth" w="sm" len="lg"/>
+          </a:ln>
+        </p:spPr>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+
+    const shapes = parseShapes(xml, dummyResolver);
+    expect(shapes).toHaveLength(1);
+    expect(shapes[0].rotation).toBe(2700000);
+    expect(shapes[0].line?.dashStyle).toBe('dash');
+  });
 });

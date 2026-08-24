@@ -61,4 +61,22 @@ describe('Picture Serializer rotation', () => {
     const spPr = xml['p:spPr'] as Record<string, Record<string, unknown>>;
     expect(spPr['a:xfrm']['@_rot']).toBe(5400000);
   });
+
+  it('covers blipEmbedId fallback, undefined positions and name fallbacks', () => {
+    const picMinimal: PptxPictureElement = {
+      blipEmbedId: 'rId8',
+      elementType: 'picture',
+      id: '',
+      isVisible: true,
+      name: '',
+      picture: {},
+      type: 'picture',
+      zIndex: 0,
+    };
+    const obj = serializePicture(picMinimal);
+    const blipFill = obj['p:blipFill'] as Record<string, Record<string, unknown>>;
+    expect(blipFill['a:blip']['@_r:embed']).toBe('rId8');
+    const nvPicPr = obj['p:nvPicPr'] as Record<string, Record<string, unknown>>;
+    expect(nvPicPr['p:cNvPr']['@_id']).toBe('4');
+  });
 });

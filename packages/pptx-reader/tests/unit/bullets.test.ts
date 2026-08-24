@@ -86,4 +86,25 @@ describe('parseParagraph fields and number text nodes', () => {
     expect(parsed.runs[0].text).toBe('42');
     expect(parsed.runs[1].text).toBe('Preserved Text');
   });
+
+  it('covers rich text formatting runs with strikethrough, underline, and size', () => {
+    const pNode = {
+      'a:pPr': {
+        '@_algn': 'ctr',
+      },
+      'a:r': [
+        {
+          'a:rPr': { '@_b': '1', '@_i': '1', '@_strike': 'sngStrike', '@_sz': '2400', '@_u': 'sng' },
+          'a:t': 'Formatted Text',
+        },
+      ],
+    };
+    const parsed = parseParagraph(pNode);
+    expect(parsed.runs[0].text).toBe('Formatted Text');
+    expect(parsed.runs[0].properties?.bold).toBe(true);
+    expect(parsed.runs[0].properties?.italic).toBe(true);
+    expect(parsed.runs[0].properties?.fontSize).toBe(2400);
+    expect(parsed.runs[0].properties?.underline).toBe(true);
+    expect(parsed.runs[0].properties?.strikethrough).toBe(true);
+  });
 });

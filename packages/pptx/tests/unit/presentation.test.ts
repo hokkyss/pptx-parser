@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { PptxDocument, PptxSlide } from '@hokkyss/pptx-core';
 import { inches } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
@@ -258,5 +259,38 @@ describe('Presentation Class theme guards and rich slide duplication', () => {
     expect(duplicated.ast.background?.fill?.type).toBe('solid');
     expect(duplicated.getElements().length).toBe(1);
     expect(pres.slides.length).toBe(2);
+  });
+
+  it('handles missing collections, fallback indices and empty layout lists', () => {
+    // @ts-expect-error Missing slides/masters in raw AST
+    const doc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { created: new Date(), modified: new Date(), revision: 1, slideCount: 0 },
+      slideLayouts: [],
+      themes: [],
+    };
+    const pres = new Presentation(doc);
+    expect(pres.slides).toEqual([]);
+    expect(pres.getMasters()).toEqual([]);
+    expect(pres.getMaster(0)).toBeUndefined();
+    expect(pres.getMaster(1)).toBeUndefined();
+
+    // duplicateSlide on minimal slide
+    const minimalSlide: PptxSlide = {
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    pres.ast.slides = [minimalSlide];
+    pres.ast.slideLayouts = [];
+    const presWithSlide = new Presentation(pres.ast);
+    const duplicated = presWithSlide.duplicateSlide(1);
+    expect(duplicated.slideNumber).toBe(2);
+
+    // resolveLayoutId fallback when slideLayouts is empty
+    const pres2 = Presentation.create();
+    pres2.ast.slideLayouts = [];
+    const s = pres2.addSlide();
+    expect(s.layoutId).toBe('slideLayout1');
   });
 });

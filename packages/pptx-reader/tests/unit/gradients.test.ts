@@ -205,4 +205,22 @@ describe('parseFill with unsupported color node', () => {
     const fill = parseFill({ 'a:solidFill': { 'a:hslClr': {} } });
     expect(fill).toBeUndefined();
   });
+
+  it('covers noFill and radial path gradients', () => {
+    const noFill = parseFill({ 'a:noFill': {} });
+    expect(noFill?.type).toBe('none');
+
+    const gradPath = parseFill({
+      'a:gradFill': {
+        'a:gsLst': {
+          'a:gs': [{ '@_pos': 0, 'a:srgbClr': { '@_val': 'FF0000' } }],
+        },
+        'a:path': { '@_path': 'circle', 'a:fillToRect': { '@_b': 50000, '@_l': 50000, '@_r': 50000, '@_t': 50000 } },
+      },
+    });
+    expect(gradPath?.type).toBe('gradient');
+    if (gradPath?.type === 'gradient') {
+      expect(gradPath.gradient.type).toBe('radial');
+    }
+  });
 });

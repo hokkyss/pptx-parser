@@ -132,4 +132,11 @@ describe('TableBuilder.fromMatrix with CellConfig objects', () => {
     expect(table.table.rows[0].cells[0].properties?.fill?.solidColor?.value).toBe('003366');
     expect(table.table.rows[1].cells[0].properties?.fill?.solidColor?.value).toBe('FFFFFF');
   });
+
+  it('handles 0 and empty column widths fallback', () => {
+    const builder = new TableBuilder({ colWidths: [inches(0), inches(0)] });
+    builder.addRow(['A', 'B']);
+    const table = builder.build();
+    expect(table.table.columnWidths).toHaveLength(2);
+  });
 });

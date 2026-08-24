@@ -78,4 +78,24 @@ describe('normalizeBullet invalid input fallback', () => {
     // @ts-expect-error testing runtime fallback
     expect(normalizeBullet(123)).toBeUndefined();
   });
+
+  it('covers default font size, spacing, array of mixed configs and multiline runs', () => {
+    const run1 = buildTextRun({ text: 'Hello' }, { fontSize: 16 });
+    expect(run1.properties.fontSize).toBe(1600);
+
+    const run2 = buildTextRun({ text: 'No size' }, {});
+    expect(run2.properties?.fontSize).toBeUndefined();
+
+    const body1 = buildTextBody('Line 1\nLine 2', { spaceAfter: 10, spaceBefore: 5 });
+    expect(body1.paragraphs[0].properties.spaceAfter).toBe(1000);
+    expect(body1.paragraphs[0].properties.spaceBefore).toBe(500);
+
+    const body2 = buildTextBody([
+      { bold: true, text: 'First paragraph\n\nSecond paragraph' },
+    ]);
+    expect(body2.paragraphs.length).toBeGreaterThanOrEqual(2);
+
+    const body3 = buildTextBody([{ text: 'Multi\nLine' }, { text: 'Single' }]);
+    expect(body3.paragraphs).toHaveLength(2);
+  });
 });
