@@ -210,3 +210,14 @@ describe('serializeGroup', () => {
     expect(result['p:grpSp']).toBeUndefined();
   });
 });
+
+describe('Group Serializer partial position fallback', () => {
+  it('falls back cx and cy to 1000000 when only x and y are provided', () => {
+    // @ts-expect-error Testing partial position resilience
+    const group = makeGroup({ position: { x: emu(500), y: emu(600) } });
+    const result = serializeGroup(group);
+    const xfrm = (result['p:grpSpPr'] as Record<string, unknown>)['a:xfrm'] as Record<string, Record<string, unknown>>;
+    expect(xfrm['a:off']['@_x']).toBe(500);
+    expect(xfrm['a:ext']['@_cx']).toBe(1000000);
+  });
+});

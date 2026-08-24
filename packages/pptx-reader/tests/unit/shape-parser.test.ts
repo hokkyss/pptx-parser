@@ -3,8 +3,9 @@ import { parseShapes } from '../../lib/parsers/shape-parser';
 import { createRelationshipResolver } from '../../lib/resolvers/relationship-resolver';
 import { defaultXmlParser } from '../../lib/xml/xml-parser';
 
+const dummyResolver = createRelationshipResolver('', 'ppt/slides/slide1.xml');
+
 describe('Shape Parser (@hokkyss/pptx-reader)', () => {
-  const dummyResolver = createRelationshipResolver('', 'ppt/slides/slide1.xml');
 
   it('returns empty array when spTree is missing or empty', () => {
     const xml = `<?xml version="1.0"?><p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld/></p:sld>`;
@@ -187,5 +188,49 @@ describe('Shape Parser shape without nvPr node', () => {
     expect(shapes[0].id).toBe('0');
     expect(shapes[0].name).toBe('');
     expect(shapes[0].isVisible).toBe(true);
+  });
+});
+
+describe('Shape Parser connector arrowheads and attachment parsing', () => {
+  it('parses headEnd, tailEnd, and attachment connection points on connectors', () => {
+    const xml = `<?xml version="1.0"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:cxnSp>
+        <p:nvCxnSpPr>
+          <p:cNvPr id="10" name="Arrow Connector"/>
+          <p:cNvCxnSpPr>
+            <a:stCxn id="2" idx="3"/>
+            <a:endCxn id="3" idx="1"/>
+          </p:cNvCxnSpPr>
+          <p:nvPr/>
+        </p:nvCxnSpPr>
+        <p:spPr>
+          <a:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="1000"/></a:xfrm>
+          <a:ln w="12700">
+            <a:headEnd type="triangle" w="lg" len="lg"/>
+            <a:tailEnd type="oval" w="sm" len="sm"/>
+          </a:ln>
+        </p:spPr>
+      </p:cxnSp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+
+    const shapes = parseShapes(xml, dummyResolver);
+    expect(shapes).toHaveLength(1);
+    const conn = shapes[0];
+    expect(conn.elementType).toBe('connector');
+    if (conn.elementType === 'connector') {
+      expect(conn.line?.headEnd?.type).toBe('triangle');
+      expect(conn.line?.headEnd?.width).toBe('lg');
+      expect(conn.line?.headEnd?.length).toBe('lg');
+      expect(conn.line?.tailEnd?.type).toBe('oval');
+      expect(conn.startConnection?.shapeId).toBe('2');
+      expect(conn.startConnection?.position).toBe('right');
+      expect(conn.endConnection?.shapeId).toBe('3');
+      expect(conn.endConnection?.position).toBe('left');
+    }
   });
 });

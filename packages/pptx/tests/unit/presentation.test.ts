@@ -235,3 +235,28 @@ describe('Edge cases & Error Handling', () => {
     expect(s2.layoutId).toBe('slideLayout3');
   });
 });
+
+describe('Presentation Class theme guards and rich slide duplication', () => {
+  it('handles empty themes in setThemeColors, setThemeFonts, and setThemeName', () => {
+    const pres = Presentation.create();
+    pres.ast.themes = [];
+
+    expect(pres.setThemeColors({ accent1: '#FF0000' })).toBe(pres);
+    expect(pres.setThemeFonts({ major: 'Calibri' })).toBe(pres);
+    expect(pres.setThemeName('Custom')).toBe(pres);
+  });
+
+  it('duplicates slide with background, animations, shapes, and notes', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+    slide.setBackground('0F172A');
+    slide.setNotes('Speaker notes remark');
+    slide.addText('Slide 1 Content', { x: inches(1), y: inches(1), w: inches(4), h: inches(1) });
+
+    const duplicated = pres.duplicateSlide(1);
+    expect(duplicated.notes).toBe('Speaker notes remark');
+    expect(duplicated.ast.background?.fill?.type).toBe('solid');
+    expect(duplicated.getElements().length).toBe(1);
+    expect(pres.slides.length).toBe(2);
+  });
+});

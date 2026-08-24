@@ -279,3 +279,15 @@ describe('Shape and Connector edge cases', () => {
     expect(spPr['a:xfrm']['a:ext']['@_cy']).toBe(1000000);
   });
 });
+
+import { serializeGeometry, serializeLine, serializeShadow } from '../../lib/serializers/shape-serializer';
+
+describe('Shape Serializer helper direct exports', () => {
+  it('covers serializeLine, serializeGeometry, and serializeShadow with empty inputs', () => {
+    expect(serializeLine(undefined)).toBeUndefined();
+    expect(serializeLine({ dashStyle: 'dash' })?.['a:prstDash']).toEqual({ '@_val': 'dash' });
+    expect(serializeGeometry(undefined)).toEqual({ 'a:prstGeom': { '@_prst': 'rect', 'a:avLst': {} } });
+    expect(serializeGeometry({})).toEqual({ 'a:prstGeom': { '@_prst': 'rect', 'a:avLst': {} } });
+    expect(serializeShadow(undefined)).toBeUndefined();
+  });
+});

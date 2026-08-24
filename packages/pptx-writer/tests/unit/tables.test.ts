@@ -251,3 +251,41 @@ describe('Table Serializer', () => {
     expect(((tblGrid['a:gridCol'] as XmlNode[])[0])['@_w']).toBe(2000000);
   });
 });
+
+describe('Table Serializer cell fill styling', () => {
+  it('serializes table cell fill into a:tcPr', () => {
+    const tableElement: PptxTableElement = {
+      elementType: 'table',
+      type: 'graphicFrame',
+      id: '9',
+      name: 'Table 9',
+      isVisible: true,
+      zIndex: 0,
+      position: { x: emu(0), y: emu(0), cx: emu(2000000), cy: emu(1000000) },
+      rotation: emuDegree(0),
+      table: {
+        columnWidths: [emu(2000000)],
+        rows: [
+          {
+            height: emu(500000),
+            cells: [
+              {
+                properties: {
+                  fill: { type: 'solid', solidColor: { type: 'srgb', value: 'E2E8F0' } },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const xmlObject = serializeTable(tableElement) as XmlNode;
+    const graphic = xmlObject['a:graphic'] as XmlNode;
+    const graphicData = graphic['a:graphicData'] as XmlNode;
+    const tbl = graphicData['a:tbl'] as XmlNode;
+    const cell = ((tbl['a:tr'] as XmlNode[])[0]['a:tc'] as XmlNode[])[0];
+    const tcPr = cell['a:tcPr'] as XmlNode;
+    expect(tcPr).toHaveProperty('a:solidFill');
+  });
+});

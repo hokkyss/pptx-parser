@@ -581,3 +581,136 @@ describe('ShapeBuilder shadow and styling', () => {
     }
   });
 });
+
+describe('Slide Class group deletion, connector attachment positions, and group connectors', () => {
+  it('unregisters nested child elements when a group is removed', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'parent-group', x: inches(1), y: inches(1), w: inches(4), h: inches(4) }, (g) => {
+      g.addShape('rect', { id: 'child-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+      g.addShape('ellipse', { id: 'child-2', x: inches(2), y: inches(2), w: inches(2), h: inches(2) });
+    });
+
+    expect(slide.getElementById('parent-group')).toBeDefined();
+    expect(slide.getElementById('child-1')).toBeDefined();
+    expect(slide.getElementById('child-2')).toBeDefined();
+
+    expect(slide.removeElement('parent-group')).toBe(true);
+    expect(slide.getElementById('parent-group')).toBeUndefined();
+    expect(slide.getElementById('child-1')).toBeUndefined();
+    expect(slide.getElementById('child-2')).toBeUndefined();
+  });
+
+  it('supports top, bottom, and default connector attachment positions', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('rect', { id: 'box-top', x: inches(2), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('rect', { id: 'box-bottom', x: inches(2), y: inches(5), w: inches(2), h: inches(2) });
+
+    slide.addConnector({
+      from: { shapeId: 'box-top', position: 'bottom' },
+      to: { shapeId: 'box-bottom', position: 'top' },
+    });
+
+    const conn = slide.getElements()[2];
+    expect(conn.elementType).toBe('connector');
+    if (conn.elementType === 'connector') {
+      expect(conn.startConnection?.position).toBe('bottom');
+      expect(conn.endConnection?.position).toBe('top');
+    }
+  });
+
+  it('supports adding connectors inside group builder connecting group shapes', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'diagram', x: inches(1), y: inches(1), w: inches(6), h: inches(4) }, (g) => {
+      g.addShape('rect', { id: 'g-s1', x: inches(1), y: inches(1), w: inches(2), h: inches(1) });
+      g.addShape('rect', { id: 'g-s2', x: inches(4), y: inches(1), w: inches(2), h: inches(1) });
+      g.addConnector({
+        from: { shapeId: 'g-s1', position: 'right' },
+        to: { shapeId: 'g-s2', position: 'left' },
+      });
+    });
+
+    const group = slide.getElements()[0];
+    expect(group.elementType).toBe('group');
+    if (group.elementType === 'group') {
+      expect(group.children.length).toBe(3);
+      expect(group.children[2].elementType).toBe('connector');
+    }
+  });
+});
+
+describe('Slide Class recursion and default connector position', () => {
+  it('searches nested group hierarchies in group builder connector and handles default position', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'outer-grp', x: inches(1), y: inches(1), w: inches(6), h: inches(4) }, (g) => {
+      g.addShape('rect', { id: 'inner-s1', x: inches(1), y: inches(1), w: inches(2), h: inches(1) });
+      // @ts-expect-error Testing custom/default position
+      g.addConnector({ from: { shapeId: 'inner-s1', position: 'custom' }, to: { x: inches(4), y: inches(1) } });
+    });
+
+    expect(slide.getElements().length).toBe(1);
+  });
+});
+
+describe('Slide Class nested group search and missing shape error', () => {
+  it('searches across nested sub-groups in group builder and throws on missing shape', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'outer', x: inches(1), y: inches(1), w: inches(6), h: inches(6) }, (g) => {
+      // @ts-expect-error Nested group inside group builder elements
+      g._elements.push({
+        id: 'nested-grp',
+        elementType: 'group',
+        children: [
+          { id: 'deep-shape', elementType: 'shape', position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) } },
+        ],
+      });
+
+      g.addConnector({ from: { shapeId: 'deep-shape', position: 'right' }, to: { x: inches(5), y: inches(5) } });
+
+      expect(() => {
+        g.addConnector({ from: { shapeId: 'missing-shape', position: 'right' }, to: { x: inches(5), y: inches(5) } });
+      }).toThrow('Shape with id "missing-shape" was not found on this slide');
+    });
+  });
+});
+
+describe('Slide Class auto ID counter collision skip', () => {
+  it('increments counter when manual element ID 1 already exists in elementsById', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Manually add shape with id "1"
+    slide.addShape('rect', { id: '1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    // Next element without ID must auto-generate "2" by skipping "1"
+    slide.addShape('rect', { x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(slide.getElements()[0].id).toBe('1');
+    expect(slide.getElements()[1].id).toBe('2');
+  });
+});
+
+describe('Slide Class initial elements counter collision', () => {
+  it('increments counter when manual element IDs collide with starting element counter', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Shape with manual id "2" (occupying the 2nd slot ahead of time)
+    slide.addShape('rect', { id: '2', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    // Next auto-allocated shape sees _elementCounter=2, which exists, so while loop increments it to 3
+    slide.addShape('rect', { x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(slide.getElements()[0].id).toBe('2');
+    expect(slide.getElements()[1].id).toBe('3');
+  });
+});

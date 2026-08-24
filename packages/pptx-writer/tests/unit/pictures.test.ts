@@ -43,3 +43,22 @@ describe('Picture Serializer', () => {
     expect(blipFill['a:srcRect']['@_l']).toBe(10000);
   });
 });
+
+describe('Picture Serializer rotation', () => {
+  it('serializes picture rotation attribute in xfrm', () => {
+    const pic: PptxPictureElement = {
+      elementType: 'picture',
+      type: 'picture',
+      id: '5',
+      name: 'Rotated Pic',
+      isVisible: true,
+      zIndex: 0,
+      position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+      rotation: emuDegree(5400000),
+      picture: { mediaId: 'rId5' },
+    };
+    const xml = serializePicture(pic);
+    const spPr = xml['p:spPr'] as Record<string, Record<string, unknown>>;
+    expect(spPr['a:xfrm']['@_rot']).toBe(5400000);
+  });
+});

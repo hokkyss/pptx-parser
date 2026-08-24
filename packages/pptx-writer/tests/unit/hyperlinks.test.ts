@@ -193,3 +193,27 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
     expect(relsXml).not.toContain('file:///');
   });
 });
+
+import { serializeHyperlink } from '../../lib/serializers/text-serializer';
+
+describe('Hyperlink Serializer action jumps', () => {
+  it('serializes all predefined jump actions', () => {
+    expect(serializeHyperlink({ action: 'endShow' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=endshow');
+    expect(serializeHyperlink({ action: 'firstSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=firstslide');
+    expect(serializeHyperlink({ action: 'lastSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=lastslide');
+    expect(serializeHyperlink({ action: 'nextSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=nextslide');
+    expect(serializeHyperlink({ action: 'previousSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=previousslide');
+    expect(serializeHyperlink({ action: 'ppaction://customAction' })?.['@_action']).toBe('ppaction://customAction');
+  });
+});
+
+import { serializeBulletProperties } from '../../lib/serializers/text-serializer';
+
+describe('Hyperlink Serializer string target and bullet fallback', () => {
+  it('serializes string hyperlink with relIdOverride and handles bullet fallback', () => {
+    expect(serializeHyperlink('https://example.com', 'rId9')?.['@_r:id']).toBe('rId9');
+    expect(serializeHyperlink('https://example.com')).toBeUndefined();
+    // @ts-expect-error Testing unknown bullet type fallback
+    expect(serializeBulletProperties({ type: 'unknown' })).toBeUndefined();
+  });
+});
