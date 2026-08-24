@@ -1,6 +1,25 @@
 import type { PptxFill } from './color';
 import type { Emu } from './units';
 
+/** Line end (arrowhead) types. OpenXML: `ST_LineEndType` */
+export type PptxLineEndType = 'arrow' | 'diamond' | 'none' | 'oval' | 'stealth' | 'triangle';
+
+/** Line end (arrowhead) width. OpenXML: `ST_LineEndWidth` */
+export type PptxLineEndWidth = 'lg' | 'med' | 'sm';
+
+/** Line end (arrowhead) length. OpenXML: `ST_LineEndLength` */
+export type PptxLineEndLength = 'lg' | 'med' | 'sm';
+
+/** Represents line end (arrowhead / tail) properties. OpenXML: `<a:headEnd>`, `<a:tailEnd>` */
+export interface PptxLineEnd {
+  /** Arrowhead / line end style. OpenXML: `@_type` */
+  type?: PptxLineEndType;
+  /** Arrowhead width. OpenXML: `@_w` */
+  width?: PptxLineEndWidth;
+  /** Arrowhead length. OpenXML: `@_len` */
+  length?: PptxLineEndLength;
+}
+
 /** Represents line (stroke) properties */
 export interface PptxLine {
   /** Line dash style. OpenXML: `<a:ln><a:prstDash @_val>` */
@@ -9,6 +28,10 @@ export interface PptxLine {
   fill?: PptxFill;
   /** Line width in EMU. OpenXML: `<a:ln @_w>` */
   width?: Emu;
+  /** Head / end line marker (arrowhead). OpenXML: `<a:headEnd>` */
+  headEnd?: PptxLineEnd;
+  /** Tail / start line marker (arrowtail). OpenXML: `<a:tailEnd>` */
+  tailEnd?: PptxLineEnd;
 }
 
 /** Represents a color scheme within a theme */

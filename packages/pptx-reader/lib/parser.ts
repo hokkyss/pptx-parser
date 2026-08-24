@@ -103,7 +103,7 @@ export function parseSpeakerNotes(notesXml: string, xmlParser: XmlParser): { not
       const notesBody = parseTextBody(txBody);
       const textLines: string[] = [];
       for (const p of notesBody.paragraphs) {
-        const lineText = p.runs.map((r) => r.text).join('');
+        const lineText = p.runs.map((r: { text?: string }) => r.text || '').join('');
         textLines.push(lineText);
       }
       const notes = textLines.join('\n').trim();

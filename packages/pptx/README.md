@@ -340,6 +340,28 @@ slide.addShape('rect', {
     width: points(2),
   },
 });
+
+// Connector line with customizable start and end arrowheads
+slide.addConnector({
+  from: { x: inches(1), y: inches(3) },
+  to: { x: inches(8), y: inches(3) },
+  color: '0284C7',
+  width: inches(0.03),
+  endArrow: 'triangle', // or { type: 'stealth', width: 'lg', length: 'lg' }
+  startArrow: { type: 'oval', width: 'med', length: 'med' },
+  shapeType: 'bentConnector2', // 'line' | 'straightConnector1' | 'bentConnector2' | 'curvedConnector3'
+});
+
+// Attaching connectors directly to shapes (PowerPoint / Keynote glued connection sites)
+slide.addShape('roundRect', { id: 'step-1', x: inches(1), y: inches(5), w: inches(3), h: inches(1.5), fill: '0284C7' });
+slide.addShape('roundRect', { id: 'step-2', x: inches(6), y: inches(5), w: inches(3), h: inches(1.5), fill: '6366F1' });
+
+slide.addConnector({
+  from: { shapeId: 'step-1', position: 'right' }, // 'top' | 'bottom' | 'left' | 'right'
+  to: { shapeId: 'step-2', position: 'left' },
+  endArrow: 'triangle',
+  color: '0284C7',
+});
 ```
 
 ---

@@ -954,7 +954,9 @@ async function runShowcase() {
     g.addShape('roundRect', {
       fill: 'FFFFFF',
       h: inches(3.5),
+      id: 'stage-1',
       line: { color: '0284C7', width: inches(0.015) },
+      name: 'Stage 1 Background',
       shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
       w: inches(3.2),
       x: inches(1.0),
@@ -983,15 +985,6 @@ async function runShowcase() {
     });
   });
 
-  // Connector 1 -> 2
-  slide8.addConnector({
-    color: '0284C7',
-    dashStyle: 'solid',
-    from: { x: inches(4.2), y: inches(3.95) },
-    to: { x: inches(5.0), y: inches(3.95) },
-    width: inches(0.03),
-  });
-
   // Stage 2 Group: AST Modeling & Mutator
   slide8.addGroup({
     h: inches(3.5),
@@ -1003,7 +996,9 @@ async function runShowcase() {
     g.addShape('roundRect', {
       fill: 'FFFFFF',
       h: inches(3.5),
+      id: 'stage-2',
       line: { color: '6366F1', width: inches(0.015) },
+      name: 'Stage 2 Background',
       shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
       w: inches(3.2),
       x: inches(5.0),
@@ -1032,15 +1027,6 @@ async function runShowcase() {
     });
   });
 
-  // Connector 2 -> 3
-  slide8.addConnector({
-    color: '6366F1',
-    dashStyle: 'solid',
-    from: { x: inches(8.2), y: inches(3.95) },
-    to: { x: inches(9.0), y: inches(3.95) },
-    width: inches(0.03),
-  });
-
   // Stage 3 Group: Serialization & Packaging
   slide8.addGroup({
     h: inches(3.5),
@@ -1052,7 +1038,9 @@ async function runShowcase() {
     g.addShape('roundRect', {
       fill: 'FFFFFF',
       h: inches(3.5),
+      id: 'stage-3',
       line: { color: '10B981', width: inches(0.015) },
+      name: 'Stage 3 Background',
       shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.1 },
       w: inches(3.2),
       x: inches(9.0),
@@ -1081,13 +1069,35 @@ async function runShowcase() {
     });
   });
 
-  // Connector feedback loop (dashed return line from Step 3 back to Step 1)
+  // Connector 1 -> 2 (glued to stage-1 inner background and stage-2 inner background)
+  slide8.addConnector({
+    color: '0284C7',
+    dashStyle: 'solid',
+    endArrow: { length: 'lg', type: 'triangle', width: 'lg' },
+    from: { position: 'right', shapeId: 'stage-1' },
+    to: { position: 'left', shapeId: 'stage-2' },
+    width: inches(0.03),
+  });
+
+  // Connector 2 -> 3 (glued to stage-2 inner background and stage-3 inner background)
+  slide8.addConnector({
+    color: '6366F1',
+    dashStyle: 'solid',
+    endArrow: { length: 'lg', type: 'stealth', width: 'lg' },
+    from: { position: 'right', shapeId: 'stage-2' },
+    to: { position: 'left', shapeId: 'stage-3' },
+    width: inches(0.03),
+  });
+
+  // Connector feedback loop (dashed return line with arrows on both ends)
   slide8.addConnector({
     color: '94A3B8',
     dashStyle: 'dash',
+    endArrow: 'triangle',
     from: { x: inches(1.0), y: inches(6.2) },
+    startArrow: 'oval',
     to: { x: inches(12.2), y: inches(6.2) },
-    width: inches(0.015),
+    width: inches(0.02),
   });
 
   slide8.addText('Isomorphic Pipeline Feedback Loop: 100% Roundtrip Bit-Exact Precision', {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { PptxConnectorElement } from '@hokkyss/pptx-core';
 import { inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
@@ -192,5 +193,288 @@ describe('Slide Class (Unit Tests)', () => {
     const bytes = await pres.toArrayBuffer();
     const reloaded = await Presentation.load(bytes);
     expect(reloaded.slides[0].getElements().length).toBe(2);
+  });
+
+  it('supports customizable arrowheads (endArrow, startArrow, headEnd, tailEnd) across save/load', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // 1. Shorthand arrow type
+    slide.addConnector({
+      color: '0284C7',
+      endArrow: 'triangle',
+      from: { x: inches(1), y: inches(1) },
+      startArrow: 'oval',
+      to: { x: inches(4), y: inches(1) },
+    });
+
+    // 2. Granular arrow configuration with custom width and length
+    slide.addConnector({
+      color: '10B981',
+      endArrow: { length: 'lg', type: 'stealth', width: 'lg' },
+      from: { x: inches(1), y: inches(3) },
+      startArrow: { length: 'sm', type: 'diamond', width: 'sm' },
+      to: { x: inches(4), y: inches(3) },
+    });
+
+    // 3. Aliases headEnd / tailEnd
+    slide.addConnector({
+      color: '6366F1',
+      from: { x: inches(1), y: inches(5) },
+      headEnd: { length: 'med', type: 'arrow', width: 'med' },
+      tailEnd: { length: 'med', type: 'none', width: 'med' },
+      to: { x: inches(4), y: inches(5) },
+    });
+
+    const elements = slide.getElements();
+    expect(elements.length).toBe(3);
+
+    const c1 = elements[0] as PptxConnectorElement;
+    expect(c1.line?.headEnd?.type).toBe('triangle');
+    expect(c1.line?.tailEnd?.type).toBe('oval');
+
+    const c2 = elements[1] as PptxConnectorElement;
+    expect(c2.line?.headEnd?.type).toBe('stealth');
+    expect(c2.line?.headEnd?.width).toBe('lg');
+    expect(c2.line?.headEnd?.length).toBe('lg');
+    expect(c2.line?.tailEnd?.type).toBe('diamond');
+    expect(c2.line?.tailEnd?.width).toBe('sm');
+    expect(c2.line?.tailEnd?.length).toBe('sm');
+
+    const c3 = elements[2] as PptxConnectorElement;
+    expect(c3.line?.headEnd?.type).toBe('arrow');
+    expect(c3.line?.tailEnd?.type).toBe('none');
+
+    // Verify full write and parse roundtrip fidelity
+    const bytes = await pres.toArrayBuffer();
+    const reloaded = await Presentation.load(bytes);
+    const reloadedElements = reloaded.slides[0].getElements();
+    expect(reloadedElements.length).toBe(3);
+
+    const rc1 = reloadedElements[0] as PptxConnectorElement;
+    expect(rc1.line?.headEnd?.type).toBe('triangle');
+    expect(rc1.line?.tailEnd?.type).toBe('oval');
+
+    const rc2 = reloadedElements[1] as PptxConnectorElement;
+    expect(rc2.line?.headEnd?.type).toBe('stealth');
+    expect(rc2.line?.headEnd?.width).toBe('lg');
+    expect(rc2.line?.headEnd?.length).toBe('lg');
+    expect(rc2.line?.tailEnd?.type).toBe('diamond');
+    expect(rc2.line?.tailEnd?.width).toBe('sm');
+    expect(rc2.line?.tailEnd?.length).toBe('sm');
+
+    const rc3 = reloadedElements[2] as PptxConnectorElement;
+    expect(rc3.line?.headEnd?.type).toBe('arrow');
+    expect(rc3.line?.tailEnd?.type).toBe('none');
+  });
+
+  it('supports attaching connectors to shapes via shapeId and position (top, bottom, left, right)', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Add Card 1: x: 1", y: 2", w: 3", h: 2" -> Center-right is (4", 3")
+    slide.addShape('roundRect', {
+      id: 'step-1',
+      fill: '0284C7',
+      h: inches(2),
+      w: inches(3),
+      x: inches(1),
+      y: inches(2),
+    });
+
+    // Add Card 2: x: 6", y: 2", w: 3", h: 2" -> Center-left is (6", 3")
+    slide.addShape('roundRect', {
+      id: 'step-2',
+      fill: '6366F1',
+      h: inches(2),
+      w: inches(3),
+      x: inches(6),
+      y: inches(2),
+    });
+
+    // Attach connector between step-1 (right) and step-2 (left)
+    slide.addConnector({
+      color: '0284C7',
+      endArrow: 'triangle',
+      from: { position: 'right', shapeId: 'step-1' },
+      to: { position: 'left', shapeId: 'step-2' },
+    });
+
+    const elements = slide.getElements();
+    expect(elements.length).toBe(3);
+
+    const connector = elements[2] as PptxConnectorElement;
+    expect(connector.elementType).toBe('connector');
+    expect(connector.startConnection).toEqual({
+      position: 'right',
+      shapeId: 'step-1',
+    });
+    expect(connector.endConnection).toEqual({
+      position: 'left',
+      shapeId: 'step-2',
+    });
+
+    // Position check: (minX=4", minY=3", cx=2", cy=0")
+    expect(connector.position.x).toBe(3657600); // 4 inches in EMU
+    expect(connector.position.y).toBe(2743200); // 3 inches in EMU
+    expect(connector.position.cx).toBe(1828800); // 2 inches in EMU
+    expect(connector.position.cy).toBe(0); // Exact horizontal line
+
+    // Full roundtrip write and load
+    const bytes = await pres.toArrayBuffer();
+    const reloaded = await Presentation.load(bytes);
+    const reloadedSlide = reloaded.slides[0];
+    const shape1 = reloadedSlide.getElements()[0];
+    const shape2 = reloadedSlide.getElements()[1];
+    const reloadedConnector = reloadedSlide.getElements()[2] as PptxConnectorElement;
+
+    expect(reloadedConnector.elementType).toBe('connector');
+    expect(reloadedConnector.startConnection).toEqual({
+      position: 'right',
+      shapeId: shape1.id,
+    });
+    expect(reloadedConnector.endConnection).toEqual({
+      position: 'left',
+      shapeId: shape2.id,
+    });
+  });
+
+  it('throws an informative error if attaching a connector to a non-existent shapeId', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    expect(() => {
+      slide.addConnector({
+        from: { position: 'right', shapeId: 'non-existent-shape' },
+        to: { x: inches(5), y: inches(5) },
+      });
+    }).toThrow('Shape with id "non-existent-shape" was not found on this slide');
+  });
+
+  it('throws an informative error if attaching a connector to a group', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'my-group', x: inches(1), y: inches(1), w: inches(3), h: inches(2) }, (g) => {
+      g.addShape('rect', { x: inches(1), y: inches(1), w: inches(3), h: inches(2) });
+    });
+
+    expect(() => {
+      slide.addConnector({
+        from: { position: 'right', shapeId: 'my-group' },
+        to: { x: inches(5), y: inches(5) },
+      });
+    }).toThrow('Cannot attach connector to a group ("my-group")');
+  });
+
+  it('provides O(1) shape lookup with getElementById and tracks deletions', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'card-alpha', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    expect(slide.getElementById('card-alpha')).toBeDefined();
+    expect(slide.getElementById('card-alpha')?.id).toBe('card-alpha');
+
+    // Remove element
+    const removed = slide.removeElement('card-alpha');
+    expect(removed).toBe(true);
+    expect(slide.getElementById('card-alpha')).toBeUndefined();
+  });
+
+  it('throws an error early when adding an element with duplicate ID on the same slide', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'stage-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(() => {
+      slide.addShape('ellipse', { id: 'stage-1', x: inches(4), y: inches(1), w: inches(2), h: inches(2) });
+    }).toThrow('Duplicate element ID "stage-1" detected on Slide 1');
+  });
+
+  it('detects duplicate IDs across mixed element types (text, table, chart, connector, image, group)', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addText('Title Text', { id: 'elem-1', x: inches(1), y: inches(1) });
+
+    // Colliding with addTable
+    expect(() => {
+      slide.addTable([['Header'], ['Value']], { id: 'elem-1', x: inches(1), y: inches(2) });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+
+    // Colliding with addChart
+    expect(() => {
+      slide.addChart({ categories: ['Q1'], id: 'elem-1', series: [{ data: [100], name: 'Revenue' }] });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+
+    // Colliding with addConnector
+    expect(() => {
+      slide.addConnector({ from: { x: inches(1), y: inches(1) }, id: 'elem-1', to: { x: inches(3), y: inches(1) } });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+
+    // Colliding with addGroup
+    expect(() => {
+      slide.addGroup({ h: inches(2), id: 'elem-1', w: inches(2), x: inches(1), y: inches(1) }, (g) => {
+        g.addShape('rect', { h: inches(1), w: inches(1), x: inches(1), y: inches(1) });
+      });
+    }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
+  });
+
+  it('detects duplicate IDs between top-level shapes and shapes nested inside groups', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'nested-card', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(() => {
+      slide.addGroup({ h: inches(3), id: 'my-group-1', w: inches(3), x: inches(1), y: inches(1) }, (g) => {
+        g.addShape('rect', { id: 'nested-card', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+      });
+    }).toThrow('Duplicate element ID "nested-card" detected on Slide 1');
+  });
+
+  it('allows ID reuse after an element is removed with removeElement', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('roundRect', { id: 'temp-id', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    expect(slide.removeElement('temp-id')).toBe(true);
+
+    // Re-adding with same ID should now succeed
+    expect(() => {
+      slide.addShape('ellipse', { id: 'temp-id', x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+    }).not.toThrow();
+
+    expect(slide.getElementById('temp-id')?.shapeType).toBe('ellipse');
+  });
+
+  it('auto-increment element counter avoids colliding with manual numeric IDs', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // User manually specifies id '1' and '2'
+    slide.addShape('roundRect', { id: '1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('roundRect', { id: '2', x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+
+    // Auto-generated shape should skip 1 and 2 and take 3 without throwing
+    expect(() => {
+      slide.addShape('roundRect', { x: inches(5), y: inches(1), w: inches(2), h: inches(2) });
+    }).not.toThrow();
+
+    const elements = slide.getElements();
+    expect(elements[2].id).toBe('3');
+  });
+
+  it('allows the same element ID across different slides', () => {
+    const pres = Presentation.create();
+    const slide1 = pres.addSlide();
+    const slide2 = pres.addSlide();
+
+    slide1.addShape('roundRect', { id: 'card-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    slide2.addShape('roundRect', { id: 'card-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+
+    expect(slide1.getElementById('card-1')).toBeDefined();
+    expect(slide2.getElementById('card-1')).toBeDefined();
   });
 });

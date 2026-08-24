@@ -1,10 +1,16 @@
 import type {
+  PptxConnectionPosition,
   PptxConnectorElement,
   PptxElement,
   PptxFill,
   PptxGroupElement,
   PptxHyperlink,
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
   PptxPictureElement,
+  PptxShapeAttachment,
   PptxShapeElement,
   PptxSlide,
   PptxTransition,
@@ -13,7 +19,15 @@ import type {
   PptxTransitionType,
 } from '@hokkyss/pptx-core';
 
+export type ConnectionPosition = PptxConnectionPosition;
+export type ShapeAttachment = PptxShapeAttachment;
+export type ConnectorEndpoint = { x: Inches; y: Inches } | ShapeAttachment;
+
 export type {
+  PptxLineEnd,
+  PptxLineEndLength,
+  PptxLineEndType,
+  PptxLineEndWidth,
   PptxTransition,
   PptxTransitionDirection,
   PptxTransitionSpeed,
@@ -25,6 +39,7 @@ import {
   emuDegree,
   emuToInches,
   type Degrees,
+  type Emu,
   type Inches,
   inchesToEmu,
   type ThousandthsPercent,
@@ -59,6 +74,14 @@ import type { Presentation } from './presentation';
 export interface AddTextOptions extends TextOptions {
   fill?: PptxFill | string;
   h?: Inches;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide
+   * - Must be unique among all elements on the SAME slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   name?: string;
   placeholder?: number | string;
@@ -74,6 +97,15 @@ export interface AddImageOptions {
   fileName?: string;
   h?: Inches;
   hyperlink?: PptxHyperlink | string;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for O(1) shape querying (`slide.getElementById`), element deletion (`slide.removeElement`),
+   *   and connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
   mediaId?: string;
   name?: string;
@@ -92,11 +124,66 @@ export class Slide {
   private _ast: PptxSlide;
   private _presentation: Presentation;
   private _elementCounter: number = 1;
+  private _elementsById: Map<string, PptxElement> = new Map();
 
   constructor(ast: PptxSlide, presentation: Presentation) {
     this._ast = ast;
     this._presentation = presentation;
     this._elementCounter = (ast.elements?.length || 0) + 1;
+    this._indexElements(ast.elements || []);
+  }
+
+  /**
+   * Recursively indexes elements and nested group children into the internal map.
+   */
+  private _indexElements(elements: PptxElement[]): void {
+    for (const el of elements) {
+      if (el.id) {
+        this._elementsById.set(el.id, el);
+      }
+      if (el.elementType === 'group' && el.children) {
+        this._indexElements(el.children);
+      }
+    }
+  }
+
+  /**
+   * Registers an element into the map, enforcing uniqueness across the slide.
+   */
+  private _registerElement(el: PptxElement): void {
+    if (this._elementsById.has(el.id)) {
+      throw new Error(`Duplicate element ID "${el.id}" detected on Slide ${this.slideNumber}. Element IDs must be unique within a slide.`);
+    }
+    this._elementsById.set(el.id, el);
+    if (el.elementType === 'group' && el.children) {
+      for (const child of el.children) {
+        this._registerElement(child);
+      }
+    }
+  }
+
+  /**
+   * Recursively unregisters an element and its children from the map.
+   */
+  private _unregisterElement(el: PptxElement): void {
+    if (el.id) {
+      this._elementsById.delete(el.id);
+    }
+    if (el.elementType === 'group' && el.children) {
+      for (const child of el.children) {
+        this._unregisterElement(child);
+      }
+    }
+  }
+
+  /**
+   * Generates the next sequential element ID that does not collide with existing IDs.
+   */
+  private _getNextElementId(): string {
+    while (this._elementsById.has(String(this._elementCounter))) {
+      this._elementCounter++;
+    }
+    return String(this._elementCounter++);
   }
 
   /** Slide number (1-based index) */
@@ -124,6 +211,13 @@ export class Slide {
    */
   getElements(): PptxElement[] {
     return this._ast.elements || [];
+  }
+
+  /**
+   * Retrieves an element by its unique ID on this slide in O(1) time.
+   */
+  getElementById(id: string): PptxElement | undefined {
+    return this._elementsById.get(id);
   }
 
   /**
@@ -280,8 +374,7 @@ export class Slide {
         return this;
       }
 
-      // Create new shape element bound to this placeholder
-      const id = options.id || String(this._elementCounter++);
+      const id = options.id || this._getNextElementId();
       const name = options.name || placeholderEl?.name || `placeholder:${options.placeholder}`;
       const fill = options.fill ? normalizeFill(options.fill) : placeholderEl?.fill;
 
@@ -306,13 +399,14 @@ export class Slide {
         zIndex: options.zIndex ?? this._ast.elements.length,
       };
 
+      this._registerElement(shape);
       this._ast.elements.push(shape);
       delete this._ast.rawXml;
       return this;
     }
 
     // Default standalone text box
-    const id = options.id || String(this._elementCounter++);
+    const id = options.id || this._getNextElementId();
     const name = options.name || `Text Box ${id}`;
     const fill = normalizeFill(options.fill);
 
@@ -336,6 +430,7 @@ export class Slide {
       zIndex: options.zIndex ?? 0,
     };
 
+    this._registerElement(shape);
     this._ast.elements.push(shape);
     delete this._ast.rawXml;
     return this;
@@ -345,7 +440,9 @@ export class Slide {
    * Adds a geometric shape (rect, roundRect, ellipse, arrow, etc.) to the slide.
    */
   addShape(shapeType: string, options: AddShapeOptions): this {
-    const shape = buildShapeElement(shapeType, options, this._elementCounter++);
+    const fallbackId = this._getNextElementId();
+    const shape = buildShapeElement(shapeType, options, fallbackId);
+    this._registerElement(shape);
     this._ast.elements.push(shape);
     delete this._ast.rawXml;
     return this;
@@ -359,7 +456,7 @@ export class Slide {
     options: AddImageOptions = {},
   ): this {
     const bytes = imageData instanceof Uint8Array ? imageData : new Uint8Array(imageData);
-    const id = options.id || String(this._elementCounter++);
+    const id = options.id || this._getNextElementId();
     const name = options.name || `Picture ${id}`;
 
     let placeholderEl;
@@ -400,6 +497,7 @@ export class Slide {
       zIndex: options.zIndex ?? 0,
     };
 
+    this._registerElement(picElement);
     this._ast.elements.push(picElement);
     delete this._ast.rawXml;
     return this;
@@ -425,60 +523,53 @@ export class Slide {
     }
 
     let tableElement;
+    const fallbackId = this._getNextElementId();
 
     if (dataOrBuilder instanceof TableBuilder) {
-      tableElement = dataOrBuilder.build(this._elementCounter++);
+      tableElement = dataOrBuilder.build(fallbackId);
     } else if (typeof dataOrBuilder === 'function') {
       const builder = new TableBuilder(resolvedOptions);
       dataOrBuilder(builder);
-      tableElement = builder.build(this._elementCounter++);
+      tableElement = builder.build(fallbackId);
     } else {
-      tableElement = TableBuilder.fromMatrix(dataOrBuilder, resolvedOptions, this._elementCounter++);
+      tableElement = TableBuilder.fromMatrix(dataOrBuilder, resolvedOptions, fallbackId);
     }
 
+    this._registerElement(tableElement);
     this._ast.elements.push(tableElement);
     delete this._ast.rawXml;
     return this;
   }
 
   /**
-   * Adds a connector or line between two points.
+   * Adds a connector or line between two points or attached to shapes.
+   * @example
+   * ```ts
+   * // Attached to shapes
+   * slide.addConnector({
+   *   from: { shapeId: 'card-1', position: 'right' },
+   *   to: { shapeId: 'card-2', position: 'left' },
+   *   endArrow: 'triangle',
+   *   color: '0284C7',
+   * });
+   *
+   * // Arbitrary coordinates
+   * slide.addConnector({
+   *   from: { x: inches(1), y: inches(1) },
+   *   to: { x: inches(4), y: inches(1) },
+   *   endArrow: 'triangle',
+   *   startArrow: 'oval',
+   * });
+   * ```
    */
   addConnector(options: AddConnectorOptions): this {
-    const id = options.id || String(this._elementCounter++);
-    const name = options.name || `Connector ${id}`;
-    const x1 = inchesToEmu(options.from.x);
-    const y1 = inchesToEmu(options.from.y);
-    const x2 = inchesToEmu(options.to.x);
-    const y2 = inchesToEmu(options.to.y);
-    const minX = Math.min(Number(x1), Number(x2));
-    const minY = Math.min(Number(y1), Number(y2));
-    const cx = Math.abs(Number(x2) - Number(x1));
-    const cy = Math.abs(Number(y2) - Number(y1));
+    const fallbackId = this._getNextElementId();
+    const connector = buildConnectorElement(options, fallbackId, this._elementsById);
+    if (options.zIndex === undefined) {
+      connector.zIndex = this._ast.elements.length;
+    }
 
-    const connector: PptxConnectorElement = {
-      elementType: 'connector',
-      geometry: { presetGeometry: options.shapeType || 'line' },
-      id,
-      isVisible: true,
-      line: {
-        dashStyle: options.dashStyle,
-        fill: options.color ? { solidColor: { type: 'srgb', value: options.color.replace(/^#/, '') }, type: 'solid' } : undefined,
-        width: options.width ? inchesToEmu(options.width) : emu(19050),
-      },
-      name,
-      position: {
-        cx: emu(cx > 0 ? cx : 1),
-        cy: emu(cy > 0 ? cy : 1),
-        x: emu(minX),
-        y: emu(minY),
-      },
-      rotation: emuDegree(0),
-      shapeType: options.shapeType || 'line',
-      type: 'connector',
-      zIndex: options.zIndex ?? this._ast.elements.length,
-    };
-
+    this._registerElement(connector);
     this._ast.elements.push(connector);
     delete this._ast.rawXml;
     return this;
@@ -488,7 +579,9 @@ export class Slide {
    * Adds an interactive data chart (bar, line, pie, area) to the slide.
    */
   addChart(options: AddChartOptions): this {
-    const chartElement = buildChartElement(options, this._elementCounter++);
+    const fallbackId = this._getNextElementId();
+    const chartElement = buildChartElement(options, fallbackId);
+    this._registerElement(chartElement);
     this._ast.elements.push(chartElement);
     delete this._ast.rawXml;
     return this;
@@ -501,11 +594,12 @@ export class Slide {
     options: AddGroupOptions,
     builderCallback: (group: GroupBuilder) => void,
   ): this {
-    const id = options.id || String(this._elementCounter++);
+    const id = options.id || this._getNextElementId();
     const name = options.name || `Group ${id}`;
-    const builder = new GroupBuilder();
+    const builder = new GroupBuilder(() => this._getNextElementId());
     builderCallback(builder);
     const groupElement = builder.build(id, name, options);
+    this._registerElement(groupElement);
     this._ast.elements.push(groupElement);
     delete this._ast.rawXml;
     return this;
@@ -516,6 +610,10 @@ export class Slide {
    */
   removeElement(elementId: string): boolean {
     const initialLen = this._ast.elements.length;
+    const removed = this._ast.elements.find((el) => el.id === elementId);
+    if (removed) {
+      this._unregisterElement(removed);
+    }
     this._ast.elements = this._ast.elements.filter((el) => el.id !== elementId);
     if (this._ast.elements.length !== initialLen) {
       delete this._ast.rawXml;
@@ -571,20 +669,195 @@ export class Slide {
   }
 }
 
+/**
+ * Normalizes string or object line end configuration.
+ */
+function normalizeLineEnd(input?: PptxLineEnd | PptxLineEndType): PptxLineEnd | undefined {
+  if (!input) return undefined;
+  if (typeof input === 'string') {
+    return { type: input };
+  }
+  return input;
+}
+
+/**
+ * Recursively searches for an element by ID within a list of slide elements and nested group children.
+ */
+function findElementRecursively(elements: PptxElement[] | undefined, id: string): PptxElement | undefined {
+  if (!elements) return undefined;
+  for (const el of elements) {
+    if (el.id === id) return el;
+    if (el.elementType === 'group' && el.children) {
+      const found = findElementRecursively(el.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Resolves a connector endpoint (coordinate or shape attachment) to EMU coordinates and optional OpenXML attachment point.
+ */
+function resolveEndpoint(
+  endpoint: ConnectorEndpoint,
+  elementsSource?: Map<string, PptxElement> | PptxElement[],
+): { connection?: PptxShapeAttachment; emuX: Emu; emuY: Emu } {
+  if ('shapeId' in endpoint) {
+    const shape = elementsSource instanceof Map
+      ? elementsSource.get(endpoint.shapeId)
+      : findElementRecursively(elementsSource, endpoint.shapeId);
+    if (!shape) {
+      throw new Error(`Shape with id "${endpoint.shapeId}" was not found on this slide. Ensure the shape is added before attaching a connector to it.`);
+    }
+    if (shape.elementType === 'group') {
+      throw new Error(`Cannot attach connector to a group ("${endpoint.shapeId}"). Connectors must be attached to individual geometric shapes (e.g. rect, roundRect, ellipse).`);
+    }
+    const x = Number(shape.position?.x ?? 0);
+    const y = Number(shape.position?.y ?? 0);
+    const w = Number(shape.position?.cx ?? 0);
+    const h = Number(shape.position?.cy ?? 0);
+
+    let emuX: Emu;
+    let emuY: Emu;
+
+    switch (endpoint.position) {
+      case 'bottom':
+        emuX = emu(Math.round(x + w / 2));
+        emuY = emu(Math.round(y + h));
+        break;
+      case 'left':
+        emuX = emu(Math.round(x));
+        emuY = emu(Math.round(y + h / 2));
+        break;
+      case 'right':
+        emuX = emu(Math.round(x + w));
+        emuY = emu(Math.round(y + h / 2));
+        break;
+      case 'top':
+        emuX = emu(Math.round(x + w / 2));
+        emuY = emu(Math.round(y));
+        break;
+      default:
+        emuX = emu(Math.round(x));
+        emuY = emu(Math.round(y));
+    }
+
+    return {
+      connection: { position: endpoint.position, shapeId: endpoint.shapeId },
+      emuX,
+      emuY,
+    };
+  }
+
+  return {
+    emuX: inchesToEmu(endpoint.x),
+    emuY: inchesToEmu(endpoint.y),
+  };
+}
+
+/**
+ * Builds a connector element AST node.
+ */
+export function buildConnectorElement(
+  options: AddConnectorOptions,
+  fallbackId: number | string,
+  slideElements?: Map<string, PptxElement> | PptxElement[],
+): PptxConnectorElement {
+  const id = options.id || String(fallbackId);
+  const name = options.name || `Connector ${id}`;
+
+  const fromResolved = resolveEndpoint(options.from, slideElements);
+  const toResolved = resolveEndpoint(options.to, slideElements);
+
+  const x1 = fromResolved.emuX;
+  const y1 = fromResolved.emuY;
+  const x2 = toResolved.emuX;
+  const y2 = toResolved.emuY;
+  const minX = Math.min(Number(x1), Number(x2));
+  const minY = Math.min(Number(y1), Number(y2));
+  const cx = Math.abs(Number(x2) - Number(x1));
+  const cy = Math.abs(Number(y2) - Number(y1));
+
+  const headEnd = normalizeLineEnd(options.headEnd ?? options.endArrow);
+  const tailEnd = normalizeLineEnd(options.tailEnd ?? options.startArrow);
+
+  return {
+    elementType: 'connector',
+    ...(toResolved.connection && { endConnection: toResolved.connection }),
+    geometry: { presetGeometry: options.shapeType || 'line' },
+    id,
+    isVisible: true,
+    line: {
+      dashStyle: options.dashStyle,
+      fill: options.color
+        ? { solidColor: { type: 'srgb', value: options.color.replace(/^#/, '') }, type: 'solid' }
+        : undefined,
+      width: options.width ? inchesToEmu(options.width) : emu(19050),
+      ...(headEnd && { headEnd }),
+      ...(tailEnd && { tailEnd }),
+    },
+    name,
+    position: {
+      cx: emu(cx),
+      cy: emu(cy),
+      x: emu(minX),
+      y: emu(minY),
+    },
+    rotation: emuDegree(0),
+    shapeType: options.shapeType || 'line',
+    ...(fromResolved.connection && { startConnection: fromResolved.connection }),
+    type: 'connector',
+    zIndex: options.zIndex ?? 0,
+  };
+}
+
 export interface AddConnectorOptions {
+  /** Line stroke color (hex string, e.g. '#0284C7' or '0284C7') */
   color?: string;
+  /** Stroke dash style. OpenXML: `<a:prstDash @_val>` */
   dashStyle?: string;
-  from: { x: Inches; y: Inches };
+  /** End arrowhead / line marker (alias for headEnd). OpenXML: `<a:headEnd>` */
+  endArrow?: PptxLineEnd | PptxLineEndType;
+  /** Starting coordinate point `{ x: Inches, y: Inches }` or shape attachment `{ shapeId: string, position: 'top' | 'bottom' | 'left' | 'right' }` */
+  from: ConnectorEndpoint;
+  /** Head / end arrowhead marker. OpenXML: `<a:headEnd>` */
+  headEnd?: PptxLineEnd | PptxLineEndType;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for O(1) shape querying (`slide.getElementById`), element deletion (`slide.removeElement`),
+   *   and connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
+   */
   id?: string;
+  /** Optional element name */
   name?: string;
+  /** Shape preset geometry for connector (defaults to 'line') */
   shapeType?: 'bentConnector2' | 'curvedConnector3' | 'line' | 'straightConnector1';
-  to: { x: Inches; y: Inches };
+  /** Start arrowhead / line marker (alias for tailEnd). OpenXML: `<a:tailEnd>` */
+  startArrow?: PptxLineEnd | PptxLineEndType;
+  /** Tail / start arrowhead marker. OpenXML: `<a:tailEnd>` */
+  tailEnd?: PptxLineEnd | PptxLineEndType;
+  /** Ending coordinate point `{ x: Inches, y: Inches }` or shape attachment `{ shapeId: string, position: 'top' | 'bottom' | 'left' | 'right' }` */
+  to: ConnectorEndpoint;
+  /** Line thickness width in inches */
   width?: Inches;
+  /** Visual stacking order */
   zIndex?: number;
 }
 
 export interface AddGroupOptions {
   h: Inches;
+  /**
+   * Unique element identifier for the group container.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Note: Connectors cannot attach directly to a group ID. Attach connectors to child shape IDs inside the group instead.
+   */
   id?: string;
   name?: string;
   rotation?: Degrees;
@@ -596,16 +869,27 @@ export interface AddGroupOptions {
 
 export class GroupBuilder {
   private _elements: PptxElement[] = [];
-  private _elementCounter = 1;
+  private _idGenerator: () => string;
+
+  constructor(idGenerator?: () => string) {
+    let counter = 1;
+    this._idGenerator = idGenerator || (() => String(counter++));
+  }
+
+  addConnector(options: AddConnectorOptions): this {
+    const connector = buildConnectorElement(options, this._idGenerator(), this._elements);
+    this._elements.push(connector);
+    return this;
+  }
 
   addShape(shapeType: string, options: AddShapeOptions): this {
-    const shape = buildShapeElement(shapeType, options, this._elementCounter++);
+    const shape = buildShapeElement(shapeType, options, this._idGenerator());
     this._elements.push(shape);
     return this;
   }
 
   addText(content: ParagraphConfig[] | string | TextRunConfig[], options: AddTextOptions): this {
-    const id = options.id || String(this._elementCounter++);
+    const id = options.id || this._idGenerator();
     const name = options.name || `Text Box ${id}`;
     const fill = normalizeFill(options.fill);
 

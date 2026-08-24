@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxShapeElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, hundredthsPoint } from '@hokkyss/pptx-core';
-import { serializeShape } from '../../lib/serializers/shape-serializer';
+import { serializeConnector, serializeShape } from '../../lib/serializers/shape-serializer';
 
 describe('Shape Serializer', () => {
   it('serializes shape element with transforms, geometry, fills, and outline', () => {
@@ -62,5 +62,79 @@ describe('Shape Serializer', () => {
     expect(((spPr['a:ln']['a:solidFill'] as Record<string, unknown>)['a:srgbClr'] as Record<string, unknown>)['@_val']).toBe('000000');
 
     expect(xmlObject['p:txBody']).toBeDefined();
+  });
+
+  it('serializes connector element with customizable start and end arrows', () => {
+    const connector = {
+      elementType: 'connector' as const,
+      id: '5',
+      isVisible: true,
+      line: {
+        fill: { solidColor: { type: 'srgb' as const, value: '0284C7' }, type: 'solid' as const },
+        headEnd: { length: 'lg' as const, type: 'triangle' as const, width: 'lg' as const },
+        tailEnd: { length: 'med' as const, type: 'oval' as const, width: 'sm' as const },
+        width: emu(25400),
+      },
+      name: 'Flow Arrow 1',
+      position: { cx: emu(3000000), cy: emu(1000000), x: emu(500000), y: emu(500000) },
+      rotation: emuDegree(0),
+      shapeType: 'bentConnector2',
+      type: 'connector' as const,
+      zIndex: 1,
+    };
+
+    const xmlObject = serializeConnector(connector);
+    expect(xmlObject).toBeDefined();
+
+    const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    expect(nvCxnSpPr['p:cNvPr']['@_id']).toBe('5');
+    expect(nvCxnSpPr['p:cNvPr']['@_name']).toBe('Flow Arrow 1');
+
+    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
+    expect(spPr['a:prstGeom']['@_prst']).toBe('bentConnector2');
+
+    const ln = spPr['a:ln'] as Record<string, Record<string, unknown>>;
+    expect(ln['@_w']).toBe(25400);
+
+    const headEnd = ln['a:headEnd'];
+    expect(headEnd['@_type']).toBe('triangle');
+    expect(headEnd['@_w']).toBe('lg');
+    expect(headEnd['@_len']).toBe('lg');
+
+    const tailEnd = ln['a:tailEnd'];
+    expect(tailEnd['@_type']).toBe('oval');
+    expect(tailEnd['@_w']).toBe('sm');
+    expect(tailEnd['@_len']).toBe('med');
+  });
+
+  it('serializes connector with startConnection and endConnection shape attachments', () => {
+    const connector = {
+      elementType: 'connector' as const,
+      endConnection: { position: 'left' as const, shapeId: 'card-2' },
+      id: '10',
+      isVisible: true,
+      name: 'Attached Connector',
+      position: { cx: emu(2000000), cy: emu(0), x: emu(1000000), y: emu(1000000) },
+      rotation: emuDegree(0),
+      shapeType: 'line',
+      startConnection: { position: 'right' as const, shapeId: 'card-1' },
+      type: 'connector' as const,
+      zIndex: 2,
+    };
+
+    const xmlObject = serializeConnector(connector);
+    expect(xmlObject).toBeDefined();
+
+    const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    const cNvCxnSpPr = nvCxnSpPr['p:cNvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    expect(cNvCxnSpPr['a:cxnSpLocks']).toEqual({});
+    expect(cNvCxnSpPr['a:stCxn']).toEqual({
+      '@_id': 'card-1',
+      '@_idx': 3, // 'right' -> 3
+    });
+    expect(cNvCxnSpPr['a:endCxn']).toEqual({
+      '@_id': 'card-2',
+      '@_idx': 1, // 'left' -> 1
+    });
   });
 });

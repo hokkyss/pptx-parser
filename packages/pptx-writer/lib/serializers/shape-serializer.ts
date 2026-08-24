@@ -1,7 +1,9 @@
 import type {
+  PptxConnectionPosition,
   PptxConnectorElement,
   PptxGeometry,
   PptxLine,
+  PptxLineEnd,
   PptxShapeElement,
   PptxShapeLocks,
 } from '@hokkyss/pptx-core';
@@ -30,6 +32,18 @@ export function serializeShapeLocks(locks?: PptxShapeLocks): Record<string, unkn
 }
 
 /**
+ * Serializes line end arrowhead properties `<a:headEnd>` or `<a:tailEnd>`.
+ */
+export function serializeLineEnd(lineEnd?: PptxLineEnd): Record<string, unknown> | undefined {
+  if (!lineEnd) return undefined;
+  const node: Record<string, unknown> = {};
+  if (lineEnd.type !== undefined) node['@_type'] = lineEnd.type;
+  if (lineEnd.width !== undefined) node['@_w'] = lineEnd.width;
+  if (lineEnd.length !== undefined) node['@_len'] = lineEnd.length;
+  return Object.keys(node).length > 0 ? node : undefined;
+}
+
+/**
  * Serializes line/outline properties `<a:ln>`.
  */
 export function serializeLine(line?: PptxLine): Record<string, unknown> | undefined {
@@ -47,6 +61,14 @@ export function serializeLine(line?: PptxLine): Record<string, unknown> | undefi
   }
   if (line.dashStyle) {
     ln['a:prstDash'] = { '@_val': line.dashStyle };
+  }
+  if (line.headEnd) {
+    const head = serializeLineEnd(line.headEnd);
+    if (head) ln['a:headEnd'] = head;
+  }
+  if (line.tailEnd) {
+    const tail = serializeLineEnd(line.tailEnd);
+    if (tail) ln['a:tailEnd'] = tail;
   }
 
   return ln;
@@ -252,6 +274,13 @@ export function serializeShape(shape: PptxShapeElement): Record<string, unknown>
   return sp;
 }
 
+const POSITION_TO_INDEX_MAP: Record<PptxConnectionPosition, number> = {
+  top: 0,
+  left: 1,
+  bottom: 2,
+  right: 3,
+};
+
 /**
  * Serializes a connector element into OpenXML `<p:cxnSp>`.
  */
@@ -270,9 +299,25 @@ export function serializeConnector(connector: PptxConnectorElement): Record<stri
     }
   }
 
+  const cNvCxnSpPr: Record<string, unknown> = {
+    'a:cxnSpLocks': {},
+  };
+  if (connector.startConnection) {
+    cNvCxnSpPr['a:stCxn'] = {
+      '@_id': connector.startConnection.shapeId,
+      '@_idx': POSITION_TO_INDEX_MAP[connector.startConnection.position] ?? 0,
+    };
+  }
+  if (connector.endConnection) {
+    cNvCxnSpPr['a:endCxn'] = {
+      '@_id': connector.endConnection.shapeId,
+      '@_idx': POSITION_TO_INDEX_MAP[connector.endConnection.position] ?? 0,
+    };
+  }
+
   const nvCxnSpPr = {
     'p:cNvPr': cNvPr,
-    'p:cNvCxnSpPr': {},
+    'p:cNvCxnSpPr': cNvCxnSpPr,
     'p:nvPr': {},
   };
 

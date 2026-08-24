@@ -16,11 +16,18 @@ export {
   type AddGroupOptions,
   type AddImageOptions,
   type AddTextOptions,
+  type ConnectionPosition,
+  type ConnectorEndpoint,
   GroupBuilder,
+  type PptxLineEnd,
+  type PptxLineEndLength,
+  type PptxLineEndType,
+  type PptxLineEndWidth,
   type PptxTransition,
   type PptxTransitionDirection,
   type PptxTransitionSpeed,
   type PptxTransitionType,
+  type ShapeAttachment,
   Slide,
 } from './slide';
 
