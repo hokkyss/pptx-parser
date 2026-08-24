@@ -172,3 +172,20 @@ describe('Shape Parser JS object input and empty text body', () => {
     expect(shapes[0].textBody).toBeUndefined();
   });
 });
+
+describe('Shape Parser shape without nvPr node', () => {
+  it('handles shape without nvSpPr or nvPrNode gracefully', () => {
+    const rawShapeTree = {
+      'p:spTree': {
+        'p:sp': {
+          'p:spPr': {},
+        },
+      },
+    };
+    const shapes = parseShapes(rawShapeTree);
+    expect(shapes).toHaveLength(1);
+    expect(shapes[0].id).toBe('0');
+    expect(shapes[0].name).toBe('');
+    expect(shapes[0].isVisible).toBe(true);
+  });
+});

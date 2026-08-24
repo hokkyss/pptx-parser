@@ -199,3 +199,10 @@ describe('parseFill sysClr with alpha', () => {
     expect(sysFill?.solidColor?.alpha).toBe(50000);
   });
 });
+
+describe('parseFill with unsupported color node', () => {
+  it('returns undefined when color tag is unknown', () => {
+    const fill = parseFill({ 'a:solidFill': { 'a:hslClr': {} } });
+    expect(fill).toBeUndefined();
+  });
+});

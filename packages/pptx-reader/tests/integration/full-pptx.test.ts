@@ -18,6 +18,8 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/slides/slide2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+  <Override PartName="/ppt/slides/slide3.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+  <Override PartName="/ppt/slides/slide4.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>
   <Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>
   <Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>
@@ -53,6 +55,8 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
   <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide2.xml"/>
   <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>
+  <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide3.xml"/>
+  <Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide4.xml"/>
 </Relationships>`),
 
       'ppt/presentation.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -61,6 +65,8 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   <p:sldIdLst>
     <p:sldId id="256" r:id="rId2"/>
     <p:sldId id="257" r:id="rId3"/>
+    <p:sldId id="258" r:id="rId5"/>
+    <p:sldId id="259" r:id="rId6"/>
   </p:sldIdLst>
   <p:sldSz cx="12192000" cy="6858000" type="screen16x9"/>
 </p:presentation>`),
@@ -158,6 +164,57 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   </p:cSld>
 </p:sld>`),
 
+      'ppt/slides/_rels/slide3.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+</Relationships>`),
+
+      'ppt/slides/slide3.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+      <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+      <p:graphicFrame>
+        <p:nvGraphicFramePr><p:cNvPr id="20" name="Table Frame"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr>
+        <p:xfrm><a:off x="1000000" y="1000000"/><a:ext cx="6000000" cy="3000000"/></p:xfrm>
+        <a:graphic>
+          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+            <a:tbl>
+              <a:tblGrid><a:gridCol w="3000000"/><a:gridCol w="3000000"/></a:tblGrid>
+              <a:tr h="1500000">
+                <a:tc><a:txBody><a:bodyPr/><a:p><a:r><a:t>Cell 1</a:t></a:r></a:p></a:txBody></a:tc>
+                <a:tc><a:txBody><a:bodyPr/><a:p><a:r><a:t>Cell 2</a:t></a:r></a:p></a:txBody></a:tc>
+              </a:tr>
+            </a:tbl>
+          </a:graphicData>
+        </a:graphic>
+      </p:graphicFrame>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`),
+
+      'ppt/slides/_rels/slide4.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>
+</Relationships>`),
+
+      'ppt/slides/slide4.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+      <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+      <p:pic>
+        <p:nvPicPr><p:cNvPr id="30" name="Logo Picture"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
+        <p:blipFill><a:blip r:embed="rId2"/></p:blipFill>
+        <p:spPr><a:xfrm><a:off x="500000" y="500000"/><a:ext cx="2000000" cy="2000000"/></a:xfrm></p:spPr>
+      </p:pic>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`),
+
       'ppt/charts/chart1.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
   <c:chart>
@@ -227,7 +284,7 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   it('should parse metadata correctly including firstSlideNumber', () => {
     expect(doc.metadata.title).toBe('Synthetic Platform Architecture');
     expect(doc.metadata.creator).toBe('Synthetic Engineer');
-    expect(doc.metadata.slideCount).toBe(2);
+    expect(doc.metadata.slideCount).toBe(4);
     expect(doc.metadata.firstSlideNumber).toBe(0);
     expect(doc.metadata.slideWidth).toBe(12192000);
     expect(doc.metadata.slideHeight).toBe(6858000);
@@ -273,6 +330,24 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
       expect(chartElem.chart.series[0].name).toBe('Q1 Sales');
       expect(chartElem.chart.series[0].values).toEqual([100, 200]);
     }
+  });
+
+  it('should refine graphicFrame elements to embedded table ASTs', () => {
+    const slide3 = doc.slides[2];
+    expect(slide3.elements).toHaveLength(1);
+    const tableElem = slide3.elements[0];
+    expect(tableElem.elementType).toBe('table');
+    if (tableElem.elementType === 'table') {
+      expect(tableElem.table.columnWidths).toHaveLength(2);
+      expect(tableElem.table.rows).toHaveLength(1);
+    }
+  });
+
+  it('should refine picture elements to picture ASTs', () => {
+    const slide4 = doc.slides[3];
+    expect(slide4.elements).toHaveLength(1);
+    const picElem = slide4.elements[0];
+    expect(picElem.elementType).toBe('picture');
   });
 
   it('honors parse options (disabling animations, transitions, and media)', async () => {
@@ -323,5 +398,40 @@ describe('full-pptx lazy media parsing', () => {
     expect(parsed.media[0].data).toBeNull();
     const loadedData = await parsed.media[0].getData?.();
     expect(loadedData).toBeDefined();
+  });
+});
+
+describe('full-pptx slide notes edge cases', () => {
+  it('handles slide notes with sldImg placeholder only and malformed notes XML', async () => {
+    const files: Record<string, Uint8Array> = {
+      'ppt/_rels/presentation.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide2.xml"/>
+</Relationships>`),
+      'ppt/presentation.xml': strToU8('<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>'),
+      'ppt/slides/_rels/slide1.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide" Target="../notesSlides/notesSlide1.xml"/>
+</Relationships>`),
+      'ppt/slides/slide1.xml': strToU8('<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree/></p:cSld></p:sld>'),
+      'ppt/notesSlides/notesSlide1.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:notes xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld><p:spTree>
+    <p:sp><p:nvSpPr><p:nvPr><p:ph type="sldImg"/></p:nvPr></p:nvSpPr></p:sp>
+  </p:spTree></p:cSld>
+</p:notes>`),
+      'ppt/slides/_rels/slide2.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide" Target="../notesSlides/notesSlide2.xml"/>
+</Relationships>`),
+      'ppt/slides/slide2.xml': strToU8('<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree/></p:cSld></p:sld>'),
+      'ppt/notesSlides/notesSlide2.xml': strToU8('malformed XML <>'),
+    };
+
+    const zip = zipSync(files);
+    const parsed = await parsePptx(zip);
+    expect(parsed.slides[0].notes).toBeUndefined();
+    expect(parsed.slides[1].notes).toBeUndefined();
   });
 });

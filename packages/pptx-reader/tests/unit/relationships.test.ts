@@ -72,3 +72,33 @@ describe('createRelationshipResolver addRelationships', () => {
     expect(resolver.getRelationship('ppt/slides/slide1.xml', 'rId10')?.resolvedTarget).toBe('ppt/media/image10.png');
   });
 });
+
+describe('createRelationshipResolver single relationship and absolute path', () => {
+  it('parses single relationship and resolves absolute targets', () => {
+    const singleRelXml = `
+      <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="/ppt/media/image1.png"/>
+      </Relationships>
+    `;
+    const resolver = createRelationshipResolver(singleRelXml, 'ppt/slides/slide1.xml');
+    expect(resolver.getTarget('rId1')).toBe('ppt/media/image1.png');
+  });
+});
+
+describe('createRelationshipResolver with custom parser returning non-array Relationship', () => {
+  it('wraps non-array Relationship into array', () => {
+    const mockParser = {
+      parse: <T>(_xml: string): T => ({
+        Relationships: {
+          Relationship: {
+            '@_Id': 'rId99',
+            '@_Target': 'target99.xml',
+            '@_Type': 'http://example.com/type',
+          },
+        },
+      }) as T,
+    };
+    const resolver = createRelationshipResolver('<fake/>', 'ppt/presentation.xml', mockParser);
+    expect(resolver.getTarget('rId99')).toBe('ppt/target99.xml');
+  });
+});

@@ -152,9 +152,7 @@ function refineElementType(
     // 1. Table graphicFrame
     if (gf._tblNode || gf._graphicUri?.includes('table')) {
       if (parseTableFn) {
-        const table = gf._tblNode
-          ? parseTableFn(gf._tblNode, xmlParser)
-          : parseTableFn(slideXml, xmlParser);
+        const table = parseTableFn(gf._tblNode || slideXml, xmlParser);
         if (table) {
           gf.table = table;
           gf.elementType = 'table';
@@ -169,9 +167,9 @@ function refineElementType(
     // 2. Chart graphicFrame
     if (gf._chartRelId || gf._graphicUri?.includes('chart') || chartRels.length > 0) {
       if (parseChartFn) {
-        const targetRel = gf._chartRelId
-          ? chartRels.find((r) => r.id === gf._chartRelId) || chartRels[0]
-          : chartRels[0];
+        const targetRel = (gf._chartRelId
+          ? chartRels.find((r) => r.id === gf._chartRelId)
+          : undefined) || chartRels[0];
 
         if (targetRel) {
           const chartPath = targetRel.resolvedTarget;
@@ -188,15 +186,6 @@ function refineElementType(
             }
           }
         }
-      }
-    }
-
-    if (parseTableFn) {
-      const table = parseTableFn(slideXml, xmlParser);
-      if (table && table.rows.length > 0) {
-        gf.table = table;
-        gf.elementType = 'table';
-        return;
       }
     }
   }
