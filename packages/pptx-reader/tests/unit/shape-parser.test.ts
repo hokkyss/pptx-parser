@@ -1,12 +1,11 @@
+import type { PptxElement } from '@hokkyss/pptx-core';
 import { describe, expect, it } from 'vitest';
 import { parseShapes } from '../../lib/parsers/shape-parser';
 import { createRelationshipResolver } from '../../lib/resolvers/relationship-resolver';
-import { defaultXmlParser } from '../../lib/xml/xml-parser';
 
 const dummyResolver = createRelationshipResolver('', 'ppt/slides/slide1.xml');
 
 describe('Shape Parser (@hokkyss/pptx-reader)', () => {
-
   it('returns empty array when spTree is missing or empty', () => {
     const xml = `<?xml version="1.0"?><p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld/></p:sld>`;
     expect(parseShapes(xml, dummyResolver)).toEqual([]);
@@ -72,7 +71,7 @@ describe('Shape Parser (@hokkyss/pptx-reader)', () => {
     expect(shapes).toHaveLength(1);
     expect(shapes[0].type).toBe('graphicFrame');
     expect(shapes[0].id).toBe('6');
-    expect((shapes[0] as PptxShape & { _chartRelId?: string })._chartRelId).toBe('rId2');
+    expect((shapes[0] as { _chartRelId?: string } & PptxElement)._chartRelId).toBe('rId2');
   });
 
   it('parses shape locks and placeholders', () => {

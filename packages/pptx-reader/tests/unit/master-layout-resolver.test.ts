@@ -4,11 +4,14 @@ import { createMasterLayoutResolver } from '../../lib/resolvers/master-layout-re
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function mockZipReader(files: Record<string, string | null>): ZipReader {
+/**
+ *
+ */
+function mockZipReader(files: Record<string, null | string>): ZipReader {
   return {
-    getFileAsBinary: async (_path: string) => undefined,
-    getFileAsString: async (path: string) => files[path] ?? '',
-    getFileData: (_path: string) => undefined,
+    getFileAsBinary: () => Promise.resolve(undefined),
+    getFileAsString: (path: string) => Promise.resolve(files[path] ?? ''),
+    getFileData: () => undefined,
     getFileText: (path: string) => files[path] ?? undefined,
     getPathsStartingWith: (prefix: string) => Object.keys(files).filter((k) => k.startsWith(prefix)),
     hasFile: (path: string) => path in files,

@@ -1,6 +1,6 @@
 /**
  * Wrap try catch
- * @param func
+ * @param func Async function returning a promise
  * @example
  * ```ts
  * const [data, err] = await tryit(async () =>  Promise.resolve(1));
@@ -15,7 +15,7 @@
 export function tryit<T, E = Error>(func: () => Promise<T>): Promise<[T, E]>;
 /**
  * Wrap try catch
- * @param func
+ * @param func Synchronous function to execute
  * @example
  * ```ts
  * const [data, err] = tryit(() => JSON.parse('--------{"a":1234, "b":"bbb"}'))
@@ -30,7 +30,7 @@ export function tryit<T, E = Error>(func: () => Promise<T>): Promise<[T, E]>;
 export function tryit<T, E = Error>(func: () => T): [T, E];
 /**
  * Wrap try catch
- * @param promise
+ * @param promise Promise instance to resolve safely
  * @example
  * ```ts
  * const [data, err] = await tryit(Promise.resolve(1));

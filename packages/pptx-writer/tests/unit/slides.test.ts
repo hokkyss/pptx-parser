@@ -209,7 +209,7 @@ describe('PptxWriter advanced slide layouts, table hyperlinks, and lazy media', 
           id: 'lazy1',
           fileName: 'lazy.png',
           data: null,
-          lazyGetter: async () => new Uint8Array([137, 80, 78, 71]),
+          lazyGetter: () => Promise.resolve(new Uint8Array([137, 80, 78, 71])),
         },
       ],
       slides: [

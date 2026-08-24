@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PptxConnectorElement, PptxShapeElement } from '@hokkyss/pptx-core';
+import type { PptxConnectorElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 

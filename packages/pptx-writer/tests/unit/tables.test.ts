@@ -3,7 +3,57 @@ import type { PptxTableElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, hundredthsPoint } from '@hokkyss/pptx-core';
 import { serializeTable } from '../../lib/serializers/table-serializer';
 
-type XmlNode = Record<string, XmlNode | XmlNode[] | string | number | boolean | undefined>;
+interface TableXmlCellProperties {
+  '@_marB'?: number;
+  '@_marL'?: number;
+  '@_marR'?: number;
+  '@_marT'?: number;
+  'a:solidFill'?: {
+    'a:srgbClr'?: {
+      '@_val'?: string;
+    };
+  };
+}
+
+interface TableXmlCell {
+  '@_gridSpan'?: number;
+  '@_rowSpan'?: number;
+  'a:tcPr'?: TableXmlCellProperties;
+  'a:txBody'?: {
+    'a:bodyPr'?: Record<string, boolean | number | string>;
+    'a:lstStyle'?: Record<string, boolean | number | string>;
+    'a:p'?: Array<Record<string, boolean | number | string>>;
+  };
+}
+
+interface TableXmlRow {
+  'a:tc'?: TableXmlCell[];
+}
+
+interface TableXmlGridCol {
+  '@_w'?: number;
+}
+
+interface TableXml {
+  'a:tblGrid'?: {
+    'a:gridCol'?: TableXmlGridCol[];
+  };
+  'a:tr'?: TableXmlRow[];
+}
+
+interface SerializedTableGraphicFrame {
+  'a:graphic'?: {
+    'a:graphicData'?: {
+      'a:tbl'?: TableXml;
+    };
+  };
+  'p:nvGraphicFramePr'?: {
+    'p:cNvPr'?: {
+      '@_id'?: string;
+      '@_name'?: string;
+    };
+  };
+}
 
 describe('Table Serializer', () => {
   it('serializes table inside graphicFrame with grid columns, rows, and cells', () => {
@@ -82,23 +132,23 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as XmlNode;
+    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
     expect(xmlObject).toBeDefined();
 
-    const nvGFPr = xmlObject['p:nvGraphicFramePr'] as XmlNode;
-    expect((nvGFPr['p:cNvPr'] as XmlNode)['@_id']).toBe('3');
+    const nvGFPr = xmlObject['p:nvGraphicFramePr'];
+    expect(nvGFPr?.['p:cNvPr']?.['@_id']).toBe('3');
 
-    const graphic = xmlObject['a:graphic'] as XmlNode;
-    const graphicData = graphic['a:graphicData'] as XmlNode;
-    const tbl = graphicData['a:tbl'] as XmlNode;
+    const graphic = xmlObject['a:graphic'];
+    const graphicData = graphic?.['a:graphicData'];
+    const tbl = graphicData?.['a:tbl'];
     expect(tbl).toBeDefined();
 
-    const tblGrid = tbl['a:tblGrid'] as XmlNode;
-    expect(tblGrid['a:gridCol'] as XmlNode[]).toHaveLength(2);
-    expect(tbl['a:tr'] as XmlNode[]).toHaveLength(2);
+    const tblGrid = tbl?.['a:tblGrid'];
+    expect(tblGrid?.['a:gridCol']).toHaveLength(2);
+    expect(tbl?.['a:tr']).toHaveLength(2);
 
-    const firstRow = (tbl['a:tr'] as XmlNode[])[0];
-    expect(firstRow['a:tc'] as XmlNode[]).toHaveLength(2);
+    const firstRow = tbl?.['a:tr']?.[0];
+    expect(firstRow?.['a:tc']).toHaveLength(2);
   });
 
   it('serializes table cell with colSpan > 1 adding @_gridSpan', () => {
@@ -122,13 +172,13 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as XmlNode;
-    const graphic = xmlObject['a:graphic'] as XmlNode;
-    const graphicData = graphic['a:graphicData'] as XmlNode;
-    const tbl = graphicData['a:tbl'] as XmlNode;
-    const firstRow = (tbl['a:tr'] as XmlNode[])[0];
-    const cell = (firstRow['a:tc'] as XmlNode[])[0];
-    expect(cell['@_gridSpan']).toBe(2);
+    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
+    const graphic = xmlObject['a:graphic'];
+    const graphicData = graphic?.['a:graphicData'];
+    const tbl = graphicData?.['a:tbl'];
+    const firstRow = tbl?.['a:tr']?.[0];
+    const cell = firstRow?.['a:tc']?.[0];
+    expect(cell?.['@_gridSpan']).toBe(2);
   });
 
   it('serializes table cell with rowSpan > 1 adding @_rowSpan', () => {
@@ -152,13 +202,13 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as XmlNode;
-    const graphic = xmlObject['a:graphic'] as XmlNode;
-    const graphicData = graphic['a:graphicData'] as XmlNode;
-    const tbl = graphicData['a:tbl'] as XmlNode;
-    const firstRow = (tbl['a:tr'] as XmlNode[])[0];
-    const cell = (firstRow['a:tc'] as XmlNode[])[0];
-    expect(cell['@_rowSpan']).toBe(2);
+    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
+    const graphic = xmlObject['a:graphic'];
+    const graphicData = graphic?.['a:graphicData'];
+    const tbl = graphicData?.['a:tbl'];
+    const firstRow = tbl?.['a:tr']?.[0];
+    const cell = firstRow?.['a:tc']?.[0];
+    expect(cell?.['@_rowSpan']).toBe(2);
   });
 
   it('serializes a cell without textBody using the empty paragraph fallback', () => {
@@ -177,12 +227,12 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as XmlNode;
-    const graphic = xmlObject['a:graphic'] as XmlNode;
-    const graphicData = graphic['a:graphicData'] as XmlNode;
-    const tbl = graphicData['a:tbl'] as XmlNode;
-    const cell = ((tbl['a:tr'] as XmlNode[])[0]['a:tc'] as XmlNode[])[0];
-    const txBody = cell['a:txBody'] as XmlNode;
+    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
+    const graphic = xmlObject['a:graphic'];
+    const graphicData = graphic?.['a:graphicData'];
+    const tbl = graphicData?.['a:tbl'];
+    const cell = tbl?.['a:tr']?.[0]?.['a:tc']?.[0];
+    const txBody = cell?.['a:txBody'];
     expect(txBody).toHaveProperty('a:bodyPr');
     expect(txBody).toHaveProperty('a:lstStyle');
   });
@@ -217,16 +267,16 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as XmlNode;
-    const graphic = xmlObject['a:graphic'] as XmlNode;
-    const graphicData = graphic['a:graphicData'] as XmlNode;
-    const tbl = graphicData['a:tbl'] as XmlNode;
-    const cell = ((tbl['a:tr'] as XmlNode[])[0]['a:tc'] as XmlNode[])[0];
-    const tcPr = cell['a:tcPr'] as XmlNode;
-    expect(tcPr['@_marL']).toBe(91440);
-    expect(tcPr['@_marR']).toBe(91440);
-    expect(tcPr['@_marT']).toBe(45720);
-    expect(tcPr['@_marB']).toBe(45720);
+    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
+    const graphic = xmlObject['a:graphic'];
+    const graphicData = graphic?.['a:graphicData'];
+    const tbl = graphicData?.['a:tbl'];
+    const cell = tbl?.['a:tr']?.[0]?.['a:tc']?.[0];
+    const tcPr = cell?.['a:tcPr'];
+    expect(tcPr?.['@_marL']).toBe(91440);
+    expect(tcPr?.['@_marR']).toBe(91440);
+    expect(tcPr?.['@_marT']).toBe(45720);
+    expect(tcPr?.['@_marB']).toBe(45720);
   });
 
   it('falls back to default gridCol when columnWidths is empty', () => {
@@ -242,13 +292,13 @@ describe('Table Serializer', () => {
       table: { columnWidths: [], rows: [] },
     };
 
-    const xmlObject = serializeTable(tableElement) as XmlNode;
-    const graphic = xmlObject['a:graphic'] as XmlNode;
-    const graphicData = graphic['a:graphicData'] as XmlNode;
-    const tbl = graphicData['a:tbl'] as XmlNode;
-    const tblGrid = tbl['a:tblGrid'] as XmlNode;
-    expect(tblGrid['a:gridCol'] as XmlNode[]).toHaveLength(1);
-    expect(((tblGrid['a:gridCol'] as XmlNode[])[0])['@_w']).toBe(2000000);
+    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
+    const graphic = xmlObject['a:graphic'];
+    const graphicData = graphic?.['a:graphicData'];
+    const tbl = graphicData?.['a:tbl'];
+    const tblGrid = tbl?.['a:tblGrid'];
+    expect(tblGrid?.['a:gridCol']).toHaveLength(1);
+    expect(tblGrid?.['a:gridCol']?.[0]?.['@_w']).toBe(2000000);
   });
 });
 
@@ -280,12 +330,12 @@ describe('Table Serializer cell fill styling', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as XmlNode;
-    const graphic = xmlObject['a:graphic'] as XmlNode;
-    const graphicData = graphic['a:graphicData'] as XmlNode;
-    const tbl = graphicData['a:tbl'] as XmlNode;
-    const cell = ((tbl['a:tr'] as XmlNode[])[0]['a:tc'] as XmlNode[])[0];
-    const tcPr = cell['a:tcPr'] as XmlNode;
+    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
+    const graphic = xmlObject['a:graphic'];
+    const graphicData = graphic?.['a:graphicData'];
+    const tbl = graphicData?.['a:tbl'];
+    const cell = tbl?.['a:tr']?.[0]?.['a:tc']?.[0];
+    const tcPr = cell?.['a:tcPr'];
     expect(tcPr).toHaveProperty('a:solidFill');
   });
 });

@@ -138,13 +138,16 @@ describe('createThemeResolver edge cases', () => {
 
   it('covers custom parser non-array custClr in parseCustomColors', () => {
     const mockParser = {
-      parse: <T>(_xml: string): T => ({
-        'a:theme': {
-          'a:custClrLst': {
-            'a:custClr': { '@_name': 'SingleCustom', 'a:srgbClr': { '@_val': 'ABCDEF' } },
+      parse: <T>(xml: string): T => {
+        expect(xml).toBe('<fake/>');
+        return {
+          'a:theme': {
+            'a:custClrLst': {
+              'a:custClr': { '@_name': 'SingleCustom', 'a:srgbClr': { '@_val': 'ABCDEF' } },
+            },
           },
-        },
-      }) as T,
+        } as T;
+      },
     };
     const resolver = createThemeResolver(mockParser);
     const theme = resolver.parseTheme('<fake/>');

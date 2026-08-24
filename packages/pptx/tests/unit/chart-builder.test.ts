@@ -95,30 +95,30 @@ describe('ChartBuilder (Unit Tests)', () => {
   });
 });
 
-  it('supports series fill object and axis customizations (catAxis, valAxis, textColor, gridColor)', () => {
-    const pres = Presentation.create();
-    const slide = pres.addSlide();
+it('supports series fill object and axis customizations (catAxis, valAxis, textColor, gridColor)', () => {
+  const pres = Presentation.create();
+  const slide = pres.addSlide();
 
-    slide.addChart({
-      chartType: 'line',
-      categories: ['Jan', 'Feb'],
-      textColor: '333333',
-      axisColor: '666666',
-      gridColor: 'CCCCCC',
-      showGridlines: true,
-      series: [
-        {
-          name: 'Series 1',
-          values: [10, 20],
-          fill: { type: 'solid', solidColor: { type: 'srgb', value: '112233' } },
-        },
-      ],
-    });
-
-    const chartEl = slide.getElements()[0];
-    expect(chartEl.chart?.series[0].fill).toBeDefined();
-    expect(chartEl.chart?.legend?.color).toBe('333333');
-    expect(chartEl.chart?.catAxis?.axisColor).toBe('666666');
-    expect(chartEl.chart?.valAxis?.gridlineColor).toBe('CCCCCC');
-    expect(chartEl.chart?.valAxis?.showGridlines).toBe(true);
+  slide.addChart({
+    chartType: 'line',
+    categories: ['Jan', 'Feb'],
+    textColor: '333333',
+    axisColor: '666666',
+    gridColor: 'CCCCCC',
+    showGridlines: true,
+    series: [
+      {
+        name: 'Series 1',
+        values: [10, 20],
+        fill: { type: 'solid', solidColor: { type: 'srgb', value: '112233' } },
+      },
+    ],
   });
+
+  const chartEl = slide.getElements()[0];
+  expect(chartEl.chart?.series[0].fill).toBeDefined();
+  expect(chartEl.chart?.legend?.color).toBe('333333');
+  expect(chartEl.chart?.catAxis?.axisColor).toBe('666666');
+  expect(chartEl.chart?.valAxis?.gridlineColor).toBe('CCCCCC');
+  expect(chartEl.chart?.valAxis?.showGridlines).toBe(true);
+});

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { PptxColorScheme } from '@hokkyss/pptx-core';
 import { inches } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
@@ -228,6 +227,7 @@ describe('Edge cases & Error Handling', () => {
     expect(byPartialName?.id).toBe('slideMaster1');
 
     const byIndex = pres.getMaster(1);
+    expect(byIndex).toBeDefined();
     const s1 = pres.addSlide({ layout: 'twoColumn' });
     expect(s1.layoutId).toBe('slideLayout3');
 

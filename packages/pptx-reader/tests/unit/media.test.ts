@@ -2,15 +2,18 @@ import type { ZipReader } from '@hokkyss/pptx-core';
 import { describe, it, expect } from 'vitest';
 import { createMediaResolver, extractMedia } from '../../lib/resolvers/media-resolver';
 
+/**
+ *
+ */
 function createMockZip(options: {
-  files?: Record<string, Uint8Array | null>;
+  files?: Record<string, null | Uint8Array>;
   paths?: string[];
 }): ZipReader {
   return {
-    getFileAsBinary: async (path: string) => options.files?.[path] ?? undefined,
-    getFileAsString: async (_path: string) => '',
+    getFileAsBinary: (path: string) => Promise.resolve(options.files?.[path] ?? undefined),
+    getFileAsString: () => Promise.resolve(''),
     getFileData: (path: string) => options.files?.[path] ?? undefined,
-    getFileText: (_path: string) => undefined,
+    getFileText: () => undefined,
     getPathsStartingWith: (prefix: string) => options.paths?.filter((p) => p.startsWith(prefix)) ?? [],
     hasFile: (path: string) => (options.paths?.includes(path) || (options.files !== undefined && path in options.files)),
     listFiles: () => options.paths ?? Object.keys(options.files ?? {}),
@@ -81,7 +84,7 @@ describe('createMediaResolver', () => {
 
   it('loadFromFiles eagerly fetches binary data when lazy=false (default)', async () => {
     const data = new Uint8Array([1, 2, 3]);
-    const getBinary = async (_path: string) => data;
+    const getBinary = () => Promise.resolve(data);
 
     const resolver = createMediaResolver();
     const assets = await resolver.loadFromFiles(['ppt/media/image1.png'], getBinary);
@@ -95,7 +98,7 @@ describe('createMediaResolver', () => {
 
   it('loadFromFiles defers binary fetch when lazy=true', async () => {
     const data = new Uint8Array([9, 8, 7]);
-    const getBinary = async (_path: string) => data;
+    const getBinary = () => Promise.resolve(data);
 
     const resolver = createMediaResolver({ lazy: true });
     const assets = await resolver.loadFromFiles(['ppt/media/image2.jpg'], getBinary);
@@ -108,7 +111,7 @@ describe('createMediaResolver', () => {
   });
 
   it('getAllMedia returns the assets loaded by loadFromFiles', async () => {
-    const getBinary = async (_path: string) => new Uint8Array([0]);
+    const getBinary = () => Promise.resolve(new Uint8Array([0]));
 
     const resolver = createMediaResolver();
     await resolver.loadFromFiles(['ppt/media/a.gif', 'ppt/media/b.mp4'], getBinary);
@@ -120,14 +123,14 @@ describe('createMediaResolver', () => {
   });
 
   it('uses application/octet-stream for unknown extension', async () => {
-    const getBinary = async (_path: string) => new Uint8Array([0]);
+    const getBinary = () => Promise.resolve(new Uint8Array([0]));
     const resolver = createMediaResolver();
     const assets = await resolver.loadFromFiles(['ppt/media/file.xyz'], getBinary);
     expect(assets[0].mimeType).toBe('application/octet-stream');
   });
 
   it('correctly maps all known MIME extensions', async () => {
-    const getBinary = async (_path: string) => new Uint8Array([0]);
+    const getBinary = () => Promise.resolve(new Uint8Array([0]));
     const cases: Record<string, string> = {
       'file.bmp': 'image/bmp',
       'file.emf': 'image/x-emf',
@@ -151,7 +154,7 @@ describe('createMediaResolver', () => {
   });
 
   it('loadFromFiles resets the media list on each call', async () => {
-    const getBinary = async (_path: string) => new Uint8Array([0]);
+    const getBinary = () => Promise.resolve(new Uint8Array([0]));
     const resolver = createMediaResolver();
     await resolver.loadFromFiles(['ppt/media/a.png'], getBinary);
     await resolver.loadFromFiles(['ppt/media/b.png', 'ppt/media/c.png'], getBinary);

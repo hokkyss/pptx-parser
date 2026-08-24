@@ -396,7 +396,7 @@ describe('full-pptx lazy media parsing', () => {
     const parsed = await parsePptx(zip, { lazyMedia: true, includeMedia: true });
     expect(parsed.media).toHaveLength(1);
     expect(parsed.media[0].data).toBeNull();
-    const loadedData = await parsed.media[0].getData?.();
+    const loadedData = await parsed.media[0].lazyGetter?.();
     expect(loadedData).toBeDefined();
   });
 });

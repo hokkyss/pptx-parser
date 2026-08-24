@@ -88,15 +88,18 @@ describe('createRelationshipResolver single relationship and absolute path', () 
 describe('createRelationshipResolver with custom parser returning non-array Relationship', () => {
   it('wraps non-array Relationship into array', () => {
     const mockParser = {
-      parse: <T>(_xml: string): T => ({
-        Relationships: {
-          Relationship: {
-            '@_Id': 'rId99',
-            '@_Target': 'target99.xml',
-            '@_Type': 'http://example.com/type',
+      parse: <T>(xml: string): T => {
+        expect(xml).toBe('<fake/>');
+        return {
+          Relationships: {
+            Relationship: {
+              '@_Id': 'rId99',
+              '@_Target': 'target99.xml',
+              '@_Type': 'http://example.com/type',
+            },
           },
-        },
-      }) as T,
+        } as T;
+      },
     };
     const resolver = createRelationshipResolver('<fake/>', 'ppt/presentation.xml', mockParser);
     expect(resolver.getTarget('rId99')).toBe('ppt/target99.xml');

@@ -3,6 +3,9 @@ import type { PptxGroupElement, PptxElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree } from '@hokkyss/pptx-core';
 import { serializeGroup } from '../../lib/serializers/group-serializer';
 
+/**
+ *
+ */
 function makeGroup(overrides: Partial<PptxGroupElement> = {}): PptxGroupElement {
   return {
     elementType: 'group',
@@ -18,6 +21,9 @@ function makeGroup(overrides: Partial<PptxGroupElement> = {}): PptxGroupElement 
   };
 }
 
+/**
+ *
+ */
 function makeShape(id = '1'): PptxElement {
   return {
     elementType: 'shape',
@@ -32,6 +38,9 @@ function makeShape(id = '1'): PptxElement {
   };
 }
 
+/**
+ *
+ */
 function makeConnector(id = '1'): PptxElement {
   return {
     elementType: 'connector',
@@ -45,6 +54,9 @@ function makeConnector(id = '1'): PptxElement {
   };
 }
 
+/**
+ *
+ */
 function makePicture(id = '1'): PptxElement {
   return {
     elementType: 'picture',
@@ -59,6 +71,9 @@ function makePicture(id = '1'): PptxElement {
   };
 }
 
+/**
+ *
+ */
 function makeTable(id = '1'): PptxElement {
   return {
     elementType: 'table',

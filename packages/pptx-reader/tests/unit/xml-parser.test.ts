@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createXmlParser, defaultXmlParser, getXmlChild, getXmlChildren } from '../../lib/xml/xml-parser';
+import { createXmlParser, getXmlChild, getXmlChildren } from '../../lib/xml/xml-parser';
 
 describe('XML Parser Helper Functions', () => {
   it('handles empty XML and returns empty object', () => {

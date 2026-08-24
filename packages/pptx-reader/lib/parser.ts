@@ -125,13 +125,16 @@ export function parseSpeakerNotes(notesXml: string, xmlParser: XmlParser): { not
  * @param parseChartFn Optional chart parser function.
  * @param parseTableFn Optional table parser function.
  */
-type MutableGraphicFrameShape = import('@hokkyss/pptx-core').PptxBaseElement & {
+type MutableGraphicFrameShape = {
   _chartRelId?: string;
   _graphicUri?: string;
   _tblNode?: Record<string, unknown>;
   elementType: 'chart' | 'connector' | 'group' | 'picture' | 'shape' | 'table';
-};
+} & import('@hokkyss/pptx-core').PptxBaseElement;
 
+/**
+ *
+ */
 function refineElementType(
   shape: PptxShape,
   slideXml: string,
