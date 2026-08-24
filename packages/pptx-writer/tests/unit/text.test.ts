@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxTextBody } from '@hokkyss/pptx-core';
 import { emu, hundredthsPoint } from '@hokkyss/pptx-core';
-import { serializeTextBody } from '../../lib/serializers/text-serializer';
+import { serializeFill, serializeRunProperties, serializeTextBody } from '../../lib/serializers/text-serializer';
 
 describe('Text Body Serializer', () => {
   it('serializes text body with paragraph alignment, line spacing, runs, formatting, and colors', () => {
@@ -87,5 +87,41 @@ describe('Text Body Serializer', () => {
     const p = (xmlObject['a:p'] as Record<string, unknown>[])[0];
     const runs = p['a:r'] as Record<string, Record<string, unknown>>[];
     expect(runs[0]['a:t']).toBe('CleanTextWithControlChars!');
+  });
+});
+
+describe('Text & Fill Serializer extended coverage', () => {
+  it('serializes radial and path gradient fills', () => {
+    const radialFill = serializeFill({
+      type: 'gradient',
+      gradient: {
+        type: 'radial',
+        flip: 'xy',
+        rotateWithShape: false,
+        stops: [{ color: { type: 'srgb', value: '000000' } }, { color: { type: 'srgb', value: 'FFFFFF' } }],
+      },
+    });
+    expect(radialFill?.['a:gradFill']).toBeDefined();
+    expect((radialFill?.['a:gradFill'] as any)['@_flip']).toBe('xy');
+
+    const pathFill = serializeFill({
+      type: 'gradient',
+      gradient: {
+        type: 'path',
+        pathBounds: { left: 0.2, top: 0.2, right: 0.8, bottom: 0.8 },
+        stops: [{ color: { type: 'srgb', value: 'FF0000' }, position: 0 }],
+      },
+    });
+    expect((pathFill?.['a:gradFill'] as any)['a:path']['@_path']).toBe('rect');
+  });
+
+  it('serializes subscript, superscript, strikethrough, and baseline', () => {
+    const rPr = serializeRunProperties({
+      subscript: true,
+      strikethrough: true,
+      baseline: -25000,
+    });
+    expect(rPr['@_strike']).toBe('sngStrike');
+    expect(rPr['@_baseline']).toBe(-25000);
   });
 });

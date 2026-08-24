@@ -219,3 +219,101 @@ describe('Round-Trip Integration (Synthetic Presentation)', () => {
     await expect(writePptx(invalidDoc, { mode: 'strict' })).rejects.toThrow('Strict mode error');
   });
 });
+
+describe('writePptx rawXml, relsXml and notesMasters', () => {
+  it('preserves slide rawXml, relsXml, and custom notesMasters', async () => {
+    const docWithRaw: PptxDocument = {
+      customXml: [
+        { path: 'ppt/notesMasters/notesMaster1.xml', xmlString: '<p:notesMaster xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>' },
+      ],
+      media: [],
+      metadata: {
+        slideCount: 1,
+        slideHeight: inchesToEmu(7.5),
+        slideWidth: inchesToEmu(13.333),
+      },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          slideId: 'rId1',
+          slideNumber: 1,
+          elements: [],
+          shapes: [],
+          animations: [],
+          rawXml: '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree/></p:cSld></p:sld>',
+          relsXml: '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+        },
+      ],
+      themes: [],
+    };
+
+    const buffer = await writePptx(docWithRaw);
+    expect(buffer.length).toBeGreaterThan(0);
+    const parsed = await parsePptx(buffer);
+    expect(parsed.slides).toHaveLength(1);
+  });
+});
+
+describe('writePptx charts and media serialization', () => {
+  it('serializes charts and pictures with relationships in full writePptx pipeline', async () => {
+    const docWithMediaAndChart: PptxDocument = {
+      customXml: [],
+      media: [
+        {
+          data: new Uint8Array([137, 80, 78, 71]),
+          fileName: 'hero.png',
+          filename: 'hero.png',
+          id: 'hero_img',
+          mimeType: 'image/png',
+          path: 'ppt/media/hero.png',
+        },
+      ],
+      metadata: { slideCount: 1, slideHeight: inchesToEmu(7.5), slideWidth: inchesToEmu(13.333) },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          slideId: 'rId1',
+          slideNumber: 1,
+          shapes: [],
+          animations: [],
+          elements: [
+            {
+              id: 'pic1',
+              name: 'Hero Image',
+              type: 'picture',
+              elementType: 'picture',
+              isVisible: true,
+              zIndex: 0,
+              position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+              rotation: emuDegree(0),
+              picture: { mediaId: 'hero_img' },
+            },
+            {
+              id: 'chart1',
+              name: 'Quarterly Sales',
+              type: 'graphicFrame',
+              elementType: 'chart',
+              isVisible: true,
+              zIndex: 1,
+              position: { x: emu(100), y: emu(100), cx: emu(1000), cy: emu(1000) },
+              rotation: emuDegree(0),
+              chart: {
+                chartType: 'barChart',
+                categories: ['Q1', 'Q2'],
+                series: [{ name: 'Sales', values: [100, 200], index: 0, order: 0 }],
+              },
+            },
+          ],
+        },
+      ],
+      themes: [],
+    };
+
+    const buffer = await writePptx(docWithMediaAndChart);
+    expect(buffer.length).toBeGreaterThan(0);
+    const parsed = await parsePptx(buffer);
+    expect(parsed.slides[0].elements).toHaveLength(2);
+  });
+});

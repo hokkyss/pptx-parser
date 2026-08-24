@@ -38,3 +38,21 @@ describe('createRelationshipResolver', () => {
     expect(imageRels[0].resolvedTarget).toBe('ppt/media/image1.png');
   });
 });
+
+describe('createRelationshipResolver extended APIs', () => {
+  it('covers getTarget, getAll, slide, and slideMaster filters', () => {
+    const relsXml = `
+      <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+        <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>
+      </Relationships>
+    `;
+    const resolver = createRelationshipResolver(relsXml, 'ppt/presentation.xml');
+    expect(resolver.getAll()).toHaveLength(2);
+    expect(resolver.getTarget('rId1')).toBe('ppt/slides/slide1.xml');
+    expect(resolver.getTarget('rIdNonExistent')).toBeUndefined();
+    expect(resolver.getRelationshipsByType('slide')).toHaveLength(1);
+    expect(resolver.getRelationshipsByType('slideMaster')).toHaveLength(1);
+    expect(resolver.getRelationship('ppt/presentation.xml', 'rId1')).toBeDefined();
+  });
+});

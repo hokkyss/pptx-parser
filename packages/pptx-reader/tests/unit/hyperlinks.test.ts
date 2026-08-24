@@ -187,3 +187,14 @@ describe('Hyperlink Parser (@hokkyss/pptx-reader)', () => {
     expect(parsed2?.slideIndex).toBeUndefined();
   });
 });
+
+describe('parseHyperlink edge cases', () => {
+  it('handles custom action and empty node', () => {
+    expect(parseHyperlink({})).toBeUndefined();
+    expect(parseHyperlink(undefined)).toBeUndefined();
+    const custom = parseHyperlink({ '@_action': 'ppaction://customAction' });
+    expect(custom?.action).toBe('ppaction://customAction');
+    const invalidUrl = parseHyperlink({ '@_invalidUrl': 'https://example.com' });
+    expect(invalidUrl?.url).toBe('https://example.com');
+  });
+});

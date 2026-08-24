@@ -30,3 +30,18 @@ describe('Content Types Serializer', () => {
     expect(xml).toContain('PartName="/ppt/theme/theme1.xml"');
   });
 });
+
+describe('Content Types Serializer extended options', () => {
+  it('serializes custom extensions, explicit names, and customPartOverrides', () => {
+    const xml = serializeContentTypes({
+      mediaExtensions: ['svg', 'webp', 'mp4'],
+      layoutNames: ['slideLayout1'],
+      masterNames: ['slideMaster1'],
+      themeNames: ['theme1'],
+      customPartOverrides: [{ contentType: 'application/xml', partName: 'customXml/item1.xml' }],
+    });
+    expect(xml).toContain('Extension="svg"');
+    expect(xml).toContain('PartName="/customXml/item1.xml"');
+    expect(xml).toContain('PartName="/ppt/slideLayouts/slideLayout1.xml"');
+  });
+});

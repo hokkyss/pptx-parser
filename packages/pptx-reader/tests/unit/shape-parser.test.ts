@@ -111,3 +111,37 @@ describe('Shape Parser (@hokkyss/pptx-reader)', () => {
     expect(shapes[0].rotation).toBe(5400000);
   });
 });
+
+describe('Shape Parser group and single shape parsing', () => {
+  it('parses group shapes (<p:grpSp>) with nested child shapes', () => {
+    const xml = `<?xml version="1.0"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:grpSp>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="8" name="Group 8"/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm><a:off x="0" y="0"/><a:ext cx="2000" cy="2000"/><a:chOff x="0" y="0"/><a:chExt cx="2000" cy="2000"/></a:xfrm>
+        </p:grpSpPr>
+        <p:sp>
+          <p:nvSpPr><p:cNvPr id="9" name="Child Shape"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+          <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="1000"/></a:xfrm></p:spPr>
+        </p:sp>
+      </p:grpSp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+
+    const resolver = createRelationshipResolver('', 'ppt/slides/slide1.xml');
+    const shapes = parseShapes(xml, resolver);
+    expect(shapes).toHaveLength(1);
+    expect(shapes[0].type).toBe('group');
+    expect(shapes[0].elementType).toBe('group');
+    expect((shapes[0] as any).children).toHaveLength(1);
+    expect((shapes[0] as any).children[0].name).toBe('Child Shape');
+  });
+});

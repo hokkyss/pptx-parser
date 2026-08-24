@@ -84,7 +84,9 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
 
       'ppt/slideLayouts/slideLayout1.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" type="titleAndContent">
-  <p:cSld name="Title and Content"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld>
+  <p:cSld name="Title and Content"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+    <p:sp><p:nvSpPr><p:cNvPr id="2" name="Layout Placeholder"/><p:cNvSpPr/><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="1000"/></a:xfrm></p:spPr></p:sp>
+  </p:spTree></p:cSld>
 </p:sldLayout>`),
 
       'ppt/slides/_rels/slide1.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -284,5 +286,24 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   it('throws an error if ppt/presentation.xml is missing', async () => {
     const invalidZip = zipSync({ 'other.xml': strToU8('<root/>') });
     await expect(parsePptx(invalidZip)).rejects.toThrow('Invalid PPTX package');
+  });
+});
+
+describe('full-pptx edge cases', () => {
+  it('parses presentation without p:sldIdLst by falling back to rels', async () => {
+    const files: Record<string, Uint8Array> = {
+      'ppt/_rels/presentation.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+</Relationships>`),
+      'ppt/presentation.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>`),
+      'ppt/slides/slide1.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree/></p:cSld></p:sld>`),
+    };
+
+    const zip = zipSync(files);
+    const parsed = await parsePptx(zip);
+    expect(parsed.slides).toHaveLength(1);
   });
 });

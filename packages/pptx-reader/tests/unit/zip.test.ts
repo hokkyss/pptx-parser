@@ -61,3 +61,31 @@ describe('createZipReader', () => {
     });
   });
 });
+
+describe('createZipReader extended API', () => {
+  it('handles getFileAsString, hasFile, getPathsStartingWith, and error handling', async () => {
+    const mockZip = zipSync({
+      'ppt/slides/slide1.xml': strToU8('<slide1/>'),
+      'ppt/media/img.png': strToU8('PNG'),
+    });
+
+    const reader = await createZipReader(mockZip);
+    expect(reader.hasFile('ppt/slides/slide1.xml')).toBe(true);
+    expect(reader.hasFile('/ppt/slides/slide1.xml')).toBe(true);
+    expect(reader.hasFile('nonexistent')).toBe(false);
+
+    expect(await reader.getFileAsString('ppt/slides/slide1.xml')).toBe('<slide1/>');
+    expect(await reader.getFileAsString('nonexistent')).toBe('');
+
+    expect(reader.getPathsStartingWith('ppt/media/')).toEqual(['ppt/media/img.png']);
+    expect(reader.getPathsStartingWith('/ppt/media/')).toEqual(['ppt/media/img.png']);
+
+    // Invalid non-zip buffer
+    await expect(createZipReader(new Uint8Array([1, 2, 3, 4]))).rejects.toThrow('Failed to unzip PPTX file container');
+
+    // Incomplete mock buffer starting with PK\x03\x04
+    const pkMock = new Uint8Array([80, 75, 3, 4, 0, 0]);
+    const mockReader = await createZipReader(pkMock);
+    expect(mockReader.listFiles()).toEqual([]);
+  });
+});

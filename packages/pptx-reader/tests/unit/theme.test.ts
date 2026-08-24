@@ -45,3 +45,27 @@ describe('createThemeResolver', () => {
     expect(theme.fontScheme.minorFont).toBe('Yu Gothic UI');
   });
 });
+
+describe('createThemeResolver fallbacks and custom colors', () => {
+  it('falls back to default theme when XML lacks theme root', () => {
+    const resolver = createThemeResolver();
+    const fallback = resolver.parseTheme('<invalidXml/>');
+    expect(fallback.name).toBe('Default Theme');
+    expect(fallback.colorScheme.accent1).toBe('4F81BD');
+  });
+
+  it('parses custom colors list (<a:custClrLst>)', () => {
+    const xml = `
+      <a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Custom Theme">
+        <a:custClrLst>
+          <a:custClr name="BrandRed">
+            <a:srgbClr val="FF0000"/>
+          </a:custClr>
+        </a:custClrLst>
+      </a:theme>
+    `;
+    const resolver = createThemeResolver();
+    const theme = resolver.parseTheme(xml);
+    expect(theme.customColors['BrandRed']).toBe('FF0000');
+  });
+});

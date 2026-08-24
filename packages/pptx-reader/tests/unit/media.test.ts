@@ -144,3 +144,17 @@ describe('createMediaResolver', () => {
     expect(resolver.getAllMedia()).toHaveLength(2);
   });
 });
+
+describe('extractMedia extended coverage', () => {
+  it('covers getData callback and null fallback in eager extractMedia', async () => {
+    const mockZip = {
+      getPathsStartingWith: () => ['ppt/media/test.png'],
+      getFileData: () => null,
+      getFileAsBinary: () => null,
+    } as unknown as ZipReader;
+
+    const media = extractMedia(mockZip, false);
+    expect(media[0].data).toEqual(new Uint8Array(0));
+    expect(await media[0].getData!()).toBeNull();
+  });
+});

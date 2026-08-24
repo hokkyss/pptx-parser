@@ -34,3 +34,26 @@ describe('Animation Parser', () => {
     expect(animations[0].effect).toBe('appear');
   });
 });
+
+describe('parseAnimations object and array recursion', () => {
+  it('parses from JS object with array timing nodes', () => {
+    const obj = {
+      'p:sld': {
+        'p:timing': {
+          'p:tnLst': [
+            {
+              'p:tgtEl': { 'p:spTgt': { '@_spid': '5' } },
+              '@_presetClass': 'fly',
+              '@_nodeType': 'afterPrevious',
+            },
+          ],
+        },
+      },
+    };
+    const animations = parseAnimations(obj);
+    expect(animations).toHaveLength(1);
+    expect(animations[0].targetShapeId).toBe('5');
+    expect(animations[0].effect).toBe('fly');
+    expect(animations[0].trigger).toBe('afterPrevious');
+  });
+});

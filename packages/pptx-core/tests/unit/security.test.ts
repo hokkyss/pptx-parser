@@ -113,3 +113,14 @@ describe('Hyperlink Security Sanitizer (@hokkyss/pptx-core)', () => {
     });
   });
 });
+
+describe('Security Edge Cases (@hokkyss/pptx-core)', () => {
+  it('handles empty sanitized results', () => {
+    expect(sanitizeHyperlinkTooltip('\r\n\0   ')).toBeUndefined();
+    expect(sanitizeSlideIndex(null)).toBeUndefined();
+    expect(sanitizeSlideIndex(undefined)).toBeUndefined();
+    expect(sanitizeHyperlinkAction('\r\n\0   ')).toBeUndefined();
+    expect(sanitizeHyperlinkAction('FIRSTSLIDE')).toBe('firstSlide');
+    expect(sanitizeHyperlinkAction('LASTSLIDE')).toBe('lastSlide');
+  });
+});

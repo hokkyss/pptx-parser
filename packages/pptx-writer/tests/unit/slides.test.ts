@@ -117,3 +117,63 @@ describe('Slide Serializer (@hokkyss/pptx-writer)', () => {
     expect(xml).toContain('<a:gradFill>');
   });
 });
+
+describe('Slide Serializer pictures, tables, charts and unique IDs', () => {
+  it('serializes picture, table, chart and resolves duplicate IDs', () => {
+    const slide: PptxSlide = {
+      slideId: 'rId3',
+      slideNumber: 3,
+      shapes: [],
+      animations: [],
+      elements: [
+        {
+          id: '1', // duplicate of container group ID 1
+          name: 'Pic 1',
+          type: 'picture',
+          elementType: 'picture',
+          isVisible: true,
+          zIndex: 0,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+          picture: { mediaId: 'img1' },
+        },
+        {
+          id: '2',
+          name: 'Table 2',
+          type: 'graphicFrame',
+          elementType: 'table',
+          isVisible: true,
+          zIndex: 1,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+          table: {
+            columnWidths: [emu(500)],
+            rows: [{ height: emu(200), cells: [{ textBody: { bodyProperties: {}, paragraphs: [{ properties: {}, runs: [{ text: 'Cell' }] }] } }] }],
+          },
+        },
+        {
+          id: '3',
+          name: 'Chart 3',
+          type: 'graphicFrame',
+          elementType: 'chart',
+          isVisible: true,
+          zIndex: 2,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+          chart: {
+            chartType: 'barChart',
+            categories: ['A'],
+            series: [{ name: 'S1', values: [10], index: 0, order: 0 }],
+          },
+        },
+      ],
+    };
+
+    const picMap = new Map<string, string>([['img1', 'rIdImg']]);
+    const xml = serializeSlide(slide, picMap, ['rIdChart']);
+    expect(xml).toContain('<p:pic>');
+    expect(xml).toContain('<p:graphicFrame>');
+    expect(xml).toContain('rIdImg');
+    expect(xml).toContain('rIdChart');
+  });
+});

@@ -77,3 +77,20 @@ describe('Slide Transition Parser', () => {
     expect(transition?.spokes).toBe(8);
   });
 });
+
+describe('parseTransition object input', () => {
+  it('parses from JS object node directly', () => {
+    const obj = {
+      'p:sld': {
+        'p:transition': {
+          '@_spd': 'med',
+          'p:wipe': { '@_dir': 'r' },
+        },
+      },
+    };
+    const t = parseTransition(obj);
+    expect(t?.type).toBe('wipe');
+    expect(t?.direction).toBe('right');
+    expect(t?.speed).toBe('med');
+  });
+});

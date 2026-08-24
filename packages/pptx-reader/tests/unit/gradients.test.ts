@@ -171,3 +171,14 @@ describe('Gradient Fill Parser (@hokkyss/pptx-reader)', () => {
     expect(shape.line?.fill?.solidColor?.value).toBe('FFFFFF');
   });
 });
+
+describe('parseFill and parseBackground edge cases', () => {
+  it('parses noFill and handles empty background node', () => {
+    expect(parseFill({})).toBeUndefined();
+    expect(parseFill(undefined)).toBeUndefined();
+    expect(parseFill({ 'a:noFill': {} })?.type).toBe('none');
+
+    expect(parseBackground(undefined)).toBeUndefined();
+    expect(parseBackground({})).toBeUndefined();
+  });
+});

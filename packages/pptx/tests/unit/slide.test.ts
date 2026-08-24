@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { PptxConnectorElement } from '@hokkyss/pptx-core';
-import { inches, points } from '@hokkyss/pptx-core';
+import type { PptxConnectorElement, PptxShapeElement } from '@hokkyss/pptx-core';
+import { emu, emuDegree, inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('Slide Class (Unit Tests)', () => {
@@ -476,5 +476,105 @@ describe('Slide Class (Unit Tests)', () => {
 
     expect(slide1.getElementById('card-1')).toBeDefined();
     expect(slide2.getElementById('card-1')).toBeDefined();
+  });
+});
+
+import { TableBuilder } from '../../lib/builders/table-builder';
+
+describe('Slide Class extended methods and placeholder resolution', () => {
+  it('covers removeElement false return and transition object input', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    expect(slide.removeElement('non-existent')).toBe(false);
+
+    slide.setTransition({ type: 'fade', durationMs: 500 });
+    expect(slide.getTransition()?.type).toBe('fade');
+    expect(slide.getTransition()?.durationMs).toBe(500);
+  });
+
+  it('supports addTable with TableBuilder instance and with builder callback', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // With callback
+    slide.addTable((builder) => {
+      builder.addRow().addCell('Callback Cell');
+    });
+
+    // With TableBuilder instance
+    const customBuilder = new TableBuilder();
+    customBuilder.addRow().addCell('Instance Cell');
+    slide.addTable(customBuilder);
+
+    const elements = slide.getElements();
+    expect(elements).toHaveLength(2);
+    expect(elements[0].elementType).toBe('table');
+    expect(elements[1].elementType).toBe('table');
+  });
+
+  it('resolves placeholders from master when not in layout and updates existing placeholder shape', () => {
+    const pres = Presentation.create();
+    // Add master element placeholder
+    pres.ast.slideMasters[0].elements = [
+      {
+        elementType: 'shape',
+        id: 'ph1',
+        name: 'Master Header Placeholder',
+        position: { x: emu(0), y: emu(0), cx: emu(1000), cy: emu(1000) },
+        rotation: emuDegree(0),
+        type: 'shape',
+        zIndex: 0,
+        placeholder: { type: 'header', idx: '10' },
+      },
+    ];
+
+    const slide = pres.addSlide();
+    expect(slide.resolvePlaceholder('header')).toBeDefined();
+    expect(slide.resolvePlaceholder(10)).toBeDefined();
+
+    // Add image targeting placeholder
+    const mockPngData = new Uint8Array([137, 80, 78, 71]);
+    slide.addImage(mockPngData, { placeholder: 'header' });
+    expect(slide.getElements()[0].name).toBe('Master Header Placeholder');
+
+    // Add text modifying existing slide placeholder
+    slide.addText('Header Updated Text', {
+      placeholder: 'header',
+      fill: 'FF0000',
+      x: inches(1),
+      y: inches(1),
+      w: inches(4),
+      h: inches(1),
+    });
+  });
+});
+
+describe('ShapeBuilder shadow and styling', () => {
+  it('adds shape with drop shadow configuration', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('rect', {
+      x: inches(1),
+      y: inches(1),
+      w: inches(2),
+      h: inches(2),
+      fill: 'FFFFFF',
+      shadow: {
+        blur: inches(0.1),
+        color: '#333333',
+        direction: 45,
+        distance: inches(0.05),
+        opacity: 0.5,
+        rotateWithShape: true,
+      },
+    });
+
+    const elements = slide.getElements();
+    expect(elements[0].elementType).toBe('shape');
+    expect((elements[0] as any).shadow).toBeDefined();
+    expect((elements[0] as any).shadow.color).toBe('333333');
+    expect((elements[0] as any).shadow.opacity).toBe(0.5);
   });
 });

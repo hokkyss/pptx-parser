@@ -52,3 +52,23 @@ describe('Bullet Point Parsing', () => {
     expect(paragraph.properties.bullet?.type).toBe('none');
   });
 });
+
+import { parseTextBodyXml, parseRunProperties } from '../../lib/parsers/text-parser';
+
+describe('parseTextBodyXml and run color parsing', () => {
+  it('parses text body from XML string', () => {
+    const xml = '<a:txBody><a:p><a:r><a:t>Hello XML</a:t></a:r></a:p></a:txBody>';
+    const body = parseTextBodyXml(xml);
+    expect(body.paragraphs[0].runs[0].text).toBe('Hello XML');
+  });
+
+  it('parses solidFill srgbClr color in run properties', () => {
+    const rPr = {
+      'a:solidFill': {
+        'a:srgbClr': { '@_val': 'FF0000' },
+      },
+    };
+    const parsed = parseRunProperties(rPr);
+    expect(parsed.color).toBe('FF0000');
+  });
+});
