@@ -109,7 +109,8 @@ describe('serializeGroup', () => {
   });
 
   it('defaults position values to 0/1000000 when position is undefined', () => {
-    const group = makeGroup({ position: undefined as unknown as PptxGroupElement['position'] });
+    // @ts-expect-error Testing undefined position resilience
+    const group = makeGroup({ position: undefined });
     const result = serializeGroup(group);
     const xfrm = (result['p:grpSpPr'] as Record<string, unknown>)['a:xfrm'] as Record<string, Record<string, unknown>>;
     expect(xfrm['a:off']['@_x']).toBe(0);
@@ -130,7 +131,8 @@ describe('serializeGroup', () => {
   });
 
   it('handles undefined children gracefully', () => {
-    const group = makeGroup({ children: undefined as unknown as PptxElement[] });
+    // @ts-expect-error Testing undefined children resilience
+    const group = makeGroup({ children: undefined });
     expect(() => serializeGroup(group)).not.toThrow();
     const result = serializeGroup(group);
     expect(result['p:sp']).toBeUndefined();
@@ -140,22 +142,38 @@ describe('serializeGroup', () => {
 
   it('emits p:sp array for shape children', () => {
     const result = serializeGroup(makeGroup({ children: [makeShape('1'), makeShape('2')] }));
-    expect(result['p:sp'] as unknown[]).toHaveLength(2);
+    const list = result['p:sp'];
+    expect(Array.isArray(list)).toBe(true);
+    if (Array.isArray(list)) {
+      expect(list).toHaveLength(2);
+    }
   });
 
   it('emits p:graphicFrame array for table children', () => {
     const result = serializeGroup(makeGroup({ children: [makeTable('10')] }));
-    expect(result['p:graphicFrame'] as unknown[]).toHaveLength(1);
+    const list = result['p:graphicFrame'];
+    expect(Array.isArray(list)).toBe(true);
+    if (Array.isArray(list)) {
+      expect(list).toHaveLength(1);
+    }
   });
 
   it('emits p:pic array for picture children', () => {
     const result = serializeGroup(makeGroup({ children: [makePicture('20')] }));
-    expect(result['p:pic'] as unknown[]).toHaveLength(1);
+    const list = result['p:pic'];
+    expect(Array.isArray(list)).toBe(true);
+    if (Array.isArray(list)) {
+      expect(list).toHaveLength(1);
+    }
   });
 
   it('emits p:cxnSp array for connector children', () => {
     const result = serializeGroup(makeGroup({ children: [makeConnector('30')] }));
-    expect(result['p:cxnSp'] as unknown[]).toHaveLength(1);
+    const list = result['p:cxnSp'];
+    expect(Array.isArray(list)).toBe(true);
+    if (Array.isArray(list)) {
+      expect(list).toHaveLength(1);
+    }
   });
 
   // ── Nested groups (recursive) ─────────────────────────────────────────────────
@@ -164,11 +182,14 @@ describe('serializeGroup', () => {
     const innerGroup = makeGroup({ id: '99', name: 'Inner', children: [makeShape('1')] });
     const outerGroup = makeGroup({ id: '100', children: [innerGroup] });
     const result = serializeGroup(outerGroup);
-    const nestedGrpSp = result['p:grpSp'] as unknown[];
-    expect(nestedGrpSp).toHaveLength(1);
-    // Inner result should itself have a p:sp from its shape child
-    const innerResult = nestedGrpSp[0] as Record<string, unknown>;
-    expect(innerResult['p:sp']).toBeDefined();
+    const nestedGrpSp = result['p:grpSp'];
+    expect(Array.isArray(nestedGrpSp)).toBe(true);
+    if (Array.isArray(nestedGrpSp)) {
+      expect(nestedGrpSp).toHaveLength(1);
+      // Inner result should itself have a p:sp from its shape child
+      const innerResult = nestedGrpSp[0] as Record<string, unknown>;
+      expect(innerResult['p:sp']).toBeDefined();
+    }
   });
 
   // ── Mixed children ────────────────────────────────────────────────────────────
@@ -178,10 +199,14 @@ describe('serializeGroup', () => {
       children: [makeShape('1'), makeConnector('2'), makePicture('3'), makeTable('4')],
     });
     const result = serializeGroup(group);
-    expect(result['p:sp'] as unknown[]).toHaveLength(1);
-    expect(result['p:cxnSp'] as unknown[]).toHaveLength(1);
-    expect(result['p:pic'] as unknown[]).toHaveLength(1);
-    expect(result['p:graphicFrame'] as unknown[]).toHaveLength(1);
+    const sp = result['p:sp'];
+    const cxnSp = result['p:cxnSp'];
+    const pic = result['p:pic'];
+    const gf = result['p:graphicFrame'];
+    expect(Array.isArray(sp) && sp.length).toBe(1);
+    expect(Array.isArray(cxnSp) && cxnSp.length).toBe(1);
+    expect(Array.isArray(pic) && pic.length).toBe(1);
+    expect(Array.isArray(gf) && gf.length).toBe(1);
     expect(result['p:grpSp']).toBeUndefined();
   });
 });

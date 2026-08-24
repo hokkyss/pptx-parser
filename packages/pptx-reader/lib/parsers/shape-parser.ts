@@ -11,6 +11,7 @@ import {
   PptxPlaceholder,
   PptxShape,
   PptxShapeAttachment,
+  PptxShapeElement,
 } from '../types/ast';
 import { defaultXmlParser, getXmlChild, getXmlChildren, XmlParser } from '../xml/xml-parser';
 import { parseFill } from './fill-parser';
@@ -382,7 +383,7 @@ export function parseSingleShape(
       _chartRelId: chartRelId,
       _graphicUri: graphicUri,
       _tblNode: tblNode,
-    } as unknown as PptxShape;
+    } as PptxShapeElement;
   }
 
   return {

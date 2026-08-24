@@ -6,11 +6,14 @@ import { createMasterLayoutResolver } from '../../lib/resolvers/master-layout-re
 
 function mockZipReader(files: Record<string, string | null>): ZipReader {
   return {
-    getFileText: (path: string) => files[path] ?? null,
+    getFileAsBinary: async (_path: string) => undefined,
+    getFileAsString: async (path: string) => files[path] ?? '',
     getFileData: (_path: string) => undefined,
-    getFileAsBinary: (_path: string) => undefined,
-    getPathsStartingWith: (_prefix: string) => [],
-  } as unknown as ZipReader;
+    getFileText: (path: string) => files[path] ?? undefined,
+    getPathsStartingWith: (prefix: string) => Object.keys(files).filter((k) => k.startsWith(prefix)),
+    hasFile: (path: string) => path in files,
+    listFiles: () => Object.keys(files),
+  };
 }
 
 const layoutXml = (extraAttrs = '', cSldName = 'Blank') => `<?xml version="1.0"?>

@@ -1,6 +1,5 @@
-import type { RelationshipResolver } from '@hokkyss/pptx-core';
+import { emu, hundredthsPoint, type RelationshipResolver } from '@hokkyss/pptx-core';
 import {
-  Emu,
   HundredthsPoint,
   PptxBullet,
   PptxParagraph,
@@ -41,9 +40,9 @@ export function parseParagraph(
   const alignment = alignMap[algnRaw];
   const level = pPr['@_lvl'] !== undefined ? Number(pPr['@_lvl']) : undefined;
 
-  const leftMargin = pPr['@_marL'] !== undefined ? ((Number(pPr['@_marL']) as unknown) as Emu) : undefined;
-  const rightMargin = pPr['@_marR'] !== undefined ? ((Number(pPr['@_marR']) as unknown) as Emu) : undefined;
-  const firstLineIndent = pPr['@_indent'] !== undefined ? ((Number(pPr['@_indent']) as unknown) as Emu) : undefined;
+  const leftMargin = pPr['@_marL'] !== undefined ? emu(Number(pPr['@_marL'])) : undefined;
+  const rightMargin = pPr['@_marR'] !== undefined ? emu(Number(pPr['@_marR'])) : undefined;
+  const firstLineIndent = pPr['@_indent'] !== undefined ? emu(Number(pPr['@_indent'])) : undefined;
 
   // Space before paragraph (<a:spcBef>)
   let spaceBefore: HundredthsPoint | undefined;
@@ -51,7 +50,7 @@ export function parseParagraph(
   if (spcBefNode) {
     const befPts = (spcBefNode['a:spcPts'] || spcBefNode['spcPts']) as Record<string, unknown> | undefined;
     if (befPts && befPts['@_val'] !== undefined) {
-      spaceBefore = (Number(befPts['@_val']) as unknown) as HundredthsPoint;
+      spaceBefore = hundredthsPoint(Number(befPts['@_val']));
     }
   }
 
@@ -61,7 +60,7 @@ export function parseParagraph(
   if (spcAftNode) {
     const aftPts = (spcAftNode['a:spcPts'] || spcAftNode['spcPts']) as Record<string, unknown> | undefined;
     if (aftPts && aftPts['@_val'] !== undefined) {
-      spaceAfter = (Number(aftPts['@_val']) as unknown) as HundredthsPoint;
+      spaceAfter = hundredthsPoint(Number(aftPts['@_val']));
     }
   }
 
@@ -71,7 +70,7 @@ export function parseParagraph(
   if (lnSpcNode) {
     const spcPct = (lnSpcNode['a:spcPct'] || lnSpcNode['spcPct'] || lnSpcNode['a:spcPts'] || lnSpcNode['spcPts']) as Record<string, unknown> | undefined;
     if (spcPct && spcPct['@_val'] !== undefined) {
-      lineSpacing = (Number(spcPct['@_val']) as unknown) as HundredthsPoint;
+      lineSpacing = hundredthsPoint(Number(spcPct['@_val']));
     }
   }
 
@@ -191,7 +190,7 @@ export function parseRunProperties(
   rPr: Record<string, unknown>,
   relationshipResolver?: RelationshipResolver,
 ): PptxRun['properties'] {
-  const fontSize = rPr['@_sz'] !== undefined ? ((Number(rPr['@_sz']) as unknown) as HundredthsPoint) : undefined;
+  const fontSize = rPr['@_sz'] !== undefined ? hundredthsPoint(Number(rPr['@_sz'])) : undefined;
   const bold = rPr['@_b'] === '1' || rPr['@_b'] === true;
   const italic = rPr['@_i'] === '1' || rPr['@_i'] === true;
   const underline = rPr['@_u'] !== undefined && rPr['@_u'] !== 'none';
@@ -262,13 +261,13 @@ export function parseTextBody(
   const verticalAlignment = vertAlignMap[anchorRaw];
   const wrap = (bodyPrNode['@_wrap'] as 'none' | 'square') || undefined;
 
-  const leftInset = bodyPrNode['@_lIns'] !== undefined ? ((Number(bodyPrNode['@_lIns']) as unknown) as Emu) : undefined;
-  const topInset = bodyPrNode['@_tIns'] !== undefined ? ((Number(bodyPrNode['@_tIns']) as unknown) as Emu) : undefined;
-  const rightInset = bodyPrNode['@_rIns'] !== undefined ? ((Number(bodyPrNode['@_rIns']) as unknown) as Emu) : undefined;
-  const bottomInset = bodyPrNode['@_bIns'] !== undefined ? ((Number(bodyPrNode['@_bIns']) as unknown) as Emu) : undefined;
+  const leftInset = bodyPrNode['@_lIns'] !== undefined ? emu(Number(bodyPrNode['@_lIns'])) : undefined;
+  const topInset = bodyPrNode['@_tIns'] !== undefined ? emu(Number(bodyPrNode['@_tIns'])) : undefined;
+  const rightInset = bodyPrNode['@_rIns'] !== undefined ? emu(Number(bodyPrNode['@_rIns'])) : undefined;
+  const bottomInset = bodyPrNode['@_bIns'] !== undefined ? emu(Number(bodyPrNode['@_bIns'])) : undefined;
 
   const columns = bodyPrNode['@_numCol'] !== undefined ? Number(bodyPrNode['@_numCol']) : undefined;
-  const columnSpacing = bodyPrNode['@_spcCol'] !== undefined ? ((Number(bodyPrNode['@_spcCol']) as unknown) as Emu) : undefined;
+  const columnSpacing = bodyPrNode['@_spcCol'] !== undefined ? emu(Number(bodyPrNode['@_spcCol'])) : undefined;
 
   const bodyProperties: PptxTextBodyProperties = {
     bottomInset,

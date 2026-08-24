@@ -120,7 +120,7 @@ export function createMediaResolver(options?: { lazy?: boolean }): MediaResolver
 
         if (isLazy) {
           mediaList.push({
-            data: undefined as unknown as null,
+            data: null,
             filename,
             getData,
             id,

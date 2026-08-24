@@ -18,12 +18,6 @@ export default defineConfig({
       '@hokkyss/pptx-core': resolve(import.meta.dirname, '../pptx-core/lib/index.ts'),
     },
   },
-  test: {
-    coverage: {
-      include: ['lib/**/*.ts'],
-      exclude: ['lib/types/**'],
-    },
-  },
   plugins: [
     esmExternalRequirePlugin({
       external: [

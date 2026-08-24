@@ -353,7 +353,7 @@ export function serializeRunProperties(props?: PptxRun['properties']): Record<st
  */
 export function serializeParagraph(paragraph: PptxParagraph): Record<string, unknown> {
   const pPr: Record<string, unknown> = {};
-  const props = paragraph.properties || (paragraph as unknown as { alignment?: string; bullet?: PptxBullet; indent?: number; level?: number; margin?: number });
+  const props = paragraph.properties || ('alignment' in paragraph ? (paragraph as { alignment?: string; bullet?: PptxBullet; indent?: number; level?: number; margin?: number }) : {});
 
   if (props.alignment) {
     pPr['@_algn'] = ALIGNMENT_MAP[props.alignment] ?? props.alignment;

@@ -3,6 +3,8 @@ import type { PptxTableElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, hundredthsPoint } from '@hokkyss/pptx-core';
 import { serializeTable } from '../../lib/serializers/table-serializer';
 
+type XmlNode = Record<string, XmlNode | XmlNode[] | string | number | boolean | undefined>;
+
 describe('Table Serializer', () => {
   it('serializes table inside graphicFrame with grid columns, rows, and cells', () => {
     const tableElement: PptxTableElement = {
@@ -58,7 +60,7 @@ describe('Table Serializer', () => {
                   paragraphs: [
                     {
                       properties: {},
-                      runs: [{ text: 'Value 1', properties: { fontSize: hundredthsPoint(1200) } }],
+                      runs: [{ text: 'Data 1', properties: { color: '003366' } }],
                     },
                   ],
                 },
@@ -69,7 +71,7 @@ describe('Table Serializer', () => {
                   paragraphs: [
                     {
                       properties: {},
-                      runs: [{ text: 'Value 2', properties: { fontSize: hundredthsPoint(1200) } }],
+                      runs: [{ text: 'Data 2', properties: { color: '003366' } }],
                     },
                   ],
                 },
@@ -80,22 +82,23 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement);
+    const xmlObject = serializeTable(tableElement) as XmlNode;
     expect(xmlObject).toBeDefined();
 
-    const nvGFPr = xmlObject['p:nvGraphicFramePr'] as Record<string, Record<string, unknown>>;
-    expect(nvGFPr['p:cNvPr']['@_id']).toBe('3');
+    const nvGFPr = xmlObject['p:nvGraphicFramePr'] as XmlNode;
+    expect((nvGFPr['p:cNvPr'] as XmlNode)['@_id']).toBe('3');
 
-    const graphic = xmlObject['a:graphic'] as Record<string, Record<string, Record<string, unknown>>>;
-    const tbl = graphic['a:graphicData']['a:tbl'] as Record<string, unknown[]>;
+    const graphic = xmlObject['a:graphic'] as XmlNode;
+    const graphicData = graphic['a:graphicData'] as XmlNode;
+    const tbl = graphicData['a:tbl'] as XmlNode;
     expect(tbl).toBeDefined();
 
-    const tblGrid = tbl['a:tblGrid'] as unknown as Record<string, unknown[]>;
-    expect(tblGrid['a:gridCol']).toHaveLength(2);
-    expect(tbl['a:tr']).toHaveLength(2);
+    const tblGrid = tbl['a:tblGrid'] as XmlNode;
+    expect(tblGrid['a:gridCol'] as XmlNode[]).toHaveLength(2);
+    expect(tbl['a:tr'] as XmlNode[]).toHaveLength(2);
 
-    const firstRow = tbl['a:tr'][0] as Record<string, unknown[]>;
-    expect(firstRow['a:tc']).toHaveLength(2);
+    const firstRow = (tbl['a:tr'] as XmlNode[])[0];
+    expect(firstRow['a:tc'] as XmlNode[]).toHaveLength(2);
   });
 
   it('serializes table cell with colSpan > 1 adding @_gridSpan', () => {
@@ -119,10 +122,12 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement);
-    const tbl = (xmlObject['a:graphic'] as Record<string, Record<string, unknown>>)['a:graphicData']['a:tbl'] as Record<string, unknown[]>;
-    const firstRow = tbl['a:tr'][0] as Record<string, unknown[]>;
-    const cell = firstRow['a:tc'][0] as Record<string, unknown>;
+    const xmlObject = serializeTable(tableElement) as XmlNode;
+    const graphic = xmlObject['a:graphic'] as XmlNode;
+    const graphicData = graphic['a:graphicData'] as XmlNode;
+    const tbl = graphicData['a:tbl'] as XmlNode;
+    const firstRow = (tbl['a:tr'] as XmlNode[])[0];
+    const cell = (firstRow['a:tc'] as XmlNode[])[0];
     expect(cell['@_gridSpan']).toBe(2);
   });
 
@@ -147,10 +152,12 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement);
-    const tbl = (xmlObject['a:graphic'] as Record<string, Record<string, unknown>>)['a:graphicData']['a:tbl'] as Record<string, unknown[]>;
-    const firstRow = tbl['a:tr'][0] as Record<string, unknown[]>;
-    const cell = firstRow['a:tc'][0] as Record<string, unknown>;
+    const xmlObject = serializeTable(tableElement) as XmlNode;
+    const graphic = xmlObject['a:graphic'] as XmlNode;
+    const graphicData = graphic['a:graphicData'] as XmlNode;
+    const tbl = graphicData['a:tbl'] as XmlNode;
+    const firstRow = (tbl['a:tr'] as XmlNode[])[0];
+    const cell = (firstRow['a:tc'] as XmlNode[])[0];
     expect(cell['@_rowSpan']).toBe(2);
   });
 
@@ -170,10 +177,12 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement);
-    const tbl = (xmlObject['a:graphic'] as Record<string, Record<string, unknown>>)['a:graphicData']['a:tbl'] as Record<string, unknown[]>;
-    const cell = (tbl['a:tr'][0] as Record<string, unknown[]>)['a:tc'][0] as Record<string, unknown>;
-    const txBody = cell['a:txBody'] as Record<string, unknown>;
+    const xmlObject = serializeTable(tableElement) as XmlNode;
+    const graphic = xmlObject['a:graphic'] as XmlNode;
+    const graphicData = graphic['a:graphicData'] as XmlNode;
+    const tbl = graphicData['a:tbl'] as XmlNode;
+    const cell = ((tbl['a:tr'] as XmlNode[])[0]['a:tc'] as XmlNode[])[0];
+    const txBody = cell['a:txBody'] as XmlNode;
     expect(txBody).toHaveProperty('a:bodyPr');
     expect(txBody).toHaveProperty('a:lstStyle');
   });
@@ -208,10 +217,12 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement);
-    const tbl = (xmlObject['a:graphic'] as Record<string, Record<string, unknown>>)['a:graphicData']['a:tbl'] as Record<string, unknown[]>;
-    const cell = (tbl['a:tr'][0] as Record<string, unknown[]>)['a:tc'][0] as Record<string, unknown>;
-    const tcPr = cell['a:tcPr'] as Record<string, unknown>;
+    const xmlObject = serializeTable(tableElement) as XmlNode;
+    const graphic = xmlObject['a:graphic'] as XmlNode;
+    const graphicData = graphic['a:graphicData'] as XmlNode;
+    const tbl = graphicData['a:tbl'] as XmlNode;
+    const cell = ((tbl['a:tr'] as XmlNode[])[0]['a:tc'] as XmlNode[])[0];
+    const tcPr = cell['a:tcPr'] as XmlNode;
     expect(tcPr['@_marL']).toBe(91440);
     expect(tcPr['@_marR']).toBe(91440);
     expect(tcPr['@_marT']).toBe(45720);
@@ -231,10 +242,12 @@ describe('Table Serializer', () => {
       table: { columnWidths: [], rows: [] },
     };
 
-    const xmlObject = serializeTable(tableElement);
-    const tbl = (xmlObject['a:graphic'] as Record<string, Record<string, unknown>>)['a:graphicData']['a:tbl'] as Record<string, unknown>;
-    const tblGrid = tbl['a:tblGrid'] as Record<string, unknown[]>;
-    expect(tblGrid['a:gridCol']).toHaveLength(1);
-    expect((tblGrid['a:gridCol'][0] as Record<string, unknown>)['@_w']).toBe(2000000);
+    const xmlObject = serializeTable(tableElement) as XmlNode;
+    const graphic = xmlObject['a:graphic'] as XmlNode;
+    const graphicData = graphic['a:graphicData'] as XmlNode;
+    const tbl = graphicData['a:tbl'] as XmlNode;
+    const tblGrid = tbl['a:tblGrid'] as XmlNode;
+    expect(tblGrid['a:gridCol'] as XmlNode[]).toHaveLength(1);
+    expect(((tblGrid['a:gridCol'] as XmlNode[])[0])['@_w']).toBe(2000000);
   });
 });

@@ -14,12 +14,6 @@ export default defineConfig({
     },
     ssr: true,
   },
-  test: {
-    coverage: {
-      include: ['lib/**/*.ts'],
-      exclude: ['lib/types/**'],
-    },
-  },
   plugins: [
     esmExternalRequirePlugin({
       external: [

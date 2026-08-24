@@ -204,7 +204,7 @@ describe('Edge cases & Error Handling', () => {
   it('sets theme colors with custom palette name', () => {
     const pres = Presentation.create();
     pres.setThemeColors({ accent1: '#123456' }, 'MyPalette');
-    expect((pres.ast.themes[0].colorScheme as { name?: string } & PptxColorScheme).name).toBe('MyPalette');
+    expect(pres.ast.themes[0].colorScheme.name).toBe('MyPalette');
   });
 
   it('resolves layout by type or partial matchingName on addSlide', () => {

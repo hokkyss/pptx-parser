@@ -19,12 +19,6 @@ export default defineConfig({
       '@hokkyss/pptx-reader': resolve(import.meta.dirname, '../pptx-reader/lib/index.ts'),
     },
   },
-  test: {
-    coverage: {
-      include: ['lib/**/*.ts'],
-      exclude: ['lib/types/**'],
-    },
-  },
   plugins: [
     esmExternalRequirePlugin({
       external: [

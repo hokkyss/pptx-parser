@@ -1,3 +1,4 @@
+import { emu } from '@hokkyss/pptx-core';
 import type { PptxTableElement } from '@hokkyss/pptx-core';
 import type { PptxTableCell, PptxTableRow } from '@hokkyss/pptx-core';
 import type { Emu } from '@hokkyss/pptx-core';
@@ -10,7 +11,7 @@ import { serializeFill, serializeTextBody } from './text-serializer';
 export function serializeTableCell(cell: PptxTableCell): Record<string, unknown> {
   const tc: Record<string, unknown> = {};
 
-  const colSpan = cell.colSpan || (cell as unknown as { gridSpan?: number }).gridSpan;
+  const colSpan = cell.colSpan || ('gridSpan' in cell ? (cell as { gridSpan?: number }).gridSpan : undefined);
   if (colSpan && colSpan > 1) {
     tc['@_gridSpan'] = colSpan;
   }
@@ -70,8 +71,8 @@ export function serializeTableRow(row: PptxTableRow): Record<string, unknown> {
 export function serializeTable(tableElement: PptxTableElement): Record<string, unknown> {
   const table = tableElement.table;
 
-  const rawColumns = (table as unknown as { columns?: Array<{ width?: Emu }> }).columns;
-  const columnWidths = table.columnWidths || (rawColumns ? rawColumns.map((c) => c.width ?? ((1000000 as unknown) as Emu)) : []);
+  const rawColumns = 'columns' in table ? (table as { columns?: Array<{ width?: Emu }> }).columns : undefined;
+  const columnWidths = table.columnWidths || (rawColumns ? rawColumns.map((c) => c.width ?? emu(1000000)) : []);
 
   const gridCols = columnWidths.map((w) => ({
     '@_w': Math.round(Number(w ?? 1000000)),

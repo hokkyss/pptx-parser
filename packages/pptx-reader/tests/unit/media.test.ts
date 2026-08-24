@@ -2,24 +2,37 @@ import type { ZipReader } from '@hokkyss/pptx-core';
 import { describe, it, expect } from 'vitest';
 import { createMediaResolver, extractMedia } from '../../lib/resolvers/media-resolver';
 
+function createMockZip(options: {
+  files?: Record<string, Uint8Array | null>;
+  paths?: string[];
+}): ZipReader {
+  return {
+    getFileAsBinary: async (path: string) => options.files?.[path] ?? undefined,
+    getFileAsString: async (_path: string) => '',
+    getFileData: (path: string) => options.files?.[path] ?? undefined,
+    getFileText: (_path: string) => undefined,
+    getPathsStartingWith: (prefix: string) => options.paths?.filter((p) => p.startsWith(prefix)) ?? [],
+    hasFile: (path: string) => (options.paths?.includes(path) || (options.files !== undefined && path in options.files)),
+    listFiles: () => options.paths ?? Object.keys(options.files ?? {}),
+  };
+}
+
 describe('extractMedia', () => {
   it('should return empty list when ppt/media is missing', () => {
-    const mockZip = {
-      getPathsStartingWith: () => [],
-      getFileData: () => undefined,
-      getFileAsBinary: () => undefined,
-    } as unknown as ZipReader;
+    const mockZip = createMockZip({ paths: [] });
 
     const media = extractMedia(mockZip);
     expect(media).toEqual([]);
   });
 
   it('should discover and extract binary media files eagerly', () => {
-    const mockZip = {
-      getPathsStartingWith: () => ['ppt/media/image1.png', 'ppt/media/sample.mp4'],
-      getFileData: () => new Uint8Array([1, 2, 3, 4]),
-      getFileAsBinary: () => new Uint8Array([1, 2, 3, 4]),
-    } as unknown as ZipReader;
+    const mockZip = createMockZip({
+      files: {
+        'ppt/media/image1.png': new Uint8Array([1, 2, 3, 4]),
+        'ppt/media/sample.mp4': new Uint8Array([1, 2, 3, 4]),
+      },
+      paths: ['ppt/media/image1.png', 'ppt/media/sample.mp4'],
+    });
 
     const media = extractMedia(mockZip, false);
     expect(media.length).toBe(2);
@@ -33,11 +46,12 @@ describe('extractMedia', () => {
   });
 
   it('should support lazy loading getters when lazy option is true', async () => {
-    const mockZip = {
-      getPathsStartingWith: () => ['ppt/media/image2.jpg'],
-      getFileData: () => new Uint8Array([9, 9, 9]),
-      getFileAsBinary: () => new Uint8Array([9, 9, 9]),
-    } as unknown as ZipReader;
+    const mockZip = createMockZip({
+      files: {
+        'ppt/media/image2.jpg': new Uint8Array([9, 9, 9]),
+      },
+      paths: ['ppt/media/image2.jpg'],
+    });
 
     const media = extractMedia(mockZip, true);
     expect(media[0].data).toBeNull();
@@ -87,7 +101,7 @@ describe('createMediaResolver', () => {
     const assets = await resolver.loadFromFiles(['ppt/media/image2.jpg'], getBinary);
 
     expect(assets).toHaveLength(1);
-    expect(assets[0].data).toBeUndefined();
+    expect(assets[0].data).toBeNull();
     expect(assets[0].getData).toBeDefined();
     const fetched = await assets[0].getData!();
     expect(fetched).toEqual(data);
@@ -147,11 +161,12 @@ describe('createMediaResolver', () => {
 
 describe('extractMedia extended coverage', () => {
   it('covers getData callback and null fallback in eager extractMedia', async () => {
-    const mockZip = {
-      getPathsStartingWith: () => ['ppt/media/test.png'],
-      getFileData: () => null,
-      getFileAsBinary: () => null,
-    } as unknown as ZipReader;
+    const mockZip = createMockZip({
+      files: {
+        'ppt/media/test.png': null,
+      },
+      paths: ['ppt/media/test.png'],
+    });
 
     const media = extractMedia(mockZip, false);
     expect(media[0].data).toEqual(new Uint8Array(0));

@@ -442,10 +442,10 @@ export class Presentation {
     const theme = this._ast.themes[0];
     if (!theme) return this;
     theme.name = name;
-    (theme.colorScheme as unknown as Record<string, string>).name = name;
+    theme.colorScheme.name = name;
     if (this._ast.slideMasters[0]?.theme) {
       this._ast.slideMasters[0].theme.name = name;
-      (this._ast.slideMasters[0].theme.colorScheme as unknown as Record<string, string>).name = name;
+      this._ast.slideMasters[0].theme.colorScheme.name = name;
     }
     return this;
   }

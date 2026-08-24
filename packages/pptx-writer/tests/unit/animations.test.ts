@@ -12,20 +12,22 @@ function makeAnim(overrides: Partial<PptxAnimation> = {}): PptxAnimation {
   };
 }
 
-function getAnimNodes(result: Record<string, unknown>): unknown[] {
-  const tnLst = result['p:tnLst'] as Record<string, unknown>;
-  const par = tnLst['p:par'] as Record<string, unknown>;
-  const outerCTn = par['p:cTn'] as Record<string, unknown>;
-  const outerChildTn = outerCTn['p:childTnLst'] as Record<string, unknown>;
-  const seq = outerChildTn['p:seq'] as Record<string, unknown>;
-  const innerCTn = seq['p:cTn'] as Record<string, unknown>;
-  return innerCTn['p:childTnLst'] as unknown[];
+type XmlTree = Record<string, XmlTree | XmlTree[] | string | number | boolean | undefined>;
+
+function getAnimNodes(result: Record<string, XmlTree | undefined>): XmlTree[] {
+  const tnLst = result['p:tnLst'] as XmlTree;
+  const par = tnLst?.['p:par'] as XmlTree;
+  const outerCTn = par?.['p:cTn'] as XmlTree;
+  const outerChildTn = outerCTn?.['p:childTnLst'] as XmlTree;
+  const seq = outerChildTn?.['p:seq'] as XmlTree;
+  const innerCTn = seq?.['p:cTn'] as XmlTree;
+  return (innerCTn?.['p:childTnLst'] as XmlTree[]) || [];
 }
 
-function getFirstCTn(nodes: unknown[]): Record<string, unknown> {
-  const first = nodes[0] as Record<string, unknown>;
-  const cMediaNode = first['p:cMediaNode'] as Record<string, unknown>;
-  return cMediaNode['p:cTn'] as Record<string, unknown>;
+function getFirstCTn(nodes: XmlTree[]): XmlTree {
+  const first = nodes[0];
+  const cMediaNode = first?.['p:cMediaNode'] as XmlTree;
+  return (cMediaNode?.['p:cTn'] as XmlTree) || {};
 }
 
 describe('serializeAnimations', () => {

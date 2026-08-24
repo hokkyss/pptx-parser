@@ -3,8 +3,9 @@ import { parseTable } from '../../lib/parsers/table-parser';
 
 describe('Table Parser (@hokkyss/pptx-reader)', () => {
   it('returns undefined for null or undefined input', () => {
-    expect(parseTable(undefined as unknown as string)).toBeUndefined();
-    expect(parseTable('' as unknown as string)).toBeUndefined();
+    // @ts-expect-error Testing undefined input resilience
+    expect(parseTable(undefined)).toBeUndefined();
+    expect(parseTable('')).toBeUndefined();
   });
 
   it('parses a table from raw XML string', () => {
