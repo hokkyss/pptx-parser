@@ -12,6 +12,12 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  test: {
+    coverage: {
+      include: ['lib/**/*.ts'],
+      exclude: ['lib/types/**'],
+    },
+  },
   plugins: [
     dts({
       entryRoot: './lib',

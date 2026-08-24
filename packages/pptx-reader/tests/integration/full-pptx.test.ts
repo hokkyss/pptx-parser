@@ -73,7 +73,10 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
 
       'ppt/slideMasters/slideMaster1.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
-  <p:cSld name="Synthetic Master"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld>
+  <p:cSld name="Synthetic Master"><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+    <p:cxnSp><p:nvCxnSpPr><p:cNvPr id="2" name="Master Connector"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr><p:spPr/></p:cxnSp>
+    <p:grpSp><p:nvGrpSpPr><p:cNvPr id="3" name="Master Group"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/><p:sp><p:nvSpPr><p:cNvPr id="4" name="Nested"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/></p:sp></p:grpSp>
+  </p:spTree></p:cSld>
   <p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst>
 </p:sldMaster>`),
 
@@ -305,5 +308,20 @@ describe('full-pptx edge cases', () => {
     const zip = zipSync(files);
     const parsed = await parsePptx(zip);
     expect(parsed.slides).toHaveLength(1);
+  });
+});
+
+describe('full-pptx lazy media parsing', () => {
+  it('parses media lazily with getData callback', async () => {
+    const files: Record<string, Uint8Array> = {
+      'ppt/presentation.xml': strToU8('<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>'),
+      'ppt/media/test.png': new Uint8Array([1, 2, 3, 4]),
+    };
+    const zip = zipSync(files);
+    const parsed = await parsePptx(zip, { lazyMedia: true, includeMedia: true });
+    expect(parsed.media).toHaveLength(1);
+    expect(parsed.media[0].data).toBeNull();
+    const loadedData = await parsed.media[0].getData?.();
+    expect(loadedData).toBeDefined();
   });
 });

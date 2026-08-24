@@ -182,47 +182,56 @@ describe('Presentation Class (Unit Tests)', () => {
   });
 });
 
-  describe('Edge cases & Error Handling', () => {
-    it('returns false when removing non-existent slide', () => {
-      const pres = Presentation.create();
-      expect(pres.removeSlide(99)).toBe(false);
-      expect(pres.removeSlide('rId99')).toBe(false);
-    });
-
-    it('throws error when duplicating non-existent slide', () => {
-      const pres = Presentation.create();
-      expect(() => pres.duplicateSlide(99)).toThrow('not found');
-    });
-
-    it('throws error when moving slide with out-of-bounds indices', () => {
-      const pres = Presentation.create();
-      pres.addSlide();
-      expect(() => pres.moveSlide(0, 1)).toThrow('Invalid slide index');
-      expect(() => pres.moveSlide(1, 5)).toThrow('Invalid slide index');
-    });
-
-    it('sets theme colors with custom palette name', () => {
-      const pres = Presentation.create();
-      pres.setThemeColors({ accent1: '#123456' }, 'MyPalette');
-      expect((pres.ast.themes[0].colorScheme as PptxColorScheme & { name?: string }).name).toBe('MyPalette');
-    });
-
-    it('resolves layout by type or partial matchingName on addSlide', () => {
-      const pres = Presentation.create();
-      pres.ast.slideLayouts.push({
-        elements: [],
-        id: 'slideLayout3',
-        masterId: 'slideMaster1',
-        name: 'Comparison',
-        matchingName: 'TwoColumnLayout',
-        shapes: [],
-        type: 'twoColumn',
-      });
-
-      const s1 = pres.addSlide({ layout: 'twoColumn' });
-      expect(s1.layoutId).toBe('slideLayout3');
-
-      const s2 = pres.addSlide({ layout: 'TwoColumnLayout' });
-      expect(s2.layoutId).toBe('slideLayout3');
-    });
+describe('Edge cases & Error Handling', () => {
+  it('returns false when removing non-existent slide', () => {
+    const pres = Presentation.create();
+    expect(pres.removeSlide(99)).toBe(false);
+    expect(pres.removeSlide('rId99')).toBe(false);
   });
+
+  it('throws error when duplicating non-existent slide', () => {
+    const pres = Presentation.create();
+    expect(() => pres.duplicateSlide(99)).toThrow('not found');
+  });
+
+  it('throws error when moving slide with out-of-bounds indices', () => {
+    const pres = Presentation.create();
+    pres.addSlide();
+    expect(() => pres.moveSlide(0, 1)).toThrow('Invalid slide index');
+    expect(() => pres.moveSlide(1, 5)).toThrow('Invalid slide index');
+  });
+
+  it('sets theme colors with custom palette name', () => {
+    const pres = Presentation.create();
+    pres.setThemeColors({ accent1: '#123456' }, 'MyPalette');
+    expect((pres.ast.themes[0].colorScheme as { name?: string } & PptxColorScheme).name).toBe('MyPalette');
+  });
+
+  it('resolves layout by type or partial matchingName on addSlide', () => {
+    const pres = Presentation.create();
+    pres.ast.slideLayouts.push({
+      elements: [],
+      id: 'slideLayout3',
+      masterId: 'slideMaster1',
+      name: 'Comparison',
+      matchingName: 'TwoColumnLayout',
+      shapes: [],
+      type: 'twoColumn',
+    });
+
+    const byName = pres.getMaster('Office Theme');
+    expect(byName).toBeDefined();
+    expect(byName?.id).toBe('slideMaster1');
+
+    const byPartialName = pres.getMaster('Office');
+    expect(byPartialName).toBeDefined();
+    expect(byPartialName?.id).toBe('slideMaster1');
+
+    const byIndex = pres.getMaster(1);
+    const s1 = pres.addSlide({ layout: 'twoColumn' });
+    expect(s1.layoutId).toBe('slideLayout3');
+
+    const s2 = pres.addSlide({ layout: 'TwoColumnLayout' });
+    expect(s2.layoutId).toBe('slideLayout3');
+  });
+});

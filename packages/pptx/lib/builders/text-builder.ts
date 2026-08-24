@@ -222,8 +222,8 @@ export function buildTextBody(
             runs = [buildTextRun(pConfig.text, mergedOptions)];
           } else if (Array.isArray(pConfig.text)) {
             runs = pConfig.text.map((r) => buildTextRun(r, mergedOptions));
-          } else if ('text' in (item as Record<string, unknown>)) {
-            runs = [buildTextRun(item as TextRunConfig, mergedOptions)];
+          } else if (typeof pConfig.text === 'object') {
+            runs = [buildTextRun(pConfig.text, mergedOptions)];
           }
 
           paragraphs.push({

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildTextBody, buildTextRun } from '../../lib/builders/text-builder';
+import { buildTextBody, buildTextRun, normalizeBullet } from '../../lib/builders/text-builder';
 
 describe('TextBuilder Helper Functions (@hokkyss/pptx)', () => {
   it('normalizes bullet options (number, custom char, object)', () => {
@@ -57,5 +57,25 @@ describe('buildTextBody paragraph arrays and multiline runs', () => {
     expect(body.paragraphs).toHaveLength(2);
     expect(body.paragraphs[0].runs[0].text).toBe('First Line');
     expect(body.paragraphs[1].runs[0].text).toBe('Second Line');
+  });
+});
+
+describe('buildTextBody nested text run config', () => {
+  it('handles item with align and text inside paragraph config list', () => {
+    const body = buildTextBody([
+      { align: 'center', text: 'Centered Paragraph' },
+      { level: 1, text: { italic: true, text: 'Single TextRunConfig Object' } },
+    ]);
+    expect(body.paragraphs[0].runs[0].text).toBe('Centered Paragraph');
+    expect(body.paragraphs[0].properties.alignment).toBe('center');
+    expect(body.paragraphs[1].runs[0].text).toBe('Single TextRunConfig Object');
+    expect(body.paragraphs[1].runs[0].properties.italic).toBe(true);
+  });
+});
+
+describe('normalizeBullet invalid input fallback', () => {
+  it('returns undefined for invalid numeric bullet type', () => {
+    // @ts-expect-error testing runtime fallback
+    expect(normalizeBullet(123)).toBeUndefined();
   });
 });

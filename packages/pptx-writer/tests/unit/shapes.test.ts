@@ -240,3 +240,42 @@ describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
     expect(spPr['a:prstGeom']['@_prst']).toBe('straightConnector1');
   });
 });
+
+describe('Shape and Connector edge cases', () => {
+  it('serializes hidden connector and shape with fallback xfrm bounds', () => {
+    const hiddenConnector: PptxConnectorElement = {
+      elementType: 'connector',
+      type: 'connector',
+      id: '11',
+      name: 'Hidden Connector',
+      isVisible: false,
+      zIndex: 0,
+      position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+      rotation: emuDegree(0),
+    };
+
+    const xmlConn = serializeConnector(hiddenConnector);
+    const nvCxnSpPr = xmlConn['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    expect(nvCxnSpPr['p:cNvPr']['@_hidden']).toBe('1');
+
+    const shapeWithoutExt: PptxShapeElement = {
+      elementType: 'shape',
+      type: 'shape',
+      id: '12',
+      name: 'No Ext Shape',
+      isVisible: true,
+      zIndex: 0,
+      position: { x: emu(100), y: emu(200), cx: emu(0), cy: emu(0) },
+      rotation: emuDegree(0),
+    };
+    // @ts-expect-error test shape without cx / cy dimensions
+    delete shapeWithoutExt.position.cx;
+    // @ts-expect-error test shape without cx / cy dimensions
+    delete shapeWithoutExt.position.cy;
+
+    const xmlShape = serializeShape(shapeWithoutExt);
+    const spPr = xmlShape['p:spPr'] as Record<string, Record<string, unknown>>;
+    expect(spPr['a:xfrm']['a:ext']['@_cx']).toBe(2000000);
+    expect(spPr['a:xfrm']['a:ext']['@_cy']).toBe(1000000);
+  });
+});

@@ -182,3 +182,20 @@ describe('parseFill and parseBackground edge cases', () => {
     expect(parseBackground({})).toBeUndefined();
   });
 });
+
+describe('parseFill sysClr with alpha', () => {
+  it('parses system color with alpha transparency', () => {
+    const sysFill = parseFill({
+      'a:solidFill': {
+        'a:sysClr': {
+          '@_lastClr': '336699',
+          'a:alpha': { '@_val': '50000' },
+        },
+      },
+    });
+    expect(sysFill?.type).toBe('solid');
+    expect(sysFill?.solidColor?.type).toBe('system');
+    expect(sysFill?.solidColor?.value).toBe('336699');
+    expect(sysFill?.solidColor?.alpha).toBe(50000);
+  });
+});

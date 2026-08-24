@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxTextBody } from '@hokkyss/pptx-core';
 import { emu, hundredthsPoint } from '@hokkyss/pptx-core';
-import { serializeFill, serializeRunProperties, serializeTextBody } from '../../lib/serializers/text-serializer';
+import { serializeFill, serializeParagraph, serializeRunProperties, serializeTextBody } from '../../lib/serializers/text-serializer';
 
 describe('Text Body Serializer', () => {
   it('serializes text body with paragraph alignment, line spacing, runs, formatting, and colors', () => {
@@ -125,5 +125,22 @@ describe('Text & Fill Serializer extended coverage', () => {
     });
     expect(rPr['@_strike']).toBe('sngStrike');
     expect(rPr['@_baseline']).toBe(-25000);
+  });
+});
+
+describe('Paragraph serializer bullets and empty runs', () => {
+  it('computes marL and indent for numbered and char bullets', () => {
+    const autoNumPara = serializeParagraph({
+      properties: {
+        bullet: { type: 'autoNum', autoNumType: 'arabicPeriod' },
+        level: 2,
+      },
+      runs: [{ text: 'Item' }],
+    });
+    expect(autoNumPara['a:pPr']).toBeDefined();
+    expect(autoNumPara['a:pPr']?.['@_marL']).toBe((2 * 228600) + 203200);
+
+    const emptyPara = serializeParagraph({ runs: [] });
+    expect(emptyPara['a:endParaRPr']).toEqual({});
   });
 });

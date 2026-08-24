@@ -89,3 +89,9 @@ describe('createZipReader extended API', () => {
     expect(mockReader.listFiles()).toEqual([]);
   });
 });
+
+describe('createZipReader all-zero buffer rejection', () => {
+  it('throws error for all-zero corrupt buffer', async () => {
+    await expect(createZipReader(new Uint8Array([0, 0, 0, 0]))).rejects.toThrow('Invalid or corrupt PPTX container');
+  });
+});

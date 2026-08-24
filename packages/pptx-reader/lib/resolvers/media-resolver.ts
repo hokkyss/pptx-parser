@@ -55,6 +55,7 @@ export function extractMedia(zipReader: ZipReader, lazy: boolean = false): PptxM
       assets.push({
         data: null,
         filename,
+        getData,
         id,
         lazyGetter: getData,
         mimeType,

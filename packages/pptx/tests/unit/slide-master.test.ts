@@ -98,7 +98,6 @@ describe('Slide Master API (Unit Tests)', () => {
 
     expect(slide.layoutId).toBe('slideLayout10');
   });
-});
 
   it('exposes ast and presentation getters and retrieves layout by index or type/matchingName', () => {
     const pres = Presentation.create();
@@ -128,4 +127,12 @@ describe('Slide Master API (Unit Tests)', () => {
 
     const byMatching = master.getLayout('SectionHeaderPattern');
     expect(byMatching?.id).toBe('slideLayout99');
+
+    // Index 0 fallback to layouts[0]
+    expect(master.getLayout(0)).toBeDefined();
+
+    // Name fallback from ast.theme.name
+    delete (master.ast as { name?: string }).name;
+    expect(master.name).toBe('Office Theme');
   });
+});

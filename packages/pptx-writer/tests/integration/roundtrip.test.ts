@@ -317,3 +317,35 @@ describe('writePptx charts and media serialization', () => {
     expect(parsed.slides[0].elements).toHaveLength(2);
   });
 });
+
+describe('writePptx comments and notesSlides customXml overrides', () => {
+  it('serializes custom notesSlides, comments, embeddings, and charts overrides', async () => {
+    const docWithAllOverrides: PptxDocument = {
+      customXml: [
+        { path: 'ppt/notesSlides/notesSlide1.xml', xmlString: '<p:notesSlide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>' },
+        { path: 'ppt/comments/comment1.xml', xmlString: '<p:cmLst xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>' },
+        { path: 'ppt/charts/chart99.xml', xmlString: '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"/>' },
+        { path: 'ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx', binaryData: new Uint8Array([80, 75, 3, 4]) },
+        { path: 'ppt/handoutMasters/handoutMaster1.xml', xmlString: '<p:handoutMaster xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>' },
+        { path: 'ppt/commentAuthors.xml', xmlString: '<p:cmAuthorLst xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>' },
+      ],
+      media: [],
+      metadata: { slideCount: 1, slideHeight: inchesToEmu(7.5), slideWidth: inchesToEmu(13.333) },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          slideId: 'rId1',
+          slideNumber: 1,
+          elements: [],
+          shapes: [],
+          animations: [],
+        },
+      ],
+      themes: [],
+    };
+
+    const buffer = await writePptx(docWithAllOverrides);
+    expect(buffer.length).toBeGreaterThan(0);
+  });
+});

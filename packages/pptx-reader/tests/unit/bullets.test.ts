@@ -72,3 +72,18 @@ describe('parseTextBodyXml and run color parsing', () => {
     expect(parsed.color).toBe('FF0000');
   });
 });
+
+describe('parseParagraph fields and number text nodes', () => {
+  it('parses a:fld fields and object #text nodes', () => {
+    const pNodeWithField = {
+      'a:fld': [
+        { 'a:t': 42 },
+        { 'a:t': { '#text': 'Preserved Text' } },
+      ],
+    };
+    const parsed = parseParagraph(pNodeWithField);
+    expect(parsed.runs).toHaveLength(2);
+    expect(parsed.runs[0].text).toBe('42');
+    expect(parsed.runs[1].text).toBe('Preserved Text');
+  });
+});

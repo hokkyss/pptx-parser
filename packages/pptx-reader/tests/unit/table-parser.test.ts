@@ -113,3 +113,10 @@ describe('Table Parser (@hokkyss/pptx-reader)', () => {
     expect(result!.rows).toEqual([]);
   });
 });
+
+describe('parseTable fallback when no tbl node exists', () => {
+  it('returns empty table when graphic frame has no table', () => {
+    const noTblNode = { 'p:graphicFrame': { 'a:graphic': { 'a:graphicData': {} } } };
+    expect(parseTable(noTblNode)).toEqual({ columnWidths: [], rows: [] });
+  });
+});

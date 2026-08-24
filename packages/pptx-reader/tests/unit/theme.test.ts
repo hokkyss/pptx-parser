@@ -69,3 +69,22 @@ describe('createThemeResolver fallbacks and custom colors', () => {
     expect(theme.customColors['BrandRed']).toBe('FF0000');
   });
 });
+
+describe('createThemeResolver font fallback without latin typeface', () => {
+  it('falls back to default font when majorFont lacks latin typeface', () => {
+    const xml = `
+      <a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Fontless Theme">
+        <a:themeElements>
+          <a:fontScheme name="Empty Fonts">
+            <a:majorFont/>
+            <a:minorFont/>
+          </a:fontScheme>
+        </a:themeElements>
+      </a:theme>
+    `;
+    const resolver = createThemeResolver();
+    const theme = resolver.parseTheme(xml);
+    expect(theme.fontScheme.majorFont).toBe('Calibri');
+    expect(theme.fontScheme.minorFont).toBe('Calibri');
+  });
+});

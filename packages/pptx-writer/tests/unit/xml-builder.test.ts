@@ -33,3 +33,13 @@ describe('XML Builder', () => {
     expect(xml).toContain('<p:cNvPr id="1" name=""/>');
   });
 });
+
+import { sanitizeXmlText } from '../../lib/xml/xml-builder';
+
+describe('sanitizeXmlText helper', () => {
+  it('strips invalid xml chars from string and returns non-string value untouched', () => {
+    expect(sanitizeXmlText('Hello\x00World\x08')).toBe('HelloWorld');
+    expect(sanitizeXmlText(123)).toBe(123);
+    expect(sanitizeXmlText(null)).toBe(null);
+  });
+});

@@ -147,3 +147,28 @@ describe('Shape Parser group and single shape parsing', () => {
     }
   });
 });
+
+describe('Shape Parser JS object input and empty text body', () => {
+  it('parses shape directly from JS object and handles empty txBody', () => {
+    const jsObj = {
+      'p:spTree': {
+        'p:sp': {
+          'p:nvSpPr': {
+            'p:cNvPr': { '@_id': '20', '@_name': 'Obj Shape' },
+            'p:cNvSpPr': {},
+            'p:nvPr': {},
+          },
+          'p:spPr': {},
+          'p:txBody': {
+            'a:bodyPr': {},
+          },
+        },
+      },
+    };
+
+    const shapes = parseShapes(jsObj);
+    expect(shapes).toHaveLength(1);
+    expect(shapes[0].name).toBe('Obj Shape');
+    expect(shapes[0].textBody).toBeUndefined();
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emu, emuDegree, points } from '@hokkyss/pptx-core';
+import { emu, emuDegree, points, inches } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('Placeholder Replacement API (Unit Tests)', () => {
@@ -178,5 +178,118 @@ describe('Placeholder Replacement API (Unit Tests)', () => {
     expect(elements[0].elementType).toBe('table');
     expect(elements[0].position.x).toBe(1500000);
     expect(elements[0].position.y).toBe(2000000);
+  });
+});
+
+describe('Placeholder edge cases', () => {
+  it('returns undefined when resolving nonexistent placeholder', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+    expect(slide.resolvePlaceholder('nonexistent')).toBeUndefined();
+  });
+
+  it('handles getPlaceholders when layout has no elements', () => {
+    const pres = Presentation.create();
+    pres.ast.slideLayouts[0].elements = [];
+    const slide = pres.addSlide();
+    expect(slide.getPlaceholders()).toEqual([]);
+  });
+
+  it('matches placeholder by numeric index and updates position/fill on existing shape', () => {
+    const pres = Presentation.create();
+    pres.ast.slideLayouts[0].elements = [
+      {
+        elementType: 'shape',
+        id: 'ph_num_1',
+        isVisible: true,
+        name: 'placeholder:number-idx',
+        placeholder: { idx: 1, type: 'body' },
+        position: { cx: emu(5000000), cy: emu(1000000), x: emu(1000000), y: emu(1000000) },
+        rotation: emuDegree(0),
+        shapeType: 'rect',
+        type: 'shape',
+        zIndex: 0,
+      },
+    ];
+
+    const slide = pres.addSlide();
+    slide.addText('Initial', { placeholder: 1 });
+    expect(slide.getElements()).toHaveLength(1);
+
+    // Update with fill and custom position
+    slide.addText('Updated with fill and coords', {
+      placeholder: 1,
+      fill: '336699',
+      x: inches(2),
+      y: inches(2),
+      w: inches(6),
+      h: inches(1.5),
+    });
+
+    const el = slide.getElements()[0];
+    if (el.elementType === 'shape') {
+      expect(el.fill?.type).toBe('solid');
+      expect(el.position.x).toBe(1828800);
+      expect(el.position.y).toBe(1828800);
+      expect(el.position.cx).toBe(5486400);
+      expect(el.position.cy).toBe(1371600);
+    }
+  });
+});
+
+describe('Placeholder deduplication and matching by index/type', () => {
+  it('deduplicates layout placeholders that already exist on slide by name, type, or idx', () => {
+    const pres = Presentation.create();
+    pres.ast.slideLayouts[0].elements = [
+      {
+        elementType: 'shape',
+        id: 'ph_by_name',
+        isVisible: true,
+        name: 'placeholder:unique-name',
+        position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+        rotation: emuDegree(0),
+        shapeType: 'rect',
+        type: 'shape',
+        zIndex: 0,
+      },
+      {
+        elementType: 'shape',
+        id: 'ph_by_type',
+        isVisible: true,
+        placeholder: { type: 'body' },
+        position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+        rotation: emuDegree(0),
+        shapeType: 'rect',
+        type: 'shape',
+        zIndex: 1,
+      },
+      {
+        elementType: 'shape',
+        id: 'ph_by_idx',
+        isVisible: true,
+        placeholder: { idx: 5 },
+        position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+        rotation: emuDegree(0),
+        shapeType: 'rect',
+        type: 'shape',
+        zIndex: 2,
+      },
+    ];
+
+    const slide = pres.addSlide();
+    // Pre-populate slide with matching placeholders
+    slide.addText('Name match', { placeholder: 'placeholder:unique-name' });
+    slide.addText('Type match', { placeholder: 'body' });
+    slide.addText('Idx match', { placeholder: 5 });
+
+    const placeholders = slide.getPlaceholders();
+    expect(placeholders).toHaveLength(3);
+  });
+
+  it('returns slide placeholders when slide layout is missing or unassigned', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+    delete (slide.ast as { layoutId?: string }).layoutId;
+    expect(slide.getPlaceholders()).toEqual([]);
   });
 });

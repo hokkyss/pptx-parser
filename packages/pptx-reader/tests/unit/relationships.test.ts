@@ -56,3 +56,19 @@ describe('createRelationshipResolver extended APIs', () => {
     expect(resolver.getRelationship('ppt/presentation.xml', 'rId1')).toBeDefined();
   });
 });
+
+describe('createRelationshipResolver addRelationships', () => {
+  it('adds custom relationships dynamically', () => {
+    const resolver = createRelationshipResolver('', 'ppt/slides/slide1.xml');
+    resolver.addRelationships('ppt/slides/slide1.xml', [
+      {
+        id: 'rId10',
+        target: '../media/image10.png',
+        type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+      },
+    ]);
+
+    expect(resolver.getTarget('rId10')).toBe('ppt/media/image10.png');
+    expect(resolver.getRelationship('ppt/slides/slide1.xml', 'rId10')?.resolvedTarget).toBe('ppt/media/image10.png');
+  });
+});

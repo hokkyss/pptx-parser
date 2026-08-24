@@ -108,3 +108,37 @@ describe('Layer Parsing & Composition', () => {
     expect(layers?.allShapesInRenderOrder[2].layerSource).toBe('slide');
   });
 });
+
+describe('resolveSlideLayers edge cases', () => {
+  it('resolves by string ID and handles missing layout by falling back to master[0]', () => {
+    const mockDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { slideCount: 1, slideHeight: 100 as Emu, slideWidth: 100 as Emu },
+      slideLayouts: [],
+      slideMasters: [
+        {
+          elements: [],
+          id: 'master1',
+          shapes: [],
+        },
+      ],
+      slides: [
+        {
+          animations: [],
+          elements: [],
+          shapes: [],
+          slideId: 'rId100',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    expect(resolveSlideLayers(mockDoc, 99)).toBeUndefined();
+    const layers = resolveSlideLayers(mockDoc, 'rId100');
+    expect(layers).toBeDefined();
+    expect(layers?.masterElements).toEqual([]);
+    expect(layers?.layoutElements).toEqual([]);
+  });
+});
