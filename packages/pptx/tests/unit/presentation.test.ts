@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { PptxColorScheme } from '@hokkyss/pptx-core';
 import { inches } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
@@ -203,7 +204,7 @@ describe('Presentation Class (Unit Tests)', () => {
     it('sets theme colors with custom palette name', () => {
       const pres = Presentation.create();
       pres.setThemeColors({ accent1: '#123456' }, 'MyPalette');
-      expect((pres.ast.themes[0].colorScheme as any).name).toBe('MyPalette');
+      expect((pres.ast.themes[0].colorScheme as PptxColorScheme & { name?: string }).name).toBe('MyPalette');
     });
 
     it('resolves layout by type or partial matchingName on addSlide', () => {

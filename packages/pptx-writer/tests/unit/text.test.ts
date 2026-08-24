@@ -102,7 +102,8 @@ describe('Text & Fill Serializer extended coverage', () => {
       },
     });
     expect(radialFill?.['a:gradFill']).toBeDefined();
-    expect((radialFill?.['a:gradFill'] as any)['@_flip']).toBe('xy');
+    const gradFillNode = radialFill?.['a:gradFill'] as Record<string, string> | undefined;
+    expect(gradFillNode?.['@_flip']).toBe('xy');
 
     const pathFill = serializeFill({
       type: 'gradient',
@@ -112,7 +113,8 @@ describe('Text & Fill Serializer extended coverage', () => {
         stops: [{ color: { type: 'srgb', value: 'FF0000' }, position: 0 }],
       },
     });
-    expect((pathFill?.['a:gradFill'] as any)['a:path']['@_path']).toBe('rect');
+    const pathGradNode = pathFill?.['a:gradFill'] as Record<string, Record<string, string>> | undefined;
+    expect(pathGradNode?.['a:path']?.['@_path']).toBe('rect');
   });
 
   it('serializes subscript, superscript, strikethrough, and baseline', () => {

@@ -573,8 +573,11 @@ describe('ShapeBuilder shadow and styling', () => {
 
     const elements = slide.getElements();
     expect(elements[0].elementType).toBe('shape');
-    expect((elements[0] as any).shadow).toBeDefined();
-    expect((elements[0] as any).shadow.color).toBe('333333');
-    expect((elements[0] as any).shadow.opacity).toBe(0.5);
+    const shape = elements[0];
+    if (shape.elementType === 'shape') {
+      expect(shape.shadow).toBeDefined();
+      expect(shape.shadow?.color).toBe('333333');
+      expect(shape.shadow?.opacity).toBe(0.5);
+    }
   });
 });

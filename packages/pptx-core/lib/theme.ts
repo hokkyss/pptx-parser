@@ -36,6 +36,8 @@ export interface PptxLine {
 
 /** Represents a color scheme within a theme */
 export interface PptxColorScheme {
+  /** Optional color scheme name. OpenXML: `<a:clrScheme @_name>` */
+  name?: string;
   /** Accent 1 color (hex). OpenXML: `<a:accent1>` */
   accent1: string;
   /** Accent 2 color (hex). OpenXML: `<a:accent2>` */

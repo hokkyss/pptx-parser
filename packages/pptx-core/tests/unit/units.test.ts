@@ -63,8 +63,10 @@ describe('Units & Branded Types (@hokkyss/pptx-core)', () => {
       expect(() => emu(NaN)).toThrow(TypeError);
       expect(() => emu(Infinity)).toThrow(TypeError);
       expect(() => emu(-Infinity)).toThrow(TypeError);
-      expect(() => inches('1' as unknown as number)).toThrow(TypeError);
-      expect(() => points(undefined as unknown as number)).toThrow(TypeError);
+      // @ts-expect-error testing runtime validation
+      expect(() => inches('1')).toThrow(TypeError);
+      // @ts-expect-error testing runtime validation
+      expect(() => points(undefined)).toThrow(TypeError);
     });
   });
 

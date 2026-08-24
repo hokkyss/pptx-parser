@@ -1,4 +1,4 @@
-import type { PptxDocument, PptxMetadata, PptxSlide } from '@hokkyss/pptx-core';
+import type { PptxColorScheme, PptxDocument, PptxMetadata, PptxSlide } from '@hokkyss/pptx-core';
 import type { ThemeColorInput, ThemeFontInput } from '@hokkyss/pptx-core';
 import {
   emu,
@@ -399,11 +399,11 @@ export class Presentation {
     const theme = this._ast.themes[0];
     if (!theme) return this;
     if (name) {
-      (theme.colorScheme as unknown as Record<string, string>).name = name;
+      theme.colorScheme.name = name;
     }
-    for (const [key, value] of Object.entries(colors)) {
+    for (const [key, value] of Object.entries(colors) as [keyof PptxColorScheme, string | undefined][]) {
       if (value !== undefined) {
-        (theme.colorScheme as unknown as Record<string, string>)[key] = value.replace(/^#/, '').toUpperCase();
+        theme.colorScheme[key] = value.replace(/^#/, '').toUpperCase();
       }
     }
     if (this._ast.slideMasters[0]?.theme) {

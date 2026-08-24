@@ -102,7 +102,7 @@ export function sanitizeHyperlinkTooltip(tooltip?: string, maxLength = MAX_TOOLT
  * @param slideIndex Target slide index.
  * @returns Safe integer slide index or `undefined`.
  */
-export function sanitizeSlideIndex(slideIndex?: unknown): number | undefined {
+export function sanitizeSlideIndex(slideIndex?: number | string): number | undefined {
   if (slideIndex === undefined || slideIndex === null) return undefined;
 
   let num: number | undefined;

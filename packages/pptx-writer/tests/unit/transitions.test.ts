@@ -1,3 +1,4 @@
+import type { PptxTransitionType } from '@hokkyss/pptx-core';
 import { describe, expect, it } from 'vitest';
 import { serializeTransition } from '../../lib/serializers/transition-serializer';
 
@@ -93,7 +94,7 @@ describe('Slide Transition Serializer (@hokkyss/pptx-writer)', () => {
   });
 
   it('serializes custom or unknown transition type via fallback', () => {
-    const custom = serializeTransition({ type: 'newsflash' as any });
+    const custom = serializeTransition({ type: 'newsflash' as PptxTransitionType });
     expect(custom?.['p:newsflash']).toEqual({});
   });
 

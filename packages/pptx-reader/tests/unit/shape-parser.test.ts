@@ -71,7 +71,7 @@ describe('Shape Parser (@hokkyss/pptx-reader)', () => {
     expect(shapes).toHaveLength(1);
     expect(shapes[0].type).toBe('graphicFrame');
     expect(shapes[0].id).toBe('6');
-    expect((shapes[0] as unknown as { _chartRelId: string })._chartRelId).toBe('rId2');
+    expect((shapes[0] as PptxShape & { _chartRelId?: string })._chartRelId).toBe('rId2');
   });
 
   it('parses shape locks and placeholders', () => {
@@ -138,10 +138,12 @@ describe('Shape Parser group and single shape parsing', () => {
 
     const resolver = createRelationshipResolver('', 'ppt/slides/slide1.xml');
     const shapes = parseShapes(xml, resolver);
-    expect(shapes).toHaveLength(1);
-    expect(shapes[0].type).toBe('group');
-    expect(shapes[0].elementType).toBe('group');
-    expect((shapes[0] as any).children).toHaveLength(1);
-    expect((shapes[0] as any).children[0].name).toBe('Child Shape');
+    const group = shapes[0];
+    expect(group.type).toBe('group');
+    expect(group.elementType).toBe('group');
+    if (group.elementType === 'group') {
+      expect(group.children).toHaveLength(1);
+      expect(group.children[0].name).toBe('Child Shape');
+    }
   });
 });
