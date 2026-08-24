@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { PptxShapeElement } from '@hokkyss/pptx-core';
+import type { PptxConnectorElement, PptxShapeElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, hundredthsPoint } from '@hokkyss/pptx-core';
 import { serializeConnector, serializeShape } from '../../lib/serializers/shape-serializer';
 
-describe('Shape Serializer', () => {
+describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
   it('serializes shape element with transforms, geometry, fills, and outline', () => {
     const shape: PptxShapeElement = {
       elementType: 'shape',
@@ -18,7 +18,7 @@ describe('Shape Serializer', () => {
         cx: emu(3000000),
         cy: emu(1500000),
       },
-      rotation: emuDegree(5400000), // 90 deg
+      rotation: emuDegree(5400000),
       geometry: {
         presetGeometry: 'rect',
       },
@@ -60,7 +60,6 @@ describe('Shape Serializer', () => {
     expect((spPr['a:solidFill']['a:srgbClr'] as Record<string, unknown>)['@_val']).toBe('007ACC');
     expect(spPr['a:ln']['@_w']).toBe(12700);
     expect(((spPr['a:ln']['a:solidFill'] as Record<string, unknown>)['a:srgbClr'] as Record<string, unknown>)['@_val']).toBe('000000');
-
     expect(xmlObject['p:txBody']).toBeDefined();
   });
 
@@ -136,5 +135,108 @@ describe('Shape Serializer', () => {
       '@_id': 'card-2',
       '@_idx': 1, // 'left' -> 1
     });
+  });
+
+  it('serializes shape locks, placeholders, shadows, and text box attributes', () => {
+    const shape: PptxShapeElement = {
+      elementType: 'shape',
+      type: 'shape',
+      id: '3',
+      name: 'Locked Box',
+      isTextBox: true,
+      isVisible: false,
+      zIndex: 1,
+      position: { x: emu(0), y: emu(0), cx: emu(1000000), cy: emu(1000000) },
+      rotation: emuDegree(0),
+      locks: {
+        noGrp: true,
+        noRot: true,
+        noChangeAspect: true,
+        noMove: true,
+        noResize: true,
+        noEditPoints: true,
+        noAdjustHandles: true,
+        noChangeShapeType: true,
+      },
+      placeholder: { type: 'body', idx: 1 },
+      shadow: {
+        blurRadius: emu(50000),
+        distance: emu(30000),
+        direction: emuDegree(5400000),
+        alignment: 'ctr',
+        rotateWithShape: true,
+        opacity: 0.5,
+        color: '#333333',
+      },
+      hyperlink: { rId: 'rId5' },
+    };
+
+    const xmlObject = serializeShape(shape);
+    const nvSpPr = xmlObject['p:nvSpPr'] as Record<string, Record<string, unknown>>;
+    expect(nvSpPr['p:cNvPr']['@_hidden']).toBe('1');
+    expect(nvSpPr['p:cNvPr']['a:hlinkClick']).toBeDefined();
+    expect(nvSpPr['p:cNvSpPr']['@_txBox']).toBe('1');
+    expect(nvSpPr['p:cNvSpPr']['a:spLocks']).toBeDefined();
+    expect((nvSpPr['p:nvPr']['p:ph'] as Record<string, unknown>)['@_type']).toBe('body');
+
+    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
+    expect(spPr['a:effectLst']).toBeDefined();
+    expect(xmlObject['p:txBody']).toBeDefined();
+  });
+
+  it('serializes geometry adjustments into preset geometry', () => {
+    const shape: PptxShapeElement = {
+      elementType: 'shape',
+      type: 'shape',
+      id: '4',
+      name: 'Adjusted Shape',
+      isVisible: true,
+      zIndex: 0,
+      position: { x: emu(0), y: emu(0), cx: emu(2000000), cy: emu(2000000) },
+      rotation: emuDegree(0),
+      geometry: {
+        presetGeometry: 'roundRect',
+        adjustments: { adj1: 50000 },
+      },
+    };
+
+    const xmlObject = serializeShape(shape);
+    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
+    expect(spPr['a:prstGeom']).toBeDefined();
+    const prstGeom = spPr['a:prstGeom'] as Record<string, Record<string, unknown>>;
+    expect(prstGeom['@_prst']).toBe('roundRect');
+    expect(prstGeom['a:avLst']).toBeDefined();
+  });
+
+  it('serializes connector element (<p:cxnSp>)', () => {
+    const connector: PptxConnectorElement = {
+      elementType: 'connector',
+      type: 'connector',
+      id: '10',
+      name: 'Arrow Connector',
+      isVisible: true,
+      zIndex: 0,
+      shapeType: 'straightConnector1',
+      position: { x: emu(100), y: emu(200), cx: emu(500000), cy: emu(500000) },
+      rotation: emuDegree(0),
+      line: {
+        width: emu(25400),
+        fill: { type: 'solid', solidColor: { type: 'srgb', value: 'FF5500' } },
+      },
+      hyperlink: { rId: 'rId8' },
+    };
+
+    const xmlObject = serializeConnector(connector);
+    expect(xmlObject).toHaveProperty('p:nvCxnSpPr');
+    expect(xmlObject).toHaveProperty('p:spPr');
+
+    const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
+    expect(nvCxnSpPr['p:cNvPr']['@_id']).toBe('10');
+    expect(nvCxnSpPr['p:cNvPr']['@_name']).toBe('Arrow Connector');
+    expect(nvCxnSpPr['p:cNvPr']['a:hlinkClick']).toBeDefined();
+
+    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
+    expect(spPr['a:ln']).toBeDefined();
+    expect(spPr['a:prstGeom']['@_prst']).toBe('straightConnector1');
   });
 });

@@ -37,6 +37,7 @@ describe('Hyperlink Security Sanitizer (@hokkyss/pptx-core)', () => {
       expect(sanitizeHyperlinkUrl('powershell:-Command "calc"')).toBeUndefined();
       expect(sanitizeHyperlinkUrl('cmd:/c dir')).toBeUndefined();
       expect(sanitizeHyperlinkUrl('rundll32:shell32.dll,Control_RunDLL')).toBeUndefined();
+      expect(sanitizeHyperlinkUrl('unknown-custom-scheme:payload')).toBeUndefined();
     });
 
     it('strips ASCII control characters and CRLF injection attempts', () => {

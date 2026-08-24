@@ -76,7 +76,8 @@ export function parseTable(tblNode: Record<string, unknown> | string, parser: Xm
         for (const tcNode of tcNodes as Record<string, unknown>[]) {
           const rowSpan = tcNode['@_rowSpan'] !== undefined ? Number(tcNode['@_rowSpan']) : 1;
           const colSpan = tcNode['@_gridSpan'] !== undefined ? Number(tcNode['@_gridSpan']) : 1;
-          const textBody = parseTextBody(tcNode['a:txBody'] as Record<string, unknown>);
+          const txBodyNode = (tcNode['a:txBody'] || tcNode['txBody'] || {}) as Record<string, unknown>;
+          const textBody = parseTextBody(txBodyNode);
 
           const cellProperties = parseCellProperties(tcNode);
 

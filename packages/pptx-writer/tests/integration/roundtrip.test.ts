@@ -5,35 +5,39 @@ import { describe, expect, it } from 'vitest';
 import { writePptx } from '../../lib';
 
 describe('Round-Trip Integration (Synthetic Presentation)', () => {
-  it('writes a complete multi-slide AST, parses it back, and verifies 100% round-trip fidelity', async () => {
-    const syntheticTheme: PptxTheme = {
-      colorScheme: {
-        accent1: '0284C7',
-        accent2: '6366F1',
-        accent3: '10B981',
-        accent4: 'F59E0B',
-        accent5: 'EF4444',
-        accent6: '8B5CF6',
-        dk1: '000000',
-        dk2: '1E293B',
-        folHlink: '7C3AED',
-        hlink: '2563EB',
-        lt1: 'FFFFFF',
-        lt2: 'F8FAFC',
-      },
-      customColors: {},
-      fontScheme: {
-        majorFont: 'Inter',
-        minorFont: 'Roboto',
-        name: 'Synthetic Fonts',
-      },
-      formatScheme: {},
-      id: 'theme1',
-      name: 'Synthetic Theme',
-    };
+  const syntheticTheme: PptxTheme = {
+    colorScheme: {
+      accent1: '0284C7',
+      accent2: '6366F1',
+      accent3: '10B981',
+      accent4: 'F59E0B',
+      accent5: 'EF4444',
+      accent6: '8B5CF6',
+      dk1: '000000',
+      dk2: '1E293B',
+      folHlink: '7C3AED',
+      hlink: '2563EB',
+      lt1: 'FFFFFF',
+      lt2: 'F8FAFC',
+    },
+    customColors: {},
+    fontScheme: {
+      majorFont: 'Inter',
+      minorFont: 'Roboto',
+      name: 'Synthetic Fonts',
+    },
+    formatScheme: {},
+    id: 'theme1',
+    name: 'Synthetic Theme',
+  };
 
+  it('writes a complete multi-slide AST, parses it back, and verifies 100% round-trip fidelity', async () => {
     const originalDoc: PptxDocument = {
-      customXml: [],
+      customXml: [
+        { path: 'customXml/item1.xml', xmlString: '<item>meta</item>' },
+        { path: 'ppt/commentAuthors.xml', xmlString: '<p:cmAuthorLst xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>' },
+        { path: 'ppt/handoutMasters/handoutMaster1.xml', xmlString: '<p:handoutMaster xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>' },
+      ],
       media: [],
       metadata: {
         creator: 'Synthetic Architect',
@@ -67,6 +71,7 @@ describe('Round-Trip Integration (Synthetic Presentation)', () => {
       slides: [
         {
           animations: [],
+          notes: 'Speaker notes for slide 1',
           elements: [
             {
               elementType: 'shape',
@@ -100,6 +105,10 @@ describe('Round-Trip Integration (Synthetic Presentation)', () => {
         },
         {
           animations: [],
+          notesBody: {
+            bodyProperties: {},
+            paragraphs: [{ properties: {}, runs: [{ text: 'Structured speaker notes' }] }],
+          },
           elements: [
             {
               elementType: 'table',
@@ -139,7 +148,7 @@ describe('Round-Trip Integration (Synthetic Presentation)', () => {
     expect(generatedBuffer.length).toBeGreaterThan(0);
 
     // 2. Parse back
-    const roundTripDoc = await parsePptx(generatedBuffer);
+    const roundTripDoc = await parsePptx(generatedBuffer, { customXml: true });
 
     // 3. Verify fidelity
     expect(roundTripDoc.slides.length).toBe(2);
@@ -147,6 +156,8 @@ describe('Round-Trip Integration (Synthetic Presentation)', () => {
     expect(roundTripDoc.metadata.creator).toBe(originalDoc.metadata.creator);
     expect(roundTripDoc.themes[0].colorScheme.accent1).toBe('0284C7');
     expect(roundTripDoc.themes[0].fontScheme.majorFont).toBe('Inter');
+    expect(roundTripDoc.slides[0].notes).toBe('Speaker notes for slide 1');
+    expect(roundTripDoc.slides[1].notes).toBe('Structured speaker notes');
 
     const shape = roundTripDoc.slides[0].elements[0];
     expect(shape.name).toBe('Header Shape');
@@ -159,5 +170,52 @@ describe('Round-Trip Integration (Synthetic Presentation)', () => {
     if (table.elementType === 'table') {
       expect(table.table?.rows.length).toBe(1);
     }
+  });
+
+  it('handles lenient mode auto-generating defaults when masters or themes are missing', async () => {
+    const minimalDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: {
+        slideCount: 1,
+        slideHeight: inchesToEmu(7.5),
+        slideWidth: inchesToEmu(13.333),
+      },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          animations: [],
+          elements: [],
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    const buffer = await writePptx(minimalDoc, { mode: 'lenient' });
+    expect(buffer.length).toBeGreaterThan(0);
+    const parsed = await parsePptx(buffer);
+    expect(parsed.slides).toHaveLength(1);
+  });
+
+  it('throws in strict mode when document has no slides', async () => {
+    const invalidDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: {
+        slideCount: 0,
+        slideHeight: inchesToEmu(7.5),
+        slideWidth: inchesToEmu(13.333),
+      },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [],
+      themes: [],
+    };
+
+    await expect(writePptx(invalidDoc, { mode: 'strict' })).rejects.toThrow('Strict mode error');
   });
 });
