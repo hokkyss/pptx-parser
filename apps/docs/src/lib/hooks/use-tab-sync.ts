@@ -1,3 +1,5 @@
+import { createIsomorphicFn } from '@tanstack/react-start';
+import { getCookie as getServerCookie } from '@tanstack/react-start/server';
 import { useCallback, useState, useSyncExternalStore } from 'react';
 
 interface UseTabSyncOptions {
@@ -9,6 +11,25 @@ interface UseTabSyncReturn {
   activeTab: string;
   setActiveTab: (val: string) => void;
 }
+
+/**
+ * Isomorphic cookie reader splitting server and client implementations:
+ * - Server: Reads from request cookies via `@tanstack/react-start/server` getCookie
+ * - Client: Reads from `document.cookie`
+ */
+const getCookie = createIsomorphicFn()
+  .server((cookieName: string): null | string => {
+    try {
+      return getServerCookie(cookieName) ?? null;
+    } catch {
+      return null;
+    }
+  })
+  .client((cookieName: string): null | string => {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp(`(^|;\\s*)(${cookieName})=([^;]*)`));
+    return match ? decodeURIComponent(match[3]) : null;
+  });
 
 /**
  * Hook to synchronize tab selections across the application via cookies and window custom events.
@@ -47,7 +68,13 @@ export default function useTabSync({ defaultValue, syncKey }: UseTabSyncOptions)
     return defaultValue;
   }, [cookieName, defaultValue]);
 
-  const getServerSnapshot = useCallback(() => defaultValue, [defaultValue]);
+  const getServerSnapshot = useCallback(() => {
+    if (cookieName) {
+      const serverStored = getCookie(cookieName);
+      if (serverStored) return serverStored;
+    }
+    return defaultValue;
+  }, [cookieName, defaultValue]);
 
   const syncedTab = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
@@ -69,17 +96,6 @@ export default function useTabSync({ defaultValue, syncKey }: UseTabSyncOptions)
   };
 
   return { activeTab, setActiveTab };
-}
-
-/**
- * Reads a cookie value by name in browser context.
- * @param name Cookie name
- * @returns Cookie string or null if not found
- */
-function getCookie(name: string): null | string {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp(`(^|;\\s*)(${name})=([^;]*)`));
-  return match ? decodeURIComponent(match[3]) : null;
 }
 
 /**
