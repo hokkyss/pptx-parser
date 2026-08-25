@@ -34,9 +34,8 @@ describe('Clean CamelCase Properties Parsing', () => {
     expect(textBody.bodyProperties.columnSpacing).toBe(182880);
 
     // Verify raw @_ attributes do not leak
-    const bodyRecord = textBody.bodyProperties as unknown as Record<string, unknown>;
-    expect(bodyRecord['@_wrap']).toBeUndefined();
-    expect(bodyRecord['@_anchor']).toBeUndefined();
+    expect('@_wrap' in textBody.bodyProperties).toBe(false);
+    expect('@_anchor' in textBody.bodyProperties).toBe(false);
   });
 
   it('should parse paragraph margin, indentation, and spacing into camelCase fields', () => {
@@ -107,9 +106,10 @@ describe('Clean CamelCase Properties Parsing', () => {
     expect(cellProps?.verticalAlignment).toBe('bottom');
 
     // Verify raw @_ attributes do not leak
-    const cellRecord = cellProps as unknown as Record<string, unknown>;
-    expect(cellRecord['@_marL']).toBeUndefined();
-    expect(cellRecord['@_anchor']).toBeUndefined();
+    if (cellProps) {
+      expect('@_marL' in cellProps).toBe(false);
+      expect('@_anchor' in cellProps).toBe(false);
+    }
   });
 
   it('should parse shape lock flags and visibility state correctly', () => {

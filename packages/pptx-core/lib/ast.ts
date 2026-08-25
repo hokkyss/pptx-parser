@@ -244,7 +244,7 @@ export interface PptxShapeElement extends PptxBaseElement {
   elementType: 'shape';
   /** Whether the shape is explicitly marked as a text box. OpenXML: `<p:cNvSpPr @_txBox="1">` */
   isTextBox?: boolean;
-  type: 'shape';
+  type: 'graphicFrame' | 'shape';
 }
 
 /** Table element (embedded via graphicFrame) */

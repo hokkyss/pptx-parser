@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inches } from '@hokkyss/pptx-core';
+import { inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('ChartBuilder (Unit Tests)', () => {
@@ -92,5 +92,74 @@ describe('ChartBuilder (Unit Tests)', () => {
 
     const chartEl = slide.getElements()[0];
     expect(chartEl.chart?.series[0].dataPointColors).toEqual(['0284C7', '10B981', 'F59E0B', '8B5CF6']);
+  });
+});
+
+it('supports series fill object and axis customizations (catAxis, valAxis, textColor, gridColor)', () => {
+  const pres = Presentation.create();
+  const slide = pres.addSlide();
+
+  slide.addChart({
+    chartType: 'line',
+    categories: ['Jan', 'Feb'],
+    textColor: '333333',
+    axisColor: '666666',
+    gridColor: 'CCCCCC',
+    showGridlines: true,
+    series: [
+      {
+        name: 'Series 1',
+        values: [10, 20],
+        fill: { type: 'solid', solidColor: { type: 'srgb', value: '112233' } },
+      },
+    ],
+  });
+
+  const chartEl = slide.getElements()[0];
+  expect(chartEl.chart?.series[0].fill).toBeDefined();
+  expect(chartEl.chart?.legend?.color).toBe('333333');
+  expect(chartEl.chart?.catAxis?.axisColor).toBe('666666');
+  expect(chartEl.chart?.valAxis?.gridlineColor).toBe('CCCCCC');
+  expect(chartEl.chart?.valAxis?.showGridlines).toBe(true);
+});
+
+describe('ChartBuilder edge cases', () => {
+  it('covers optional axes, empty series options and series without names', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addChart({
+      chartType: 'column',
+      series: [{ values: [10, 20] }],
+    });
+    const chart1 = slide.getElements()[0];
+    expect(chart1.chart?.series[0].name).toBe('Series 1');
+    expect(chart1.chart?.categories).toEqual([]);
+
+    slide.addChart({
+      catAxis: {
+        axisColor: 'FF0000',
+        color: '333333',
+        fontSize: points(12),
+        gridlineColor: 'CCCCCC',
+        showGridlines: true,
+      },
+      valAxis: {
+        axisColor: '00FF00',
+        color: '666666',
+        fontSize: points(14),
+        gridlineColor: 'E5E5E5',
+        showGridlines: false,
+      },
+      series: [],
+    });
+    const chart2 = slide.getElements()[1];
+    expect(chart2.chart?.catAxis?.axisColor).toBe('FF0000');
+    expect(chart2.chart?.valAxis?.showGridlines).toBe(false);
+
+    // Empty series options
+    slide.addChart({});
+    const chart3 = slide.getElements()[2];
+    expect(chart3.chart?.series).toEqual([]);
   });
 });

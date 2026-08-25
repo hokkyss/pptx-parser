@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { inches } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('Slide Transitions (Fluent SDK & Roundtrip)', () => {
@@ -34,17 +35,17 @@ describe('Slide Transitions (Fluent SDK & Roundtrip)', () => {
 
     // Slide 1: Fade through black
     const slide1 = pres.addSlide();
-    slide1.addText('Slide 1: Intro', { x: 1, y: 1 });
+    slide1.addText('Slide 1: Intro', { x: inches(1), y: inches(1) });
     slide1.setTransition('fade', { throughBlack: true, speed: 'fast' });
 
     // Slide 2: Push up with auto-advance
     const slide2 = pres.addSlide();
-    slide2.addText('Slide 2: Data', { x: 1, y: 1 });
+    slide2.addText('Slide 2: Data', { x: inches(1), y: inches(1) });
     slide2.setTransition('push', { direction: 'up', advanceAfterMs: 4000, advanceOnClick: false });
 
     // Slide 3: Wheel with 4 spokes
     const slide3 = pres.addSlide();
-    slide3.addText('Slide 3: Conclusion', { x: 1, y: 1 });
+    slide3.addText('Slide 3: Conclusion', { x: inches(1), y: inches(1) });
     slide3.setTransition('wheel', { spokes: 4 });
 
     const buffer = await pres.toBuffer();

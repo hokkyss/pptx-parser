@@ -171,3 +171,87 @@ describe('Gradient Fill Parser (@hokkyss/pptx-reader)', () => {
     expect(shape.line?.fill?.solidColor?.value).toBe('FFFFFF');
   });
 });
+
+describe('parseFill and parseBackground edge cases', () => {
+  it('parses noFill and handles empty background node', () => {
+    expect(parseFill({})).toBeUndefined();
+    expect(parseFill(undefined)).toBeUndefined();
+    expect(parseFill({ 'a:noFill': {} })?.type).toBe('none');
+
+    expect(parseBackground(undefined)).toBeUndefined();
+    expect(parseBackground({})).toBeUndefined();
+  });
+});
+
+describe('parseFill sysClr with alpha', () => {
+  it('parses system color with alpha transparency', () => {
+    const sysFill = parseFill({
+      'a:solidFill': {
+        'a:sysClr': {
+          '@_lastClr': '336699',
+          'a:alpha': { '@_val': '50000' },
+        },
+      },
+    });
+    expect(sysFill?.type).toBe('solid');
+    expect(sysFill?.solidColor?.type).toBe('system');
+    expect(sysFill?.solidColor?.value).toBe('336699');
+    expect(sysFill?.solidColor?.alpha).toBe(50000);
+  });
+});
+
+describe('parseFill with unsupported color node', () => {
+  it('returns undefined when color tag is unknown', () => {
+    const fill = parseFill({ 'a:solidFill': { 'a:hslClr': {} } });
+    expect(fill).toBeUndefined();
+  });
+
+  it('covers noFill and radial path gradients', () => {
+    const noFill = parseFill({ 'a:noFill': {} });
+    expect(noFill?.type).toBe('none');
+
+    const gradPath = parseFill({
+      'a:gradFill': {
+        'a:gsLst': {
+          'a:gs': [{ '@_pos': 0, 'a:srgbClr': { '@_val': 'FF0000' } }],
+        },
+        'a:path': { '@_path': 'circle', 'a:fillToRect': { '@_b': 50000, '@_l': 50000, '@_r': 50000, '@_t': 50000 } },
+      },
+    });
+    expect(gradPath?.type).toBe('gradient');
+    if (gradPath?.type === 'gradient' && gradPath.gradient) {
+      expect(gradPath.gradient.type).toBe('radial');
+    }
+
+    // sysClr with @_val fallback and no lastClr
+    const sysValFill = parseFill({
+      'a:solidFill': {
+        'a:sysClr': {
+          '@_val': 'windowText',
+        },
+      },
+    });
+    expect(sysValFill?.solidColor?.type).toBe('system');
+    expect(sysValFill?.solidColor?.value).toBe('WINDOWTEXT');
+
+    // Gradient with path='rect', flip='x', and rotWithShape='false'
+    const gradRect = parseFill({
+      'a:gradFill': {
+        '@_flip': 'x',
+        '@_rotWithShape': 'false',
+        'a:gsLst': {
+          'a:gs': [{ '@_pos': 0, 'a:srgbClr': { '@_val': '00FF00' } }],
+        },
+        'a:path': {
+          '@_path': 'rect',
+          'a:fillToRect': { '@_l': 10000 },
+        },
+      },
+    });
+    expect(gradRect?.gradient?.type).toBe('path');
+    expect(gradRect?.gradient?.flip).toBe('x');
+    expect(gradRect?.gradient?.rotateWithShape).toBe(false);
+    expect(gradRect?.gradient?.pathBounds?.left).toBe(0.1);
+    expect(gradRect?.gradient?.pathBounds?.top).toBeUndefined();
+  });
+});

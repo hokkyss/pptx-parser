@@ -1,33 +1,35 @@
 import getConfig from '@monorepo/eslint';
 import { defineConfig } from 'eslint/config';
 
-export default defineConfig({
-  extends: [
-    getConfig({
-      environment: 'isomorphic',
-      outDir: 'dist',
-      react: false,
-      tanstackQuery: false,
-      tanstackRouter: false,
-      tsconfigRootDir: import.meta.dirname,
-      tsconfigPath: ['tsconfig.json', 'tsconfig.test.json'],
-    }),
-  ],
-  ignores: ['dist/**'],
-  rules: {
-    'perfectionist/sort-objects': 'off',
-    'perfectionist/sort-interfaces': 'off',
-    'perfectionist/sort-object-types': 'off',
-    'perfectionist/sort-classes': 'off',
-    'perfectionist/sort-imports': 'off',
-    'perfectionist/sort-named-imports': 'off',
-    'perfectionist/sort-exports': 'off',
-    'perfectionist/sort-modules': 'off',
-    'sort-keys': 'off',
-    'jsdoc/escape-inline-tags': 'off',
-    'jsdoc/require-returns': 'off',
-    'jsdoc/require-param': 'off',
-    'jsdoc/require-param-description': 'off',
-    'jsdoc/check-param-names': 'off',
+export default defineConfig(
+  getConfig({
+    environment: 'isomorphic',
+    outDir: 'dist',
+    react: false,
+    tanstackQuery: false,
+    tanstackRouter: false,
+    tsconfigPath: ['tsconfig.json', 'tsconfig.test.json'],
+    tsconfigRootDir: import.meta.dirname,
+  }),
+  {
+    ignores: ['dist/**', 'coverage/**', '**/*.json'],
   },
-});
+  {
+    rules: {
+      'jsdoc/check-param-names': 'off',
+      'jsdoc/escape-inline-tags': 'off',
+      'jsdoc/require-param': 'off',
+      'jsdoc/require-param-description': 'off',
+      'jsdoc/require-returns': 'off',
+      'perfectionist/sort-classes': 'off',
+      'perfectionist/sort-exports': 'off',
+      'perfectionist/sort-imports': 'off',
+      'perfectionist/sort-interfaces': 'off',
+      'perfectionist/sort-modules': 'off',
+      'perfectionist/sort-named-imports': 'off',
+      'perfectionist/sort-object-types': 'off',
+      'perfectionist/sort-objects': 'off',
+      'sort-keys': 'off',
+    },
+  },
+);

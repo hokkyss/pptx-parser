@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { inches } from '@hokkyss/pptx-core';
+import type { PptxDocument, PptxSlide } from '@hokkyss/pptx-core';
+import { emu, inches } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('Presentation Class (Unit Tests)', () => {
@@ -178,5 +179,147 @@ describe('Presentation Class (Unit Tests)', () => {
       const loaded = await Presentation.load(buffer);
       expect(loaded.firstSlideNumber).toBe(0);
     });
+  });
+});
+
+describe('Edge cases & Error Handling', () => {
+  it('returns false when removing non-existent slide', () => {
+    const pres = Presentation.create();
+    expect(pres.removeSlide(99)).toBe(false);
+    expect(pres.removeSlide('rId99')).toBe(false);
+  });
+
+  it('throws error when duplicating non-existent slide', () => {
+    const pres = Presentation.create();
+    expect(() => pres.duplicateSlide(99)).toThrow('not found');
+  });
+
+  it('throws error when moving slide with out-of-bounds indices', () => {
+    const pres = Presentation.create();
+    pres.addSlide();
+    expect(() => pres.moveSlide(0, 1)).toThrow('Invalid slide index');
+    expect(() => pres.moveSlide(1, 5)).toThrow('Invalid slide index');
+  });
+
+  it('sets theme colors with custom palette name', () => {
+    const pres = Presentation.create();
+    pres.setThemeColors({ accent1: '#123456' }, 'MyPalette');
+    expect(pres.ast.themes[0].colorScheme.name).toBe('MyPalette');
+  });
+
+  it('resolves layout by type or partial matchingName on addSlide', () => {
+    const pres = Presentation.create();
+    pres.ast.slideLayouts.push({
+      elements: [],
+      id: 'slideLayout3',
+      masterId: 'slideMaster1',
+      name: 'Comparison',
+      matchingName: 'TwoColumnLayout',
+      shapes: [],
+      type: 'twoColumn',
+    });
+
+    const byName = pres.getMaster('Office Theme');
+    expect(byName).toBeDefined();
+    expect(byName?.id).toBe('slideMaster1');
+
+    const byPartialName = pres.getMaster('Office');
+    expect(byPartialName).toBeDefined();
+    expect(byPartialName?.id).toBe('slideMaster1');
+
+    const byIndex = pres.getMaster(1);
+    expect(byIndex).toBeDefined();
+    const s1 = pres.addSlide({ layout: 'twoColumn' });
+    expect(s1.layoutId).toBe('slideLayout3');
+
+    const s2 = pres.addSlide({ layout: 'TwoColumnLayout' });
+    expect(s2.layoutId).toBe('slideLayout3');
+  });
+});
+
+describe('Presentation Class theme guards and rich slide duplication', () => {
+  it('handles empty themes in setThemeColors, setThemeFonts, and setThemeName', () => {
+    const pres = Presentation.create();
+    pres.ast.themes = [];
+
+    expect(pres.setThemeColors({ accent1: '#FF0000' })).toBe(pres);
+    expect(pres.setThemeFonts({ major: 'Calibri' })).toBe(pres);
+    expect(pres.setThemeName('Custom')).toBe(pres);
+  });
+
+  it('duplicates slide with background, animations, shapes, and notes', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+    slide.setBackground('0F172A');
+    slide.setNotes('Speaker notes remark');
+    slide.addText('Slide 1 Content', { x: inches(1), y: inches(1), w: inches(4), h: inches(1) });
+
+    const duplicated = pres.duplicateSlide(1);
+    expect(duplicated.notes).toBe('Speaker notes remark');
+    expect(duplicated.ast.background?.fill?.type).toBe('solid');
+    expect(duplicated.getElements().length).toBe(1);
+    expect(pres.slides.length).toBe(2);
+  });
+
+  it('handles missing collections, fallback indices and empty layout lists', () => {
+    const doc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { created: new Date(), modified: new Date(), revision: 1, slideCount: 0, slideHeight: emu(6858000), slideWidth: emu(12192000) },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [],
+      themes: [],
+    };
+    const pres = new Presentation(doc);
+    expect(pres.slides).toEqual([]);
+    expect(pres.getMasters()).toEqual([]);
+    expect(pres.getMaster(0)).toBeUndefined();
+    expect(pres.getMaster(1)).toBeUndefined();
+
+    // duplicateSlide on minimal slide
+    const minimalSlide: PptxSlide = {
+      animations: [],
+      elements: [],
+      shapes: [],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    pres.ast.slides = [minimalSlide];
+    pres.ast.slideLayouts = [];
+    const presWithSlide = new Presentation(pres.ast);
+    const duplicated = presWithSlide.duplicateSlide(1);
+    expect(duplicated.slideNumber).toBe(2);
+
+    // resolveLayoutId fallback when slideLayouts is empty
+    const pres2 = Presentation.create();
+    pres2.ast.slideLayouts = [];
+    const s = pres2.addSlide();
+    expect(s.layoutId).toBe('slideLayout1');
+
+    // Presentation with undefined slides/masters/layouts
+    // @ts-expect-error Testing undefined collections at runtime
+    const presWithUndefinedArrays = new Presentation({ ...doc, slideLayouts: undefined, slideMasters: undefined, slides: undefined });
+    expect(presWithUndefinedArrays.slides).toHaveLength(0);
+    expect(presWithUndefinedArrays.getMasters()).toHaveLength(0);
+
+    // Duplicate slide with undefined animations/elements/shapes
+    const slideWithUndefinedArrays: PptxSlide = {
+      animations: [],
+      elements: [],
+      shapes: [],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    // @ts-expect-error Testing undefined animations at runtime
+    delete slideWithUndefinedArrays.animations;
+    // @ts-expect-error Testing undefined elements at runtime
+    delete slideWithUndefinedArrays.elements;
+    // @ts-expect-error Testing undefined shapes at runtime
+    delete slideWithUndefinedArrays.shapes;
+    presWithUndefinedArrays.ast.slides = [slideWithUndefinedArrays];
+    const pres3 = new Presentation(presWithUndefinedArrays.ast);
+    const dupSlide = pres3.duplicateSlide(1);
+    expect(dupSlide.slideNumber).toBe(2);
   });
 });

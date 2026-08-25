@@ -4,6 +4,7 @@ import type {
   PptxFill,
   PptxHyperlink,
   PptxParagraph,
+  PptxParagraphProperties,
   PptxRun,
   PptxTextBody,
   PptxTextBodyProperties,
@@ -353,7 +354,7 @@ export function serializeRunProperties(props?: PptxRun['properties']): Record<st
  */
 export function serializeParagraph(paragraph: PptxParagraph): Record<string, unknown> {
   const pPr: Record<string, unknown> = {};
-  const props = paragraph.properties || (paragraph as unknown as { alignment?: string; bullet?: PptxBullet; indent?: number; level?: number; margin?: number });
+  const props = (paragraph.properties || paragraph) as { margin?: number; indent?: number } & PptxParagraphProperties;
 
   if (props.alignment) {
     pPr['@_algn'] = ALIGNMENT_MAP[props.alignment] ?? props.alignment;
@@ -361,14 +362,14 @@ export function serializeParagraph(paragraph: PptxParagraph): Record<string, unk
   if (props.level !== undefined) {
     pPr['@_lvl'] = props.level;
   }
-  if ('leftMargin' in props && props.leftMargin !== undefined) {
+  if (props.leftMargin !== undefined) {
     pPr['@_marL'] = Math.round(Number(props.leftMargin));
-  } else if ('margin' in props && props.margin !== undefined) {
+  } else if (props.margin !== undefined) {
     pPr['@_marL'] = Math.round(Number(props.margin));
   }
-  if ('firstLineIndent' in props && props.firstLineIndent !== undefined) {
+  if (props.firstLineIndent !== undefined) {
     pPr['@_indent'] = Math.round(Number(props.firstLineIndent));
-  } else if ('indent' in props && props.indent !== undefined) {
+  } else if (props.indent !== undefined) {
     pPr['@_indent'] = Math.round(Number(props.indent));
   }
 

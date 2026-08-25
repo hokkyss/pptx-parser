@@ -15,19 +15,19 @@ describe('Presentation Generation Benchmarks (Vitest)', () => {
   bench('Enterprise Data Table (10 rows x 5 cols)', async () => {
     const pres = Presentation.create();
     const slide = pres.addSlide();
-    slide.addTable({
+    const rows = [
+      ['Metric', 'Target', 'Actual', 'Variance', 'Status'],
+      ...Array.from({ length: 9 }, (_, i) => [
+        `Service ${i + 1}`,
+        '99.9%',
+        '99.95%',
+        '+0.05%',
+        'OPTIMAL',
+      ]),
+    ];
+    slide.addTable(rows, {
       columns: [{ w: inches(2) }, { w: inches(2) }, { w: inches(2) }, { w: inches(2) }, { w: inches(2) }],
-      data: [
-        ['Metric', 'Target', 'Actual', 'Variance', 'Status'],
-        ...Array.from({ length: 9 }, (_, i) => [
-          `Service ${i + 1}`,
-          '99.9%',
-          '99.95%',
-          '+0.05%',
-          'OPTIMAL',
-        ]),
-      ],
-      header: { fill: '0284C7', textOptions: { bold: true, color: 'FFFFFF' } },
+      header: { fill: '0284C7' },
       x: inches(1),
       y: inches(1),
     });

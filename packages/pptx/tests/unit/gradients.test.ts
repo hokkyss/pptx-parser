@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { degrees, Presentation } from '../../lib/index';
+import { degrees, inches, Presentation } from '../../lib/index';
 
 describe('Fluent Gradients (@hokkyss/pptx)', () => {
   it('should create and roundtrip presentation with shorthand linear and radial gradients', async () => {
@@ -18,10 +18,10 @@ describe('Fluent Gradients (@hokkyss/pptx)', () => {
         angle: degrees(90),
         stops: ['#0284C7', '#6366F1'],
       },
-      h: 2,
-      w: 4,
-      x: 1,
-      y: 1,
+      h: inches(2),
+      w: inches(4),
+      x: inches(1),
+      y: inches(1),
     });
 
     // Multi-stop gradient with alpha opacity
@@ -34,10 +34,10 @@ describe('Fluent Gradients (@hokkyss/pptx)', () => {
           { color: '#C084FC', opacity: 0.2, position: 1 },
         ],
       },
-      h: 2,
-      w: 4,
-      x: 6,
-      y: 1,
+      h: inches(2),
+      w: inches(4),
+      x: inches(6),
+      y: inches(1),
     });
 
     // Slide 2: Radial Gradient Card
@@ -50,10 +50,10 @@ describe('Fluent Gradients (@hokkyss/pptx)', () => {
         ],
         type: 'radial',
       },
-      h: 3,
-      w: 3,
-      x: 2,
-      y: 2,
+      h: inches(3),
+      w: inches(3),
+      x: inches(2),
+      y: inches(2),
     });
 
     const buffer = await pres.toBuffer();

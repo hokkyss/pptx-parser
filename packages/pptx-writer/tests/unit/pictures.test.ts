@@ -3,43 +3,140 @@ import type { PptxPictureElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, thousandthsPercent } from '@hokkyss/pptx-core';
 import { serializePicture } from '../../lib/serializers/picture-serializer';
 
+interface PicNvPicPr {
+  'p:cNvPr'?: {
+    '@_id'?: string;
+    '@_name'?: string;
+  };
+}
+
+interface PicBlipFill {
+  'a:blip'?: {
+    '@_r:embed'?: string;
+    'a:alphaModFix'?: {
+      '@_amt'?: number;
+    };
+  };
+  'a:srcRect'?: {
+    '@_l'?: number;
+  };
+}
+
+interface PicSpPr {
+  'a:xfrm'?: {
+    '@_rot'?: number;
+  };
+}
+
+interface SerializedPicNode {
+  'p:blipFill'?: PicBlipFill;
+  'p:nvPicPr'?: PicNvPicPr;
+  'p:spPr'?: PicSpPr;
+}
+
 describe('Picture Serializer', () => {
   it('serializes picture element with blip embed, crop, alpha, and transforms', () => {
     const pic: PptxPictureElement = {
       elementType: 'picture',
-      type: 'picture',
       id: '4',
-      name: 'Picture 1',
       isVisible: true,
-      zIndex: 2,
-      position: {
-        x: emu(1000000),
-        y: emu(1000000),
-        cx: emu(2000000),
-        cy: emu(2000000),
-      },
-      rotation: emuDegree(0),
+      name: 'Picture 1',
       picture: {
-        mediaId: 'rId2',
         alpha: thousandthsPercent(90000),
         crop: {
+          bottom: thousandthsPercent(5000),
           left: thousandthsPercent(10000),
           right: thousandthsPercent(10000),
           top: thousandthsPercent(5000),
-          bottom: thousandthsPercent(5000),
         },
+        mediaId: 'rId2',
       },
+      position: {
+        cx: emu(2000000),
+        cy: emu(2000000),
+        x: emu(1000000),
+        y: emu(1000000),
+      },
+      rotation: emuDegree(0),
+      type: 'picture',
+      zIndex: 2,
     };
 
-    const xmlObject = serializePicture(pic);
+    const xmlObject = serializePicture(pic) as SerializedPicNode;
     expect(xmlObject).toBeDefined();
 
-    const nvPicPr = xmlObject['p:nvPicPr'] as Record<string, Record<string, unknown>>;
-    expect(nvPicPr['p:cNvPr']['@_id']).toBe('4');
+    const nvPicPr = xmlObject['p:nvPicPr'];
+    expect(nvPicPr?.['p:cNvPr']?.['@_id']).toBe('4');
 
-    const blipFill = xmlObject['p:blipFill'] as Record<string, Record<string, unknown>>;
-    expect(blipFill['a:blip']['@_r:embed']).toBe('rId2');
-    expect((blipFill['a:blip']['a:alphaModFix'] as Record<string, unknown>)['@_amt']).toBe(90000);
-    expect(blipFill['a:srcRect']['@_l']).toBe(10000);
+    const blipFill = xmlObject['p:blipFill'];
+    expect(blipFill?.['a:blip']?.['@_r:embed']).toBe('rId2');
+    expect(blipFill?.['a:blip']?.['a:alphaModFix']?.['@_amt']).toBe(90000);
+    expect(blipFill?.['a:srcRect']?.['@_l']).toBe(10000);
+  });
+});
+
+describe('Picture Serializer rotation', () => {
+  it('serializes picture rotation attribute in xfrm', () => {
+    const pic: PptxPictureElement = {
+      elementType: 'picture',
+      id: '5',
+      isVisible: true,
+      name: 'Rotated Pic',
+      picture: { mediaId: 'rId5' },
+      position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+      rotation: emuDegree(5400000),
+      type: 'picture',
+      zIndex: 0,
+    };
+    const xml = serializePicture(pic) as SerializedPicNode;
+    const spPr = xml['p:spPr'];
+    expect(spPr?.['a:xfrm']?.['@_rot']).toBe(5400000);
+  });
+
+  it('covers blipEmbedId fallback, undefined positions and name fallbacks', () => {
+    const picMinimal: PptxPictureElement = {
+      blipEmbedId: 'rId8',
+      elementType: 'picture',
+      id: '',
+      isVisible: true,
+      name: '',
+      picture: { mediaId: '' },
+      position: { cx: emu(0), cy: emu(0), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
+      type: 'picture',
+      zIndex: 0,
+    };
+    const obj = serializePicture(picMinimal) as SerializedPicNode;
+    const blipFill = obj['p:blipFill'];
+    expect(blipFill?.['a:blip']?.['@_r:embed']).toBe('rId8');
+    const nvPicPr = obj['p:nvPicPr'];
+    expect(nvPicPr?.['p:cNvPr']?.['@_id']).toBe('4');
+
+    // Override embedId, hyperlink, partial crops, undefined position
+    // @ts-expect-error Testing undefined position
+    const picWithOverride: PptxPictureElement = {
+      elementType: 'picture',
+      hyperlink: { rId: 'rIdHlink', url: 'https://example.com' },
+      id: '9',
+      isVisible: true,
+      name: 'P9',
+      picture: {
+        crop: {
+          bottom: thousandthsPercent(1000),
+          left: thousandthsPercent(2000),
+          right: thousandthsPercent(3000),
+          top: thousandthsPercent(4000),
+        },
+        mediaId: 'med-override',
+      },
+      rotation: emuDegree(0),
+      type: 'picture',
+      zIndex: 0,
+    };
+    const overridden = serializePicture(picWithOverride, 'rIdOverride');
+    const overBlip = (overridden['p:blipFill'] as Record<string, Record<string, string>>)['a:blip'];
+    expect(overBlip['@_r:embed']).toBe('rIdOverride');
+    const cNvPr = (overridden['p:nvPicPr'] as Record<string, Record<string, unknown>>)['p:cNvPr'];
+    expect(cNvPr['a:hlinkClick']).toBeDefined();
   });
 });

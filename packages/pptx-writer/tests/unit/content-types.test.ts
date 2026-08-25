@@ -30,3 +30,51 @@ describe('Content Types Serializer', () => {
     expect(xml).toContain('PartName="/ppt/theme/theme1.xml"');
   });
 });
+
+describe('Content Types Serializer extended options', () => {
+  it('serializes custom extensions, explicit names, and customPartOverrides', () => {
+    const xml = serializeContentTypes({
+      mediaExtensions: ['svg', 'webp', 'mp4'],
+      layoutNames: ['slideLayout1'],
+      masterNames: ['slideMaster1'],
+      themeNames: ['theme1'],
+      customPartOverrides: [{ contentType: 'application/xml', partName: 'customXml/item1.xml' }],
+    });
+    expect(xml).toContain('Extension="svg"');
+    expect(xml).toContain('PartName="/customXml/item1.xml"');
+    expect(xml).toContain('PartName="/ppt/slideLayouts/slideLayout1.xml"');
+  });
+
+  it('covers custom media extensions with dots and fallback counts', () => {
+    const ctXml = serializeContentTypes({
+      layoutCount: 2,
+      masterCount: 2,
+      mediaExtensions: ['.png', 'svg', 'customext'],
+      themeCount: 2,
+    });
+    expect(ctXml).toContain('Extension="svg"');
+    expect(ctXml).toContain('Extension="customext"');
+    expect(ctXml).toContain('slideLayout2.xml');
+    expect(ctXml).toContain('slideMaster2.xml');
+    expect(ctXml).toContain('theme2.xml');
+  });
+
+  it('covers no argument defaults and explicit .xml file names in overrides', () => {
+    const defaultXml = serializeContentTypes();
+    expect(defaultXml).toContain('slide1.xml');
+    expect(defaultXml).toContain('slideLayout1.xml');
+    expect(defaultXml).toContain('slideMaster1.xml');
+    expect(defaultXml).toContain('theme1.xml');
+
+    const withXmlSuffix = serializeContentTypes({
+      customPartOverrides: [{ contentType: 'application/xml', partName: '/custom/part.xml' }],
+      layoutNames: ['slideLayout1.xml'],
+      masterNames: ['slideMaster1.xml'],
+      themeNames: ['theme1.xml'],
+    });
+    expect(withXmlSuffix).toContain('/ppt/slideLayouts/slideLayout1.xml');
+    expect(withXmlSuffix).toContain('/ppt/slideMasters/slideMaster1.xml');
+    expect(withXmlSuffix).toContain('/ppt/theme/theme1.xml');
+    expect(withXmlSuffix).toContain('/custom/part.xml');
+  });
+});

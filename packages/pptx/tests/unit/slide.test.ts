@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxConnectorElement } from '@hokkyss/pptx-core';
-import { inches, points } from '@hokkyss/pptx-core';
+import { degrees, emu, emuDegree, inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
+import { GroupBuilder } from '../../lib/slide';
 
 describe('Slide Class (Unit Tests)', () => {
   it('adds a simple text box to the slide', () => {
@@ -405,7 +406,7 @@ describe('Slide Class (Unit Tests)', () => {
 
     // Colliding with addChart
     expect(() => {
-      slide.addChart({ categories: ['Q1'], id: 'elem-1', series: [{ data: [100], name: 'Revenue' }] });
+      slide.addChart({ categories: ['Q1'], id: 'elem-1', series: [{ name: 'Revenue', values: [100] }] });
     }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
 
     // Colliding with addConnector
@@ -476,5 +477,300 @@ describe('Slide Class (Unit Tests)', () => {
 
     expect(slide1.getElementById('card-1')).toBeDefined();
     expect(slide2.getElementById('card-1')).toBeDefined();
+  });
+});
+
+import { TableBuilder } from '../../lib/builders/table-builder';
+
+describe('Slide Class extended methods and placeholder resolution', () => {
+  it('covers removeElement false return and transition object input', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    expect(slide.removeElement('non-existent')).toBe(false);
+
+    slide.setTransition({ type: 'fade', durationMs: 500 });
+    expect(slide.getTransition()?.type).toBe('fade');
+    expect(slide.getTransition()?.durationMs).toBe(500);
+  });
+
+  it('supports addTable with TableBuilder instance and with builder callback', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // With callback
+    slide.addTable((builder) => {
+      builder.addRow().addCell('Callback Cell');
+    });
+
+    // With TableBuilder instance
+    const customBuilder = new TableBuilder();
+    customBuilder.addRow().addCell('Instance Cell');
+    slide.addTable(customBuilder);
+
+    const elements = slide.getElements();
+    expect(elements).toHaveLength(2);
+    expect(elements[0].elementType).toBe('table');
+    expect(elements[1].elementType).toBe('table');
+  });
+
+  it('resolves placeholders from master when not in layout and updates existing placeholder shape', () => {
+    const pres = Presentation.create();
+    // Add master element placeholder
+    pres.ast.slideMasters[0].elements = [
+      {
+        elementType: 'shape',
+        id: 'ph1',
+        isVisible: true,
+        name: 'Master Header Placeholder',
+        placeholder: { idx: '10', type: 'header' },
+        position: { cx: emu(1000), cy: emu(1000), x: emu(0), y: emu(0) },
+        rotation: emuDegree(0),
+        type: 'shape',
+        zIndex: 0,
+      },
+    ];
+
+    const slide = pres.addSlide();
+    expect(slide.resolvePlaceholder('header')).toBeDefined();
+    expect(slide.resolvePlaceholder(10)).toBeDefined();
+
+    // Add image targeting placeholder
+    const mockPngData = new Uint8Array([137, 80, 78, 71]);
+    slide.addImage(mockPngData, { placeholder: 'header' });
+    expect(slide.getElements()[0].name).toBe('Master Header Placeholder');
+
+    // Add text modifying existing slide placeholder
+    slide.addText('Header Updated Text', {
+      placeholder: 'header',
+      fill: 'FF0000',
+      x: inches(1),
+      y: inches(1),
+      w: inches(4),
+      h: inches(1),
+    });
+  });
+});
+
+describe('ShapeBuilder shadow and styling', () => {
+  it('adds shape with drop shadow configuration', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('rect', {
+      x: inches(1),
+      y: inches(1),
+      w: inches(2),
+      h: inches(2),
+      fill: 'FFFFFF',
+      shadow: {
+        blur: inches(0.1),
+        color: '#333333',
+        direction: degrees(45),
+        distance: inches(0.05),
+        opacity: 0.5,
+        rotateWithShape: true,
+      },
+    });
+
+    const elements = slide.getElements();
+    expect(elements[0].elementType).toBe('shape');
+    const shape = elements[0];
+    if (shape.elementType === 'shape') {
+      expect(shape.shadow).toBeDefined();
+      expect(shape.shadow?.color).toBe('333333');
+      expect(shape.shadow?.opacity).toBe(0.5);
+    }
+  });
+});
+
+describe('Slide Class group deletion, connector attachment positions, and group connectors', () => {
+  it('unregisters nested child elements when a group is removed', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'parent-group', x: inches(1), y: inches(1), w: inches(4), h: inches(4) }, (g) => {
+      g.addShape('rect', { id: 'child-1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+      g.addShape('ellipse', { id: 'child-2', x: inches(2), y: inches(2), w: inches(2), h: inches(2) });
+    });
+
+    expect(slide.getElementById('parent-group')).toBeDefined();
+    expect(slide.getElementById('child-1')).toBeDefined();
+    expect(slide.getElementById('child-2')).toBeDefined();
+
+    expect(slide.removeElement('parent-group')).toBe(true);
+    expect(slide.getElementById('parent-group')).toBeUndefined();
+    expect(slide.getElementById('child-1')).toBeUndefined();
+    expect(slide.getElementById('child-2')).toBeUndefined();
+  });
+
+  it('supports top, bottom, and default connector attachment positions', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addShape('rect', { id: 'box-top', x: inches(2), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('rect', { id: 'box-bottom', x: inches(2), y: inches(5), w: inches(2), h: inches(2) });
+
+    slide.addConnector({
+      from: { shapeId: 'box-top', position: 'bottom' },
+      to: { shapeId: 'box-bottom', position: 'top' },
+    });
+
+    const conn = slide.getElements()[2];
+    expect(conn.elementType).toBe('connector');
+    if (conn.elementType === 'connector') {
+      expect(conn.startConnection?.position).toBe('bottom');
+      expect(conn.endConnection?.position).toBe('top');
+    }
+  });
+
+  it('supports adding connectors inside group builder connecting group shapes', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'diagram', x: inches(1), y: inches(1), w: inches(6), h: inches(4) }, (g) => {
+      g.addShape('rect', { id: 'g-s1', x: inches(1), y: inches(1), w: inches(2), h: inches(1) });
+      g.addShape('rect', { id: 'g-s2', x: inches(4), y: inches(1), w: inches(2), h: inches(1) });
+      g.addConnector({
+        from: { shapeId: 'g-s1', position: 'right' },
+        to: { shapeId: 'g-s2', position: 'left' },
+      });
+    });
+
+    const group = slide.getElements()[0];
+    expect(group.elementType).toBe('group');
+    if (group.elementType === 'group') {
+      expect(group.children.length).toBe(3);
+      expect(group.children[2].elementType).toBe('connector');
+    }
+  });
+});
+
+describe('Slide Class recursion and default connector position', () => {
+  it('searches nested group hierarchies in group builder connector and handles default position', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'outer-grp', x: inches(1), y: inches(1), w: inches(6), h: inches(4) }, (g) => {
+      g.addShape('rect', { id: 'inner-s1', x: inches(1), y: inches(1), w: inches(2), h: inches(1) });
+      // @ts-expect-error Testing custom/default position
+      g.addConnector({ from: { shapeId: 'inner-s1', position: 'custom' }, to: { x: inches(4), y: inches(1) } });
+    });
+
+    expect(slide.getElements().length).toBe(1);
+  });
+});
+
+describe('Slide Class nested group search and missing shape error', () => {
+  it('searches across nested sub-groups in group builder and throws on missing shape', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addGroup({ id: 'outer', x: inches(1), y: inches(1), w: inches(6), h: inches(6) }, (g) => {
+      // @ts-expect-error Nested group inside group builder elements
+      g._elements.push({
+        id: 'nested-grp',
+        elementType: 'group',
+        children: [
+          {
+            elementType: 'shape',
+            id: 'deep-shape',
+            isVisible: true,
+            name: 'Deep Shape',
+            position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+            rotation: emuDegree(0),
+            type: 'shape',
+            zIndex: 0,
+          },
+        ],
+      });
+
+      g.addConnector({ from: { position: 'right', shapeId: 'deep-shape' }, to: { x: inches(5), y: inches(5) } });
+
+      expect(() => {
+        g.addConnector({ from: { position: 'right', shapeId: 'missing-shape' }, to: { x: inches(5), y: inches(5) } });
+      }).toThrow('Shape with id "missing-shape" was not found on this slide');
+    });
+  });
+});
+
+describe('Slide Class auto ID counter collision skip', () => {
+  it('increments counter when manual element ID 1 already exists in elementsById', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Manually add shape with id "1"
+    slide.addShape('rect', { h: inches(2), id: '1', w: inches(2), x: inches(1), y: inches(1) });
+
+    // Next element without ID must auto-generate "2" by skipping "1"
+    slide.addShape('rect', { h: inches(2), w: inches(2), x: inches(3), y: inches(1) });
+
+    expect(slide.getElements()[0].id).toBe('1');
+    expect(slide.getElements()[1].id).toBe('2');
+  });
+});
+
+describe('Slide Class initial elements counter collision', () => {
+  it('increments counter when manual element IDs collide with starting element counter', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Shape with manual id "2" (occupying the 2nd slot ahead of time)
+    slide.addShape('rect', { h: inches(2), id: '2', w: inches(2), x: inches(1), y: inches(1) });
+
+    // Next auto-allocated shape sees _elementCounter=2, which exists, so while loop increments it to 3
+    slide.addShape('rect', { h: inches(2), w: inches(2), x: inches(3), y: inches(1) });
+
+    expect(slide.getElements()[0].id).toBe('2');
+    expect(slide.getElements()[1].id).toBe('3');
+  });
+
+  it('covers fallback elements, background reset, text rotation, jpeg images, and group builders', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    // Elements fallback
+    // @ts-expect-error Resetting elements
+    delete slide.ast.elements;
+    expect(slide.getElements()).toEqual([]);
+    slide.ast.elements = [];
+
+    // Background unset
+    // @ts-expect-error Unsetting background
+    slide.setBackground(null);
+    expect(slide.ast.background).toBeUndefined();
+
+    // Text with rotation
+    slide.addText('Rotated Text', { h: inches(1), rotation: degrees(45), w: inches(3), x: inches(1), y: inches(1) });
+    expect(slide.getElements()[0].rotation).toBe(2700000);
+
+    // Image from ArrayBuffer with jpeg extension
+    const buffer = new ArrayBuffer(4);
+    slide.addImage(buffer, { fileName: 'photo.jpeg', h: inches(2), w: inches(2), x: inches(1), y: inches(1) });
+    expect(pres.ast.media[0].mimeType).toBe('image/jpeg');
+
+    // Group builder default counter and position fallbacks
+    const gb = new GroupBuilder();
+    gb.addText('Text in group', { h: inches(1), id: 'g-txt', rotation: degrees(30), w: inches(2), x: inches(1), y: inches(1) });
+    gb.addText('Default pos text', {});
+    const groupElement = gb.build('grp-1', 'Group 1', { h: inches(4), rotation: degrees(15), w: inches(4), x: inches(1), y: inches(1) });
+    expect(groupElement.rotation).toBe(900000);
+    expect(groupElement.children).toHaveLength(2);
+
+    // Placeholder matching by name & ctrTitle placeholder
+    slide.addShape('rect', { h: inches(1), id: 'ph-title', name: 'Title 1', w: inches(4), x: inches(1), y: inches(1) });
+    slide.addText('Title Content', { h: inches(1), placeholder: 'Title 1', w: inches(4), x: inches(1), y: inches(1) });
+    slide.addText('Centered Title', { h: inches(1), placeholder: 'ctrTitle', w: inches(5), x: inches(1), y: inches(1) });
+
+    // Shape with undefined position in connector endpoint resolution
+    const slideWithPoslessShape = pres.addSlide();
+    slideWithPoslessShape.addShape('rect', { h: inches(1), id: 'posless', w: inches(1), x: inches(1), y: inches(1) });
+    // @ts-expect-error Deleting position for fallback test
+    delete slideWithPoslessShape.getElements()[0].position;
+    slideWithPoslessShape.addConnector({
+      from: { position: 'bottom', shapeId: 'posless' },
+      to: { x: inches(2), y: inches(2) },
+    });
+    expect(slideWithPoslessShape.getElements()).toHaveLength(2);
   });
 });

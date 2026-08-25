@@ -7,13 +7,13 @@ import { serializeHyperlink } from './text-serializer';
  */
 export function serializePicture(pictureElement: PptxPictureElement, overrideEmbedId?: string): Record<string, unknown> {
   const pic = pictureElement.picture;
-  const embedId = overrideEmbedId ?? pic.mediaId ?? pictureElement.blipEmbedId ?? 'rId2';
+  const embedId = overrideEmbedId ?? (pic?.mediaId || undefined) ?? pictureElement.blipEmbedId ?? 'rId2';
 
   const blip: Record<string, unknown> = {
     '@_r:embed': embedId,
   };
 
-  if (pic.alpha !== undefined) {
+  if (pic?.alpha !== undefined) {
     blip['a:alphaModFix'] = { '@_amt': Math.round(Number(pic.alpha)) };
   }
 
@@ -21,7 +21,7 @@ export function serializePicture(pictureElement: PptxPictureElement, overrideEmb
     'a:blip': blip,
   };
 
-  if (pic.crop) {
+  if (pic?.crop) {
     const srcRect: Record<string, unknown> = {};
     if (pic.crop.left !== undefined) srcRect['@_l'] = Math.round(Number(pic.crop.left));
     if (pic.crop.right !== undefined) srcRect['@_r'] = Math.round(Number(pic.crop.right));

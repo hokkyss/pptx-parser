@@ -76,3 +76,18 @@ describe('Slide Parsing (Shapes & Text)', () => {
     expect(shapes[0].blipEmbedId).toBe('rId5');
   });
 });
+
+import { parseSpeakerNotes } from '../../lib/parser';
+import type { XmlParser } from '../../lib/xml/xml-parser';
+
+describe('Speaker Notes Parser error catch', () => {
+  it('returns undefined when xmlParser.parse throws an error', () => {
+    const throwingXmlParser: XmlParser = {
+      parse: () => {
+        throw new Error('Simulated XML Parser crash');
+      },
+    };
+    const result = parseSpeakerNotes('<p:notes/>', throwingXmlParser);
+    expect(result).toBeUndefined();
+  });
+});

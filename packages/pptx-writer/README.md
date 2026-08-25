@@ -77,7 +77,7 @@ const doc: PptxDocument = {
             cx: emu(9000000),
             cy: emu(1500000),
           },
-          rotation: 0 as any,
+          rotation: emuDegree(0),
           textBody: {
             bodyProperties: { verticalAlignment: 'middle' },
             paragraphs: [

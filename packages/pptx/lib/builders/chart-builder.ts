@@ -29,7 +29,7 @@ export interface ChartSeriesConfig {
 export interface AddChartOptions {
   axisColor?: string;
   catAxis?: PptxChartAxis;
-  categories: string[];
+  categories?: string[];
   chartType?: ({} & string) | PptxChartType;
   colors?: string[];
   dataLabels?: PptxChartDataLabels;
@@ -53,7 +53,7 @@ export interface AddChartOptions {
     position?: 'bottom' | 'left' | 'right' | 'top' | 'topRight';
   };
   name?: string;
-  series: ChartSeriesConfig[];
+  series?: ChartSeriesConfig[];
   showGridlines?: boolean;
   smooth?: boolean;
   textColor?: string;

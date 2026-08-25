@@ -1,3 +1,4 @@
+import { emu } from '@hokkyss/pptx-core';
 import { PptxTable, PptxTableRow, PptxTableCell, PptxTableCellProperties, Emu } from '../types/ast';
 import { parseTextBody } from './text-parser';
 import { defaultXmlParser, XmlParser } from '../xml/xml-parser';
@@ -54,7 +55,7 @@ export function parseTable(tblNode: Record<string, unknown> | string, parser: Xm
   if (gridCols) {
     if (!Array.isArray(gridCols)) gridCols = [gridCols];
     for (const col of gridCols as Record<string, unknown>[]) {
-      const w = col['@_w'] !== undefined ? ((Number(col['@_w']) as unknown) as Emu) : ((0 as unknown) as Emu);
+      const w = emu(col['@_w'] !== undefined ? Number(col['@_w']) : 0);
       columnWidths.push(w);
     }
   }
@@ -66,7 +67,7 @@ export function parseTable(tblNode: Record<string, unknown> | string, parser: Xm
   if (trNodes) {
     if (!Array.isArray(trNodes)) trNodes = [trNodes];
     for (const trNode of trNodes as Record<string, unknown>[]) {
-      const height = (trNode['@_h'] !== undefined ? Number(trNode['@_h']) : 0) as unknown as Emu;
+      const height = emu(trNode['@_h'] !== undefined ? Number(trNode['@_h']) : 0);
 
       let tcNodes = trNode['a:tc'] || trNode['tc'];
       const cells: PptxTableCell[] = [];
@@ -76,7 +77,8 @@ export function parseTable(tblNode: Record<string, unknown> | string, parser: Xm
         for (const tcNode of tcNodes as Record<string, unknown>[]) {
           const rowSpan = tcNode['@_rowSpan'] !== undefined ? Number(tcNode['@_rowSpan']) : 1;
           const colSpan = tcNode['@_gridSpan'] !== undefined ? Number(tcNode['@_gridSpan']) : 1;
-          const textBody = parseTextBody(tcNode['a:txBody'] as Record<string, unknown>);
+          const txBodyNode = (tcNode['a:txBody'] || tcNode['txBody'] || {}) as Record<string, unknown>;
+          const textBody = parseTextBody(txBodyNode);
 
           const cellProperties = parseCellProperties(tcNode);
 
@@ -120,10 +122,10 @@ function parseCellProperties(tcNode: Record<string, unknown>): PptxTableCellProp
   const anchorRaw = (tcNode['@_anchor'] as string) || '';
   const verticalAlignment = anchorMap[anchorRaw];
 
-  const leftInset = tcNode['@_marL'] !== undefined ? ((Number(tcNode['@_marL']) as unknown) as Emu) : undefined;
-  const topInset = tcNode['@_marT'] !== undefined ? ((Number(tcNode['@_marT']) as unknown) as Emu) : undefined;
-  const rightInset = tcNode['@_marR'] !== undefined ? ((Number(tcNode['@_marR']) as unknown) as Emu) : undefined;
-  const bottomInset = tcNode['@_marB'] !== undefined ? ((Number(tcNode['@_marB']) as unknown) as Emu) : undefined;
+  const leftInset = tcNode['@_marL'] !== undefined ? emu(Number(tcNode['@_marL'])) : undefined;
+  const topInset = tcNode['@_marT'] !== undefined ? emu(Number(tcNode['@_marT'])) : undefined;
+  const rightInset = tcNode['@_marR'] !== undefined ? emu(Number(tcNode['@_marR'])) : undefined;
+  const bottomInset = tcNode['@_marB'] !== undefined ? emu(Number(tcNode['@_marB'])) : undefined;
 
   return {
     verticalAlignment,

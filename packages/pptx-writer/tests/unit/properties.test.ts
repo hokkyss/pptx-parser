@@ -35,6 +35,14 @@ describe('Properties Serializer', () => {
     expect(xml).toContain('<Application>Microsoft Office PowerPoint</Application>');
     expect(xml).toContain('<PresentationFormat>Widescreen</PresentationFormat>');
   });
+
+  it('handles empty metadata defaults for app and core properties', () => {
+    const appXml = serializeAppProperties({});
+    expect(appXml).toContain('<Slides>1</Slides>');
+
+    const coreXml = serializeCoreProperties({});
+    expect(coreXml).toContain('cp:coreProperties');
+  });
 });
 
 describe('Presentation Serializer (firstSlideNum)', () => {

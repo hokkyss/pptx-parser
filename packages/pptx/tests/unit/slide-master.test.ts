@@ -98,4 +98,45 @@ describe('Slide Master API (Unit Tests)', () => {
 
     expect(slide.layoutId).toBe('slideLayout10');
   });
+
+  it('exposes ast and presentation getters and retrieves layout by index or type/matchingName', () => {
+    const pres = Presentation.create();
+    const master = pres.getMasters()[0];
+
+    expect(master.ast).toBeDefined();
+    expect(master.presentation).toBe(pres);
+
+    // Retrieve layout by number
+    const layoutByIndex = master.getLayout(1);
+    expect(layoutByIndex).toBeDefined();
+
+    // Add layout with matchingName and custom type
+    pres.ast.slideLayouts.push({
+      elements: [],
+      id: 'slideLayout99',
+      masterId: master.id,
+      name: 'Custom Matching Layout',
+      matchingName: 'SectionHeaderPattern',
+      shapes: [],
+      type: 'sectionHeader',
+    });
+    master.ast.layoutIds.push('slideLayout99');
+
+    const byType = master.getLayout('sectionHeader');
+    expect(byType?.id).toBe('slideLayout99');
+
+    const byMatching = master.getLayout('SectionHeaderPattern');
+    expect(byMatching?.id).toBe('slideLayout99');
+
+    // Index 0 fallback to layouts[0]
+    expect(master.getLayout(0)).toBeDefined();
+
+    // Name fallback from ast.theme.name
+    delete (master.ast as { name?: string }).name;
+    expect(master.name).toBe('Office Theme');
+
+    // LayoutIds undefined fallback
+    delete (master.ast as { layoutIds?: string[] }).layoutIds;
+    expect(master.getLayouts().length).toBeGreaterThan(0);
+  });
 });

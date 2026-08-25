@@ -1,12 +1,10 @@
 import type {
   Emu,
-  PptxChartElement,
   PptxCustomXmlPart,
   PptxDocument,
   PptxMetadata,
   PptxShape,
   PptxSlide,
-  PptxTableElement,
   PptxTheme,
 } from '@hokkyss/pptx-core';
 import type { PptxMediaAsset } from '@hokkyss/pptx-core';
@@ -127,6 +125,16 @@ export function parseSpeakerNotes(notesXml: string, xmlParser: XmlParser): { not
  * @param parseChartFn Optional chart parser function.
  * @param parseTableFn Optional table parser function.
  */
+type MutableGraphicFrameShape = {
+  _chartRelId?: string;
+  _graphicUri?: string;
+  _tblNode?: Record<string, unknown>;
+  elementType: 'chart' | 'connector' | 'group' | 'picture' | 'shape' | 'table';
+} & import('@hokkyss/pptx-core').PptxBaseElement;
+
+/**
+ *
+ */
 function refineElementType(
   shape: PptxShape,
   slideXml: string,
@@ -134,7 +142,7 @@ function refineElementType(
   zipReader: ZipReader,
   xmlParser: XmlParser,
   parseChartFn?: (xml: string, parser?: XmlParser) => import('@hokkyss/pptx-core').PptxChart | undefined,
-  parseTableFn?: (xml: string, parser?: XmlParser) => import('@hokkyss/pptx-core').PptxTable | undefined,
+  parseTableFn?: (xml: Record<string, unknown> | string, parser?: XmlParser) => import('@hokkyss/pptx-core').PptxTable | undefined,
 ): void {
   if (shape.type === 'picture') {
     shape.elementType = 'picture';
@@ -142,36 +150,29 @@ function refineElementType(
   }
 
   if (shape.type === 'graphicFrame') {
-    const internalShape = shape as unknown as {
-      _chartRelId?: string;
-      _graphicUri?: string;
-      _tblNode?: Record<string, unknown>;
-    };
+    const gf = shape as MutableGraphicFrameShape;
 
     // 1. Table graphicFrame
-    if (internalShape._tblNode || internalShape._graphicUri?.includes('table')) {
+    if (gf._tblNode || gf._graphicUri?.includes('table')) {
       if (parseTableFn) {
-        const table = internalShape._tblNode
-          ? parseTableFn(internalShape._tblNode as unknown as string, xmlParser)
-          : parseTableFn(slideXml, xmlParser);
+        const table = parseTableFn(gf._tblNode || slideXml, xmlParser);
         if (table) {
-          const tableElem = (shape as unknown) as PptxTableElement;
-          tableElem.table = table;
-          tableElem.elementType = 'table';
-          delete (tableElem as unknown as Record<string, unknown>)._tblNode;
-          delete (tableElem as unknown as Record<string, unknown>)._graphicUri;
-          delete (tableElem as unknown as Record<string, unknown>)._chartRelId;
+          gf.table = table;
+          gf.elementType = 'table';
+          delete gf._tblNode;
+          delete gf._graphicUri;
+          delete gf._chartRelId;
           return;
         }
       }
     }
 
     // 2. Chart graphicFrame
-    if (internalShape._chartRelId || internalShape._graphicUri?.includes('chart') || chartRels.length > 0) {
+    if (gf._chartRelId || gf._graphicUri?.includes('chart') || chartRels.length > 0) {
       if (parseChartFn) {
-        const targetRel = internalShape._chartRelId
-          ? chartRels.find((r) => r.id === internalShape._chartRelId) || chartRels[0]
-          : chartRels[0];
+        const targetRel = (gf._chartRelId
+          ? chartRels.find((r) => r.id === gf._chartRelId)
+          : undefined) || chartRels[0];
 
         if (targetRel) {
           const chartPath = targetRel.resolvedTarget;
@@ -179,26 +180,15 @@ function refineElementType(
           if (chartXml) {
             const chart = parseChartFn(chartXml, xmlParser);
             if (chart) {
-              const chartElem = (shape as unknown) as PptxChartElement;
-              chartElem.chart = chart;
-              chartElem.elementType = 'chart';
-              delete (chartElem as unknown as Record<string, unknown>)._tblNode;
-              delete (chartElem as unknown as Record<string, unknown>)._graphicUri;
-              delete (chartElem as unknown as Record<string, unknown>)._chartRelId;
+              gf.chart = chart;
+              gf.elementType = 'chart';
+              delete gf._tblNode;
+              delete gf._graphicUri;
+              delete gf._chartRelId;
               return;
             }
           }
         }
-      }
-    }
-
-    if (parseTableFn) {
-      const table = parseTableFn(slideXml, xmlParser);
-      if (table && table.rows.length > 0) {
-        const tableElem = (shape as unknown) as PptxTableElement;
-        tableElem.table = table;
-        tableElem.elementType = 'table';
-        return;
       }
     }
   }

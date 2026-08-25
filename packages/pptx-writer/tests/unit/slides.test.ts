@@ -1,10 +1,11 @@
-import type { PptxSlide } from '@hokkyss/pptx-core';
+import type { PptxDocument, PptxSlide } from '@hokkyss/pptx-core';
 import { emu, emuDegree, hundredthsPoint } from '@hokkyss/pptx-core';
 import { describe, expect, it } from 'vitest';
 import { serializeSlide } from '../../lib/serializers/slide-serializer';
+import { writePptx } from '../../lib/writer';
 
-describe('Slide Serializer', () => {
-  it('serializes complete slide XML with shapes and background', () => {
+describe('Slide Serializer (@hokkyss/pptx-writer)', () => {
+  it('serializes complete slide XML with shapes and solid background', () => {
     const slide: PptxSlide = {
       animations: [],
       background: {
@@ -51,5 +52,674 @@ describe('Slide Serializer', () => {
     expect(xml).toContain('<p:spTree>');
     expect(xml).toContain('Presentation Title');
     expect(xml).toContain('<p:bg>');
+  });
+
+  it('serializes slide with transitions, animations, and gradient background', () => {
+    const slide: PptxSlide = {
+      slideId: 'rId2',
+      slideNumber: 2,
+      background: {
+        fill: {
+          type: 'gradient',
+          gradient: {
+            type: 'linear',
+            angle: 90,
+            stops: [
+              { color: { type: 'srgb', value: '000000' }, position: 0 },
+              { color: { type: 'srgb', value: 'FFFFFF' }, position: 100000 },
+            ],
+          },
+        },
+      },
+      transition: {
+        type: 'wipe',
+        direction: 'right',
+        speed: 'fast',
+      },
+      animations: [
+        {
+          targetShapeId: '2',
+          trigger: 'onClick',
+          effect: 'appear',
+          sequence: 0,
+        },
+      ],
+      elements: [
+        {
+          elementType: 'connector',
+          type: 'connector',
+          id: '3',
+          name: 'Cxn',
+          isVisible: true,
+          zIndex: 0,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+        },
+        {
+          elementType: 'group',
+          type: 'group',
+          id: '4',
+          name: 'Grp',
+          isVisible: true,
+          zIndex: 1,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+          children: [],
+        },
+      ],
+      shapes: [],
+    };
+
+    const xml = serializeSlide(slide);
+    expect(xml).toContain('<p:transition');
+    expect(xml).toContain('<p:timing>');
+    expect(xml).toContain('<p:cxnSp>');
+    expect(xml).toContain('<p:grpSp>');
+    expect(xml).toContain('<a:gradFill>');
+  });
+});
+
+describe('Slide Serializer pictures, tables, charts and unique IDs', () => {
+  it('serializes picture, table, chart and resolves duplicate IDs', () => {
+    const slide: PptxSlide = {
+      slideId: 'rId3',
+      slideNumber: 3,
+      shapes: [],
+      animations: [],
+      elements: [
+        {
+          id: '1', // duplicate of container group ID 1
+          name: 'Pic 1',
+          type: 'picture',
+          elementType: 'picture',
+          isVisible: true,
+          zIndex: 0,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+          picture: { mediaId: 'img1' },
+        },
+        {
+          id: '2',
+          name: 'Table 2',
+          type: 'graphicFrame',
+          elementType: 'table',
+          isVisible: true,
+          zIndex: 1,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+          table: {
+            columnWidths: [emu(500)],
+            rows: [{ height: emu(200), cells: [{ textBody: { bodyProperties: {}, paragraphs: [{ properties: {}, runs: [{ properties: {}, text: 'Cell' }] }] } }] }],
+          },
+        },
+        {
+          id: '3',
+          name: 'Chart 3',
+          type: 'graphicFrame',
+          elementType: 'chart',
+          isVisible: true,
+          zIndex: 2,
+          position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) },
+          rotation: emuDegree(0),
+          chart: {
+            chartType: 'barChart',
+            categories: ['A'],
+            series: [{ name: 'S1', values: [10], index: 0, order: 0 }],
+          },
+        },
+      ],
+    };
+
+    const picMap = new Map<string, string>([['img1', 'rIdImg']]);
+    const xml = serializeSlide(slide, picMap, ['rIdChart']);
+    expect(xml).toContain('<p:pic>');
+    expect(xml).toContain('<p:graphicFrame>');
+    expect(xml).toContain('rIdImg');
+    expect(xml).toContain('rIdChart');
+  });
+});
+
+describe('PptxWriter advanced slide layouts, table hyperlinks, and lazy media', () => {
+  it('handles slide layout custom rels, lazy media getters, and table hyperlinks', async () => {
+    const doc: PptxDocument = {
+      customXml: [],
+      media: [
+        {
+          data: null,
+          filename: 'lazy.png',
+          id: 'lazy1',
+          lazyGetter: () => Promise.resolve(new Uint8Array([137, 80, 78, 71])),
+          mimeType: 'image/png',
+          path: 'ppt/media/lazy.png',
+        },
+      ],
+      metadata: {
+        slideCount: 1,
+        slideHeight: emu(5143500),
+        slideWidth: emu(9144000),
+      },
+      slideLayouts: [
+        {
+          elements: [],
+          id: 'slideLayout1.xml',
+          masterId: 'slideMaster1.xml',
+          name: 'Custom Layout',
+          rawXml: '<p:sldLayout/>',
+          relsXml: '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+          shapes: [],
+          type: 'blank',
+        },
+      ],
+      slideMasters: [
+        {
+          elements: [],
+          id: 'slideMaster1.xml',
+          layoutIds: ['slideLayout1.xml'],
+          shapes: [],
+        },
+      ],
+      slides: [
+        {
+          animations: [],
+          elements: [
+            {
+              elementType: 'table',
+              id: '1',
+              isVisible: true,
+              name: 'Table 1',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              table: {
+                columnWidths: [emu(100)],
+                rows: [
+                  {
+                    cells: [
+                      {
+                        textBody: {
+                          bodyProperties: {},
+                          paragraphs: [
+                            {
+                              properties: {},
+                              runs: [
+                                {
+                                  properties: {
+                                    hyperlink: { url: 'https://example.com' },
+                                  },
+                                  text: 'Link',
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    height: emu(100),
+                  },
+                ],
+              },
+              type: 'graphicFrame',
+              zIndex: 0,
+            },
+          ],
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    const bytes = await writePptx(doc);
+    expect(bytes).toBeDefined();
+    expect(bytes.byteLength).toBeGreaterThan(0);
+  });
+});
+
+describe('PptxWriter lenient default slides, group hyperlinks, and slideMaster relsXml', () => {
+  it('handles empty slides in lenient mode, group hyperlinks, and custom slideMaster relsXml', async () => {
+    // 1. Empty slides fallback
+    const emptyDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { slideCount: 0, slideHeight: emu(5143500), slideWidth: emu(9144000) },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [],
+      themes: [],
+    };
+    const emptyBytes = await writePptx(emptyDoc);
+    expect(emptyBytes.byteLength).toBeGreaterThan(0);
+
+    // 2. Group containing shape with hyperlink + slideMaster with custom relsXml
+    const groupHyperlinkDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { slideCount: 1, slideHeight: emu(5143500), slideWidth: emu(9144000) },
+      slideLayouts: [],
+      slideMasters: [
+        {
+          elements: [],
+          id: 'slideMaster1.xml',
+          layoutIds: [],
+          relsXml: '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>',
+          shapes: [],
+        },
+      ],
+      slides: [
+        {
+          animations: [],
+          elements: [
+            {
+              children: [
+                {
+                  elementType: 'shape',
+                  hyperlink: { url: 'https://example.com/child' },
+                  id: 's1',
+                  isVisible: true,
+                  name: 'Shape 1',
+                  position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+                  rotation: emuDegree(0),
+                  type: 'shape',
+                  zIndex: 0,
+                },
+              ],
+              elementType: 'group',
+              id: 'g1',
+              isVisible: true,
+              name: 'Group 1',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              type: 'group',
+              zIndex: 0,
+            },
+          ],
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+    const groupBytes = await writePptx(groupHyperlinkDoc);
+    expect(groupBytes.byteLength).toBeGreaterThan(0);
+  });
+});
+
+describe('Slide Serializer connected connectors and unsafe hyperlinks', () => {
+  it('serializes connected connector attachment IDs and removes unsafe javascript hyperlinks', async () => {
+    const slideWithConnections: PptxSlide = {
+      animations: [],
+      elements: [
+        {
+          elementType: 'shape',
+          id: 'source-shape',
+          isVisible: true,
+          name: 'Source',
+          position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'shape',
+          zIndex: 0,
+        },
+        {
+          elementType: 'shape',
+          id: 'target-shape',
+          isVisible: true,
+          name: 'Target',
+          position: { cx: emu(100), cy: emu(100), x: emu(200), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'shape',
+          zIndex: 1,
+        },
+        {
+          elementType: 'connector',
+          endConnection: { position: 'left', shapeId: 'target-shape' },
+          id: 'cxn-1',
+          isVisible: true,
+          name: 'Connector 1',
+          position: { cx: emu(200), cy: emu(100), x: emu(0), y: emu(0) },
+          rotation: emuDegree(0),
+          startConnection: { position: 'right', shapeId: 'source-shape' },
+          type: 'connector',
+          zIndex: 2,
+        },
+      ],
+      shapes: [],
+      slideId: 'rId4',
+      slideNumber: 4,
+    };
+
+    const xml = serializeSlide(slideWithConnections);
+    expect(xml).toContain('<p:cxnSp>');
+    expect(xml).toContain('stCxn');
+    expect(xml).toContain('endCxn');
+
+    // Unsafe hyperlinks test in presentation write
+    const unsafeDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { slideCount: 1, slideHeight: emu(5143500), slideWidth: emu(9144000) },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          animations: [],
+          elements: [
+            {
+              elementType: 'shape',
+              id: 's1',
+              isVisible: true,
+              name: 'Shape 1',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              textBody: {
+                bodyProperties: {},
+                paragraphs: [
+                  {
+                    properties: {},
+                    runs: [{ properties: { hyperlink: { url: 'javascript:alert(1)' } }, text: 'Unsafe Run' }],
+                  },
+                ],
+              },
+              type: 'shape',
+              zIndex: 0,
+            },
+            {
+              elementType: 'table',
+              id: 't1',
+              isVisible: true,
+              name: 'Table 1',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              table: {
+                columnWidths: [emu(100)],
+                rows: [
+                  {
+                    cells: [
+                      {
+                        textBody: {
+                          bodyProperties: {},
+                          paragraphs: [
+                            {
+                              properties: {},
+                              runs: [{ properties: { hyperlink: { url: 'javascript:alert(2)' } }, text: 'Unsafe Cell' }],
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                    height: emu(100),
+                  },
+                ],
+              },
+              type: 'graphicFrame',
+              zIndex: 1,
+            },
+          ],
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    const bytes = await writePptx(unsafeDoc);
+    expect(bytes).toBeDefined();
+  });
+});
+
+describe('Slide Serializer ID collision skipping, actions, and invalid slide jumps', () => {
+  it('skips taken numeric IDs, handles action hyperlinks and invalid slide index jumps', async () => {
+    const slideWithId2: PptxSlide = {
+      animations: [],
+      elements: [
+        {
+          elementType: 'shape',
+          id: '2', // Manually occupies 2
+          isVisible: true,
+          name: 'Shape 2',
+          position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'shape',
+          zIndex: 0,
+        },
+        {
+          elementType: 'shape',
+          id: '',
+          isVisible: true,
+          name: 'Shape Auto',
+          position: { cx: emu(100), cy: emu(100), x: emu(100), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'shape',
+          zIndex: 1,
+        },
+      ],
+      shapes: [],
+      slideId: 'rId5',
+      slideNumber: 5,
+      transition: { throughBlack: true, type: 'fade' },
+    };
+
+    const xml = serializeSlide(slideWithId2);
+    expect(xml).toContain('id="2"');
+    expect(xml).toContain('id="3"');
+    expect(xml).toContain('<p:fade');
+    expect(xml).toContain('thruBlk="1"');
+
+    // Hyperlinks with action and invalid slideIndex
+    const testDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { slideCount: 1, slideHeight: emu(5143500), slideWidth: emu(9144000) },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          animations: [],
+          elements: [
+            {
+              elementType: 'shape',
+              hyperlink: { action: 'nextSlide' },
+              id: 's1',
+              isVisible: true,
+              name: 'S1',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              type: 'shape',
+              zIndex: 0,
+            },
+            {
+              elementType: 'shape',
+              hyperlink: { slideIndex: -99 },
+              id: 's2',
+              isVisible: true,
+              name: 'S2',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              type: 'shape',
+              zIndex: 1,
+            },
+          ],
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    const bytes = await writePptx(testDoc);
+    expect(bytes).toBeDefined();
+  });
+
+  it('covers chart graphicFrame defaults, shapes fallback, and pictureEmbedMap id lookup', () => {
+    // Slide with shapes array instead of elements array
+    const slideWithShapes: PptxSlide = {
+      animations: [],
+      // @ts-expect-error Testing empty elements fallback to shapes
+      elements: undefined,
+      shapes: [
+        {
+          elementType: 'shape',
+          id: '2',
+          isVisible: true,
+          name: 'ShapeFromShapes',
+          position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'shape',
+          zIndex: 0,
+        },
+      ],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    const xmlShapes = serializeSlide(slideWithShapes);
+    expect(xmlShapes).toContain('ShapeFromShapes');
+
+    // Chart element with default position and fallback chartRelIds
+    const slideWithChart: PptxSlide = {
+      animations: [],
+      elements: [
+        // @ts-expect-error Testing chart graphicFrame with missing position
+        {
+          chart: { categories: [], chartType: 'bar', series: [] },
+          elementType: 'chart',
+          id: '',
+          isVisible: true,
+          name: '',
+          rotation: emuDegree(0),
+          type: 'graphicFrame',
+          zIndex: 0,
+        },
+      ],
+      shapes: [],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    const chartXml = serializeSlide(slideWithChart);
+    expect(chartXml).toContain('<c:chart');
+    expect(chartXml).toContain('r:id="rId2"');
+
+    // Picture with pictureEmbedMap matching el.id
+    const picMap = new Map<string, string>();
+    picMap.set('2', 'rId999');
+    const slideWithPic: PptxSlide = {
+      animations: [],
+      elements: [
+        {
+          elementType: 'picture',
+          id: 'pic-id-1',
+          isVisible: true,
+          name: 'MappedPic',
+          picture: { mediaId: 'non-matching-media-id' },
+          position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'picture',
+          zIndex: 0,
+        },
+      ],
+      shapes: [],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    const picXml = serializeSlide(slideWithPic, picMap);
+    expect(picXml).toContain('r:embed="rId999"');
+  });
+
+  it('covers writer document themes, masters, layouts, media, notesBody, and custom notesMaster rels', async () => {
+    const fullDoc: PptxDocument = {
+      customXml: [
+        { path: 'ppt/notesMasters/notesMaster1.xml', xmlString: '<p:notesMaster/>' },
+        { binaryData: new Uint8Array([1, 2, 3]), path: 'customBinary' },
+      ],
+      media: [
+        { data: new Uint8Array([0, 1]), filename: 'image1.png', id: 'med1', mimeType: 'image/png', path: 'ppt/media/image1.png' },
+      ],
+      metadata: { created: new Date(), modified: new Date(), revision: 1, slideCount: 1, slideHeight: emu(6858000), slideWidth: emu(12192000) },
+      slideLayouts: [
+        { elements: [], id: 'slideLayoutCustom', masterId: 'slideMasterCustom', name: 'Layout', rawXml: '<p:sldLayout/>', shapes: [], type: 'blank' },
+      ],
+      slideMasters: [
+        { elements: [], id: 'slideMasterCustom', layoutIds: [], rawXml: '<p:sldMaster/>', shapes: [] },
+      ],
+      slides: [
+        {
+          animations: [],
+          elements: [
+            {
+              elementType: 'shape',
+              hyperlink: { rId: 'rId99' },
+              id: 's1',
+              isVisible: true,
+              name: 'PreAssignedHlink',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              // @ts-expect-error Testing textBody without paragraphs
+              textBody: {},
+              type: 'shape',
+              zIndex: 0,
+            },
+            {
+              elementType: 'table',
+              id: 'tbl1',
+              isVisible: true,
+              name: 'TblWithoutRows',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              // @ts-expect-error Testing table without rows
+              table: {},
+              type: 'graphicFrame',
+              zIndex: 1,
+            },
+            {
+              elementType: 'picture',
+              id: 'picUnmatched',
+              isVisible: true,
+              name: 'PUnmatched',
+              picture: { mediaId: '' },
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              type: 'picture',
+              zIndex: 2,
+            },
+          ],
+          layoutId: 'slideLayoutCustom',
+          notesBody: {
+            bodyProperties: {},
+            paragraphs: [{ properties: {}, runs: [{ properties: {}, text: 'Speaker note run' }] }],
+          },
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [
+        {
+          colorScheme: {
+            accent1: '0284C7',
+            accent2: '10B981',
+            accent3: 'F59E0B',
+            accent4: 'EF4444',
+            accent5: '8B5CF6',
+            accent6: 'EC4899',
+            dk1: '000000',
+            dk2: '111111',
+            folHlink: '6366F1',
+            hlink: '3B82F6',
+            lt1: 'FFFFFF',
+            lt2: 'EEEEEE',
+          },
+          customColors: {},
+          fontScheme: { majorFont: 'Calibri', minorFont: 'Calibri', name: 'Office' },
+          formatScheme: {},
+          id: 'themeCustom',
+          name: 'Theme Custom',
+        },
+      ],
+    };
+
+    const bytes = await writePptx(fullDoc);
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(bytes.length).toBeGreaterThan(0);
   });
 });

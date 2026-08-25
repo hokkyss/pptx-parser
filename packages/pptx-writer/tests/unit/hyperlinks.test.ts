@@ -1,10 +1,14 @@
 import type { PptxDocument } from '@hokkyss/pptx-core';
-import { emu } from '@hokkyss/pptx-core';
+import { emu, emuDegree } from '@hokkyss/pptx-core';
 import { createZipReader } from '@hokkyss/pptx-reader';
 import { describe, expect, it } from 'vitest';
 import { serializePicture } from '../../lib/serializers/picture-serializer';
 import { serializeShape } from '../../lib/serializers/shape-serializer';
-import { serializeHyperlink, serializeRunProperties } from '../../lib/serializers/text-serializer';
+import {
+  serializeBulletProperties,
+  serializeHyperlink,
+  serializeRunProperties,
+} from '../../lib/serializers/text-serializer';
 import { writePptx } from '../../lib/writer';
 
 describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
@@ -58,10 +62,13 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
         tooltip: 'Shape Link',
       },
       id: '2',
+      isVisible: true,
       name: 'Linked Shape',
       position: { cx: emu(1000000), cy: emu(500000), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
       shapeType: 'roundRect',
       type: 'shape',
+      zIndex: 0,
     });
 
     const nvSpPr = shape['p:nvSpPr'] as Record<string, unknown>;
@@ -77,10 +84,13 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
         action: 'nextSlide',
       },
       id: '3',
+      isVisible: true,
       name: 'Linked Pic',
       picture: { mediaId: 'img1' },
       position: { cx: emu(1000000), cy: emu(500000), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
       type: 'picture',
+      zIndex: 0,
     });
 
     const nvPicPr = pic['p:nvPicPr'] as Record<string, unknown>;
@@ -92,18 +102,27 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
 
   it('should register relationships in slide.xml.rels when writing presentation', async () => {
     const doc: PptxDocument = {
+      customXml: [],
       media: [],
-      metadata: {},
+      metadata: {
+        slideCount: 2,
+        slideHeight: emu(6858000),
+        slideWidth: emu(12192000),
+      },
       slideLayouts: [],
       slideMasters: [],
       slides: [
         {
+          animations: [],
           elements: [
             {
               elementType: 'shape',
               hyperlink: 'https://hokkyss.dev',
               id: '2',
+              isVisible: true,
+              name: 'Shape 2',
               position: { cx: emu(2000000), cy: emu(1000000), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
               shapeType: 'rect',
               textBody: {
                 bodyProperties: {},
@@ -125,13 +144,17 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
                 ],
               },
               type: 'shape',
+              zIndex: 0,
             },
           ],
+          shapes: [],
           slideId: 'rId2',
           slideNumber: 1,
         },
         {
+          animations: [],
           elements: [],
+          shapes: [],
           slideId: 'rId3',
           slideNumber: 2,
         },
@@ -151,20 +174,30 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
 
   it('neutralizes dangerous javascript: and vbscript: URIs from writer relationships', async () => {
     const doc: PptxDocument = {
+      customXml: [],
       media: [],
-      metadata: {},
+      metadata: {
+        slideCount: 1,
+        slideHeight: emu(6858000),
+        slideWidth: emu(12192000),
+      },
       slideLayouts: [],
       slideMasters: [],
       slides: [
         {
+          animations: [],
           elements: [
             {
               elementType: 'shape',
               hyperlink: 'javascript:alert(1)',
               id: '2',
+              isVisible: true,
+              name: 'Shape 2',
               position: { cx: emu(2000000), cy: emu(1000000), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
               shapeType: 'rect',
               type: 'shape',
+              zIndex: 0,
             },
             {
               elementType: 'shape',
@@ -173,11 +206,16 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
                 url: 'file:///C:/Windows/System32/cmd.exe',
               },
               id: '3',
+              isVisible: true,
+              name: 'Shape 3',
               position: { cx: emu(2000000), cy: emu(1000000), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
               shapeType: 'rect',
               type: 'shape',
+              zIndex: 1,
             },
           ],
+          shapes: [],
           slideId: 'rId2',
           slideNumber: 1,
         },
@@ -191,5 +229,25 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
     const relsXml = zip.getFileText('ppt/slides/_rels/slide1.xml.rels') || '';
     expect(relsXml).not.toContain('javascript:');
     expect(relsXml).not.toContain('file:///');
+  });
+});
+
+describe('Hyperlink Serializer action jumps', () => {
+  it('serializes all predefined jump actions', () => {
+    expect(serializeHyperlink({ action: 'endShow' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=endshow');
+    expect(serializeHyperlink({ action: 'firstSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=firstslide');
+    expect(serializeHyperlink({ action: 'lastSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=lastslide');
+    expect(serializeHyperlink({ action: 'nextSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=nextslide');
+    expect(serializeHyperlink({ action: 'previousSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=previousslide');
+    expect(serializeHyperlink({ action: 'ppaction://customAction' })?.['@_action']).toBe('ppaction://customAction');
+  });
+});
+
+describe('Hyperlink Serializer string target and bullet fallback', () => {
+  it('serializes string hyperlink with relIdOverride and handles bullet fallback', () => {
+    expect(serializeHyperlink('https://example.com', 'rId9')?.['@_r:id']).toBe('rId9');
+    expect(serializeHyperlink('https://example.com')).toBeUndefined();
+    // @ts-expect-error Testing unknown bullet type fallback
+    expect(serializeBulletProperties({ type: 'unknown' })).toBeUndefined();
   });
 });

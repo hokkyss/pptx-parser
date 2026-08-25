@@ -89,3 +89,54 @@ describe('TableBuilder (Unit Tests)', () => {
     expect(slide.getElements()[0].elementType).toBe('table');
   });
 });
+
+describe('TableBuilder extended configurations', () => {
+  it('supports columns option array, setColWidths, addRow with cells array, and direct addCell', () => {
+    const builder = new TableBuilder({
+      columns: [{ w: inches(2) }, inches(3)],
+    });
+
+    builder.setColWidths([inches(2.5), inches(3.5)]);
+
+    // Call addCell directly without addRow
+    builder.addCell('Auto-row Cell');
+
+    // addRow with cells array
+    builder.addRow({
+      cells: [
+        'Cell 1',
+        { text: 'Cell 2', bold: true, fill: 'EEEEEE', verticalAlign: 'top' },
+      ],
+      h: inches(0.5),
+    });
+
+    const el = builder.build();
+    expect(el.table.rows).toHaveLength(2);
+    expect(el.table.columnWidths).toEqual([2286000, 3200400]);
+  });
+});
+
+describe('TableBuilder.fromMatrix with CellConfig objects', () => {
+  it('supports object cells in header and body rows', () => {
+    const table = TableBuilder.fromMatrix(
+      [
+        [{ text: 'Header Cell', fill: '003366', bold: true }],
+        [{ text: 'Body Cell', fill: 'FFFFFF', italic: true }],
+      ],
+      {
+        header: { color: 'FFFFFF' },
+      },
+    );
+
+    expect(table.table.rows).toHaveLength(2);
+    expect(table.table.rows[0].cells[0].properties?.fill?.solidColor?.value).toBe('003366');
+    expect(table.table.rows[1].cells[0].properties?.fill?.solidColor?.value).toBe('FFFFFF');
+  });
+
+  it('handles 0 and empty column widths fallback', () => {
+    const builder = new TableBuilder({ colWidths: [inches(0), inches(0)] });
+    builder.addRow({ cells: ['A', 'B'] });
+    const table = builder.build();
+    expect(table.table.columnWidths).toHaveLength(2);
+  });
+});

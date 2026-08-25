@@ -16,7 +16,7 @@ export const INVALID_XML_CHARS_REGEX = /[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]
  */
 export function sanitizeXmlText<T>(val: T): T {
   if (typeof val === 'string') {
-    return val.replace(INVALID_XML_CHARS_REGEX, '') as unknown as T;
+    return val.replace(INVALID_XML_CHARS_REGEX, '') as T;
   }
   return val;
 }

@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { emu, emuDegree } from '@hokkyss/pptx-core';
 import { parseShapes } from '../../lib/parsers/shape-parser';
 import { resolveSlideLayers } from '../../lib/resolvers/layer-resolver';
-import type { Emu, EmuDegree, PptxDocument } from '../../lib/types/ast';
+import type { PptxDocument } from '../../lib/types/ast';
 
 describe('Layer Parsing & Composition', () => {
   it('should parse 0-based zIndex in shape order', () => {
@@ -26,7 +27,7 @@ describe('Layer Parsing & Composition', () => {
     const mockDoc: PptxDocument = {
       customXml: [],
       media: [],
-      metadata: { slideCount: 1, slideHeight: 100 as Emu, slideWidth: 100 as Emu },
+      metadata: { slideCount: 1, slideHeight: emu(100), slideWidth: emu(100) },
       slideLayouts: [
         {
           elements: [],
@@ -39,8 +40,8 @@ describe('Layer Parsing & Composition', () => {
               id: 'l1',
               isVisible: true,
               name: 'Layout Placeholder',
-              position: { cx: 10 as Emu, cy: 10 as Emu, x: 0 as Emu, y: 0 as Emu },
-              rotation: 0 as EmuDegree,
+              position: { cx: emu(10), cy: emu(10), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
               type: 'shape',
               zIndex: 0,
             },
@@ -59,8 +60,8 @@ describe('Layer Parsing & Composition', () => {
               id: 'm1',
               isVisible: true,
               name: 'Master Background',
-              position: { cx: 10 as Emu, cy: 10 as Emu, x: 0 as Emu, y: 0 as Emu },
-              rotation: 0 as EmuDegree,
+              position: { cx: emu(10), cy: emu(10), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
               type: 'shape',
               zIndex: 0,
             },
@@ -78,8 +79,8 @@ describe('Layer Parsing & Composition', () => {
               id: 's1',
               isVisible: true,
               name: 'Slide Shape 1',
-              position: { cx: 10 as Emu, cy: 10 as Emu, x: 0 as Emu, y: 0 as Emu },
-              rotation: 0 as EmuDegree,
+              position: { cx: emu(10), cy: emu(10), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
               type: 'shape',
               zIndex: 0,
             },
@@ -106,5 +107,40 @@ describe('Layer Parsing & Composition', () => {
     expect(layers?.allShapesInRenderOrder[0].layerSource).toBe('master');
     expect(layers?.allShapesInRenderOrder[1].layerSource).toBe('layout');
     expect(layers?.allShapesInRenderOrder[2].layerSource).toBe('slide');
+  });
+});
+
+describe('resolveSlideLayers edge cases', () => {
+  it('resolves by string ID and handles missing layout by falling back to master[0]', () => {
+    const mockDoc: PptxDocument = {
+      customXml: [],
+      media: [],
+      metadata: { slideCount: 1, slideHeight: emu(100), slideWidth: emu(100) },
+      slideLayouts: [],
+      slideMasters: [
+        {
+          elements: [],
+          id: 'master1',
+          layoutIds: [],
+          shapes: [],
+        },
+      ],
+      slides: [
+        {
+          animations: [],
+          elements: [],
+          shapes: [],
+          slideId: 'rId100',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    expect(resolveSlideLayers(mockDoc, 99)).toBeUndefined();
+    const layers = resolveSlideLayers(mockDoc, 'rId100');
+    expect(layers).toBeDefined();
+    expect(layers?.masterElements).toEqual([]);
+    expect(layers?.layoutElements).toEqual([]);
   });
 });
