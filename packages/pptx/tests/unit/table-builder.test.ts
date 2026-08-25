@@ -135,7 +135,7 @@ describe('TableBuilder.fromMatrix with CellConfig objects', () => {
 
   it('handles 0 and empty column widths fallback', () => {
     const builder = new TableBuilder({ colWidths: [inches(0), inches(0)] });
-    builder.addRow(['A', 'B']);
+    builder.addRow({ cells: ['A', 'B'] });
     const table = builder.build();
     expect(table.table.columnWidths).toHaveLength(2);
   });

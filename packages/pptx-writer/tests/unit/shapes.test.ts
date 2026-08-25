@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxConnectorElement, PptxShapeElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, hundredthsPoint } from '@hokkyss/pptx-core';
-import { serializeConnector, serializeShape } from '../../lib/serializers/shape-serializer';
+import {
+  serializeConnector,
+  serializeGeometry,
+  serializeLine,
+  serializeShadow,
+  serializeShape,
+} from '../../lib/serializers/shape-serializer';
+
+interface SerializedShapeSpPr {
+  'a:xfrm'?: {
+    'a:ext'?: {
+      '@_cx'?: number;
+      '@_cy'?: number;
+    };
+  };
+}
 
 describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
   it('serializes shape element with transforms, geometry, fills, and outline', () => {
@@ -274,13 +289,11 @@ describe('Shape and Connector edge cases', () => {
     delete shapeWithoutExt.position.cy;
 
     const xmlShape = serializeShape(shapeWithoutExt);
-    const spPr = xmlShape['p:spPr'] as Record<string, Record<string, unknown>>;
-    expect(spPr['a:xfrm']['a:ext']['@_cx']).toBe(2000000);
-    expect(spPr['a:xfrm']['a:ext']['@_cy']).toBe(1000000);
+    const spPr = xmlShape['p:spPr'] as SerializedShapeSpPr;
+    expect(spPr['a:xfrm']?.['a:ext']?.['@_cx']).toBe(2000000);
+    expect(spPr['a:xfrm']?.['a:ext']?.['@_cy']).toBe(1000000);
   });
 });
-
-import { serializeGeometry, serializeLine, serializeShadow } from '../../lib/serializers/shape-serializer';
 
 describe('Shape Serializer helper direct exports', () => {
   it('covers serializeLine, serializeGeometry, and serializeShadow with empty inputs', () => {
@@ -300,7 +313,7 @@ describe('Shape Serializer helper direct exports', () => {
     expect(lineObj?.['@_w']).toBe(12700);
     expect(lineObj?.['a:prstDash']).toEqual({ '@_val': 'dashDot' });
 
-    const geom1 = serializeGeometry('rect', [{ name: 'adj', value: 50000 }]);
+    const geom1 = serializeGeometry({ adjustments: { adj: 50000 }, presetGeometry: 'rect' });
     expect(geom1['a:prstGeom']).toBeDefined();
 
     const shadowObj = serializeShadow({
@@ -321,6 +334,7 @@ describe('Shape Serializer helper direct exports', () => {
       name: 'Locked Shape',
       placeholder: { idx: '0', type: 'title' },
       position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
       shapeType: 'ellipse',
       type: 'shape',
       zIndex: 0,

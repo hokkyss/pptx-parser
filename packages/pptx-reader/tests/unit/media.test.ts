@@ -10,10 +10,10 @@ function createMockZip(options: {
   paths?: string[];
 }): ZipReader {
   return {
-    getFileAsBinary: (path: string) => Promise.resolve(options.files?.[path] ?? undefined),
     getFileAsString: () => Promise.resolve(''),
     getFileData: (path: string) => options.files?.[path] ?? undefined,
     getFileText: () => undefined,
+    getPaths: () => options.paths ?? Object.keys(options.files ?? {}),
     getPathsStartingWith: (prefix: string) => options.paths?.filter((p) => p.startsWith(prefix)) ?? [],
     hasFile: (path: string) => (options.paths?.includes(path) || (options.files !== undefined && path in options.files)),
     listFiles: () => options.paths ?? Object.keys(options.files ?? {}),

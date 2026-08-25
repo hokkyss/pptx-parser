@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxChart } from '@hokkyss/pptx-core';
+import { points } from '@hokkyss/pptx-core';
 import { serializeChart } from '../../lib/serializers/chart-serializer';
 
 describe('Chart Serializer (Unit Tests)', () => {
@@ -238,8 +239,8 @@ describe('Chart Serializer axis and legend text properties', () => {
     const chart: PptxChart = {
       categories: ['X'],
       chartType: 'bar',
-      catAxis: { color: '#64748B', fontSize: 12, axisColor: '#CBD5E1' },
-      legend: { color: '#475569', fontSize: 10, position: 'right' },
+      catAxis: { axisColor: '#CBD5E1', color: '#64748B', fontSize: points(12) },
+      legend: { color: '#475569', fontSize: points(10), position: 'right' },
       series: [{ index: 0, name: 'S', order: 0, values: [5] }],
     };
     const xml = serializeChart(chart);

@@ -100,7 +100,9 @@ describe('Picture Serializer rotation', () => {
       id: '',
       isVisible: true,
       name: '',
-      picture: {},
+      picture: { mediaId: '' },
+      position: { cx: emu(0), cy: emu(0), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
       type: 'picture',
       zIndex: 0,
     };

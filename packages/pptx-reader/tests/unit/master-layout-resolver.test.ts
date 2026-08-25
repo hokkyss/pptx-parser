@@ -9,10 +9,10 @@ import { createMasterLayoutResolver } from '../../lib/resolvers/master-layout-re
  */
 function mockZipReader(files: Record<string, null | string>): ZipReader {
   return {
-    getFileAsBinary: () => Promise.resolve(undefined),
     getFileAsString: (path: string) => Promise.resolve(files[path] ?? ''),
     getFileData: () => undefined,
     getFileText: (path: string) => files[path] ?? undefined,
+    getPaths: () => Object.keys(files),
     getPathsStartingWith: (prefix: string) => Object.keys(files).filter((k) => k.startsWith(prefix)),
     hasFile: (path: string) => path in files,
     listFiles: () => Object.keys(files),

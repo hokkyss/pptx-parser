@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inches } from '@hokkyss/pptx-core';
+import { inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('ChartBuilder (Unit Tests)', () => {
@@ -140,14 +140,14 @@ describe('ChartBuilder edge cases', () => {
       catAxis: {
         axisColor: 'FF0000',
         color: '333333',
-        fontSize: 12,
+        fontSize: points(12),
         gridlineColor: 'CCCCCC',
         showGridlines: true,
       },
       valAxis: {
         axisColor: '00FF00',
         color: '666666',
-        fontSize: 14,
+        fontSize: points(14),
         gridlineColor: 'E5E5E5',
         showGridlines: false,
       },

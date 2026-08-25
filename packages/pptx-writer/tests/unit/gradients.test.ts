@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxDocument, PptxFill } from '@hokkyss/pptx-core';
-import { emu } from '@hokkyss/pptx-core';
+import { emu, emuDegree, thousandthsPercent } from '@hokkyss/pptx-core';
 import { createZipReader } from '@hokkyss/pptx-reader';
 import { serializeFill } from '../../lib/serializers/text-serializer';
 import { writePptx } from '../../lib/writer';
@@ -103,19 +103,25 @@ describe('Gradient Fill Serialization (@hokkyss/pptx-writer)', () => {
 
   it('writes PPTX package with gradient shape fill and slide background', async () => {
     const doc: PptxDocument = {
+      customXml: [],
       media: [],
-      metadata: {},
+      metadata: {
+        slideCount: 1,
+        slideHeight: emu(6858000),
+        slideWidth: emu(12192000),
+      },
       slideLayouts: [],
       slideMasters: [],
       slides: [
         {
+          animations: [],
           background: {
             fill: {
               gradient: {
                 angle: 45,
                 stops: [
-                  { color: '#0F172A', position: 0 },
-                  { color: '#1E293B', position: 1 },
+                  { color: '#0F172A', position: thousandthsPercent(0) },
+                  { color: '#1E293B', position: thousandthsPercent(100000) },
                 ],
                 type: 'linear',
               },
@@ -129,19 +135,24 @@ describe('Gradient Fill Serialization (@hokkyss/pptx-writer)', () => {
                 gradient: {
                   angle: 180,
                   stops: [
-                    { color: '#38BDF8', position: 0 },
-                    { color: '#6366F1', position: 1 },
+                    { color: '#38BDF8', position: thousandthsPercent(0) },
+                    { color: '#6366F1', position: thousandthsPercent(100000) },
                   ],
                   type: 'linear',
                 },
                 type: 'gradient',
               },
               id: '2',
+              isVisible: true,
+              name: 'Gradient Card',
               position: { cx: emu(2000000), cy: emu(1000000), x: emu(1000000), y: emu(1000000) },
+              rotation: emuDegree(0),
               shapeType: 'roundRect',
               type: 'shape',
+              zIndex: 0,
             },
           ],
+          shapes: [],
           slideId: 'rId2',
           slideNumber: 1,
         },

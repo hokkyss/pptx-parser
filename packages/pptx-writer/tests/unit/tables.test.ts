@@ -346,6 +346,7 @@ describe('Table Serializer cell fill styling', () => {
       isVisible: true,
       name: 'Table 20',
       position: { cx: emu(1000), cy: emu(1000), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
       table: {
         columnWidths: [emu(500), emu(500)],
         rows: [
@@ -353,11 +354,7 @@ describe('Table Serializer cell fill styling', () => {
             cells: [
               {
                 properties: {
-                  align: 'center',
-                  borders: {
-                    top: { fill: { solidColor: { type: 'srgb', value: '000000' }, type: 'solid' }, width: emu(12700) },
-                  },
-                  verticalAlign: 'middle',
+                  verticalAlignment: 'middle',
                 },
               },
             ],

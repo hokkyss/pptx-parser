@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxDocument, PptxSlide } from '@hokkyss/pptx-core';
-import { inches } from '@hokkyss/pptx-core';
+import { emu, inches } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('Presentation Class (Unit Tests)', () => {
@@ -262,12 +262,13 @@ describe('Presentation Class theme guards and rich slide duplication', () => {
   });
 
   it('handles missing collections, fallback indices and empty layout lists', () => {
-    // @ts-expect-error Missing slides/masters in raw AST
     const doc: PptxDocument = {
       customXml: [],
       media: [],
-      metadata: { created: new Date(), modified: new Date(), revision: 1, slideCount: 0 },
+      metadata: { created: new Date(), modified: new Date(), revision: 1, slideCount: 0, slideHeight: emu(6858000), slideWidth: emu(12192000) },
       slideLayouts: [],
+      slideMasters: [],
+      slides: [],
       themes: [],
     };
     const pres = new Presentation(doc);
@@ -278,6 +279,9 @@ describe('Presentation Class theme guards and rich slide duplication', () => {
 
     // duplicateSlide on minimal slide
     const minimalSlide: PptxSlide = {
+      animations: [],
+      elements: [],
+      shapes: [],
       slideId: 'rId1',
       slideNumber: 1,
     };

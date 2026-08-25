@@ -80,10 +80,13 @@ describe('Text Body Serializer', () => {
 
   it('sanitizes invalid XML 1.0 control characters in text runs preventing PowerPoint corruption', () => {
     const textBody: PptxTextBody = {
+      bodyProperties: {},
       paragraphs: [
         {
+          properties: {},
           runs: [
             {
+              properties: {},
               text: 'Clean\x00Text\x08With\x0BControl\x0CChars\x1F!',
             },
           ],
@@ -101,25 +104,28 @@ describe('Text Body Serializer', () => {
 describe('Text & Fill Serializer extended coverage', () => {
   it('serializes radial and path gradient fills', () => {
     const radialFill = serializeFill({
-      type: 'gradient',
       gradient: {
-        type: 'radial',
         flip: 'xy',
         rotateWithShape: false,
-        stops: [{ color: { type: 'srgb', value: '000000' } }, { color: { type: 'srgb', value: 'FFFFFF' } }],
+        stops: [
+          { color: { type: 'srgb', value: '000000' }, position: thousandthsPercent(0) },
+          { color: { type: 'srgb', value: 'FFFFFF' }, position: thousandthsPercent(100000) },
+        ],
+        type: 'radial',
       },
+      type: 'gradient',
     });
     expect(radialFill?.['a:gradFill']).toBeDefined();
     const gradFillNode = radialFill?.['a:gradFill'] as Record<string, string> | undefined;
     expect(gradFillNode?.['@_flip']).toBe('xy');
 
     const pathFill = serializeFill({
-      type: 'gradient',
       gradient: {
+        pathBounds: { bottom: 0.8, left: 0.2, right: 0.8, top: 0.2 },
+        stops: [{ color: { type: 'srgb', value: 'FF0000' }, position: thousandthsPercent(0) }],
         type: 'path',
-        pathBounds: { left: 0.2, top: 0.2, right: 0.8, bottom: 0.8 },
-        stops: [{ color: { type: 'srgb', value: 'FF0000' }, position: 0 }],
       },
+      type: 'gradient',
     });
     const pathGradNode = pathFill?.['a:gradFill'] as Record<string, Record<string, string>> | undefined;
     expect(pathGradNode?.['a:path']?.['@_path']).toBe('rect');
@@ -127,9 +133,9 @@ describe('Text & Fill Serializer extended coverage', () => {
 
   it('serializes subscript, superscript, strikethrough, and baseline', () => {
     const rPr = serializeRunProperties({
-      subscript: true,
-      strikethrough: true,
       baseline: -25000,
+      strikethrough: true,
+      subscript: true,
     });
     expect(rPr['@_strike']).toBe('sngStrike');
     expect(rPr['@_baseline']).toBe(-25000);
@@ -140,15 +146,16 @@ describe('Paragraph serializer bullets and empty runs', () => {
   it('computes marL and indent for numbered and char bullets', () => {
     const autoNumPara = serializeParagraph({
       properties: {
-        bullet: { type: 'autoNum', autoNumType: 'arabicPeriod' },
+        bullet: { autoNumType: 'arabicPeriod', type: 'autoNum' },
         level: 2,
       },
-      runs: [{ text: 'Item' }],
+      runs: [{ properties: {}, text: 'Item' }],
     });
     expect(autoNumPara['a:pPr']).toBeDefined();
-    expect(autoNumPara['a:pPr']?.['@_marL']).toBe((2 * 228600) + 203200);
+    const pPr = autoNumPara['a:pPr'] as Record<string, unknown>;
+    expect(pPr['@_marL']).toBe((2 * 228600) + 203200);
 
-    const emptyPara = serializeParagraph({ runs: [] });
+    const emptyPara = serializeParagraph({ properties: {}, runs: [] });
     expect(emptyPara['a:endParaRPr']).toEqual({});
   });
 });
@@ -156,7 +163,7 @@ describe('Paragraph serializer bullets and empty runs', () => {
 describe('Paragraph serializer margin and indent legacy fallbacks', () => {
   it('serializes margin and indent from legacy paragraph properties', () => {
     // @ts-expect-error Testing legacy margin/indent property fallbacks
-    const p = serializeParagraph({ margin: 150000, indent: -50000, runs: [{ text: 'Legacy' }] });
+    const p = serializeParagraph({ indent: -50000, margin: 150000, runs: [{ properties: {}, text: 'Legacy' }] });
     const pPr = p['a:pPr'] as Record<string, unknown>;
     expect(pPr['@_marL']).toBe(150000);
     expect(pPr['@_indent']).toBe(-50000);
@@ -166,7 +173,7 @@ describe('Paragraph serializer margin and indent legacy fallbacks', () => {
 describe('Text Serializer color objects and paragraph insets', () => {
   it('serializes scheme color objects on text runs and explicit margins/indents on paragraphs', () => {
     const rPr = serializeRunProperties({
-      color: { type: 'scheme', value: 'accent1' },
+      color: 'accent1',
       superscript: true,
     });
     expect(rPr['@_baseline']).toBe('30000');
@@ -174,10 +181,10 @@ describe('Text Serializer color objects and paragraph insets', () => {
 
     const p = serializeParagraph({
       properties: {
-        leftMargin: emu(300000),
         firstLineIndent: emu(-150000),
+        leftMargin: emu(300000),
       },
-      runs: [{ text: 'Indented' }],
+      runs: [{ properties: {}, text: 'Indented' }],
     });
     const pPr = p['a:pPr'] as Record<string, unknown>;
     expect(pPr['@_marL']).toBe(300000);
@@ -194,7 +201,7 @@ describe('Text Serializer subscript baseline', () => {
 
 describe('Text Serializer char bullet and fill fallbacks', () => {
   it('serializes char bullet with explicit character and handles empty bodyProperties/fill fallbacks', () => {
-    const charBullet = serializeBulletProperties({ type: 'char', char: '•' });
+    const charBullet = serializeBulletProperties({ char: '•', type: 'char' });
     expect(charBullet?.['a:buChar']).toEqual({ '@_char': '•' });
 
     expect(serializeBodyProperties(undefined)).toEqual({});
@@ -209,8 +216,8 @@ describe('Text Serializer noFill and large angle gradients', () => {
     expect(serializeFill({ type: 'none' })).toEqual({ 'a:noFill': {} });
 
     const largeAngleFill = serializeFill({
-      type: 'gradient',
       gradient: { angle: 5400000, stops: [] },
+      type: 'gradient',
     });
     const lin = (largeAngleFill?.['a:gradFill'] as Record<string, Record<string, unknown>>)?.['a:lin'];
     expect(lin?.['@_ang']).toBe(5400000);
@@ -219,7 +226,7 @@ describe('Text Serializer noFill and large angle gradients', () => {
 
 describe('Text Serializer color node alpha and string fallbacks', () => {
   it('serializes color object with alpha and unrecognized color string fallbacks', () => {
-    const clrWithAlpha = serializeColorNode({ type: 'srgb', value: 'FF0000', alpha: 50000 });
+    const clrWithAlpha = serializeColorNode({ alpha: thousandthsPercent(50000), type: 'srgb', value: 'FF0000' });
     expect(clrWithAlpha['a:srgbClr']).toBeDefined();
     expect((clrWithAlpha['a:srgbClr'] as Record<string, Record<string, unknown>>)['a:alpha']?.['@_val']).toBe(50000);
 
@@ -229,12 +236,12 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
 
   it('covers rich text runs, line spacing in points and percentage', () => {
     const tBodyObj = serializeTextBody({
-      bodyProperties: { anchor: 'ctr' },
+      bodyProperties: { verticalAlignment: 'middle' },
       paragraphs: [
         {
           properties: {
             alignment: 'right',
-            lineSpacing: { points: hundredthsPoint(2000), type: 'points' },
+            lineSpacing: hundredthsPoint(2000),
           },
           runs: [
             {
@@ -253,9 +260,9 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
         },
         {
           properties: {
-            lineSpacing: { percent: thousandthsPercent(120000), type: 'percent' },
+            lineSpacing: hundredthsPoint(1200),
           },
-          runs: [{ text: 'P% line spacing' }],
+          runs: [{ properties: {}, text: 'P% line spacing' }],
         },
       ],
     });

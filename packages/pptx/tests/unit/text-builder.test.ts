@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { points } from '@hokkyss/pptx-core';
 import { buildTextBody, buildTextRun, normalizeBullet } from '../../lib/builders/text-builder';
 
 describe('TextBuilder Helper Functions (@hokkyss/pptx)', () => {
@@ -23,15 +24,15 @@ describe('TextBuilder Helper Functions (@hokkyss/pptx)', () => {
   });
 
   it('normalizes text runs with strikethrough, subscript, superscript, baseline', () => {
-    const run1 = buildTextRun('Subscript', { subscript: true, strikethrough: true, baseline: -25000 });
+    const run1 = buildTextRun('Subscript', { baseline: -25000, strikethrough: true, subscript: true });
     expect(run1.properties.subscript).toBe(true);
     expect(run1.properties.strikethrough).toBe(true);
     expect(run1.properties.baseline).toBe(-25000);
 
     const run2 = buildTextRun({
-      text: 'Super',
-      superscript: true,
       baseline: 30000,
+      superscript: true,
+      text: 'Super',
     });
     expect(run2.properties.superscript).toBe(true);
     expect(run2.properties.baseline).toBe(30000);
@@ -42,7 +43,7 @@ describe('buildTextBody paragraph arrays and multiline runs', () => {
   it('handles mixed paragraph config array with strings and run arrays', () => {
     const body = buildTextBody([
       'String Paragraph',
-      { text: ['Run A', 'Run B'], level: 1, spaceBefore: 12, spaceAfter: 6 },
+      { level: 1, spaceAfter: points(6), spaceBefore: points(12), text: ['Run A', 'Run B'] },
     ]);
     expect(body.paragraphs).toHaveLength(2);
     expect(body.paragraphs[0].runs[0].text).toBe('String Paragraph');
@@ -52,7 +53,7 @@ describe('buildTextBody paragraph arrays and multiline runs', () => {
 
   it('handles multi-line text runs creating new paragraphs', () => {
     const body = buildTextBody([
-      { text: 'First Line\nSecond Line', bold: true },
+      { bold: true, text: 'First Line\nSecond Line' },
     ]);
     expect(body.paragraphs).toHaveLength(2);
     expect(body.paragraphs[0].runs[0].text).toBe('First Line');
@@ -80,13 +81,13 @@ describe('normalizeBullet invalid input fallback', () => {
   });
 
   it('covers default font size, spacing, array of mixed configs and multiline runs', () => {
-    const run1 = buildTextRun({ text: 'Hello' }, { fontSize: 16 });
+    const run1 = buildTextRun({ text: 'Hello' }, { fontSize: points(16) });
     expect(run1.properties.fontSize).toBe(1600);
 
     const run2 = buildTextRun({ text: 'No size' }, {});
     expect(run2.properties?.fontSize).toBeUndefined();
 
-    const body1 = buildTextBody('Line 1\nLine 2', { spaceAfter: 10, spaceBefore: 5 });
+    const body1 = buildTextBody('Line 1\nLine 2', { spaceAfter: points(10), spaceBefore: points(5) });
     expect(body1.paragraphs[0].properties.spaceAfter).toBe(1000);
     expect(body1.paragraphs[0].properties.spaceBefore).toBe(500);
 

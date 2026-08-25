@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxConnectorElement } from '@hokkyss/pptx-core';
-import { emu, emuDegree, inches, points } from '@hokkyss/pptx-core';
+import { degrees, emu, emuDegree, inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 import { GroupBuilder } from '../../lib/slide';
 
@@ -406,7 +406,7 @@ describe('Slide Class (Unit Tests)', () => {
 
     // Colliding with addChart
     expect(() => {
-      slide.addChart({ categories: ['Q1'], id: 'elem-1', series: [{ data: [100], name: 'Revenue' }] });
+      slide.addChart({ categories: ['Q1'], id: 'elem-1', series: [{ name: 'Revenue', values: [100] }] });
     }).toThrow('Duplicate element ID "elem-1" detected on Slide 1');
 
     // Colliding with addConnector
@@ -521,12 +521,13 @@ describe('Slide Class extended methods and placeholder resolution', () => {
       {
         elementType: 'shape',
         id: 'ph1',
+        isVisible: true,
         name: 'Master Header Placeholder',
-        position: { x: emu(0), y: emu(0), cx: emu(1000), cy: emu(1000) },
+        placeholder: { idx: '10', type: 'header' },
+        position: { cx: emu(1000), cy: emu(1000), x: emu(0), y: emu(0) },
         rotation: emuDegree(0),
         type: 'shape',
         zIndex: 0,
-        placeholder: { type: 'header', idx: '10' },
       },
     ];
 
@@ -565,7 +566,7 @@ describe('ShapeBuilder shadow and styling', () => {
       shadow: {
         blur: inches(0.1),
         color: '#333333',
-        direction: 45,
+        direction: degrees(45),
         distance: inches(0.05),
         opacity: 0.5,
         rotateWithShape: true,
@@ -671,14 +672,23 @@ describe('Slide Class nested group search and missing shape error', () => {
         id: 'nested-grp',
         elementType: 'group',
         children: [
-          { id: 'deep-shape', elementType: 'shape', position: { x: emu(0), y: emu(0), cx: emu(100), cy: emu(100) } },
+          {
+            elementType: 'shape',
+            id: 'deep-shape',
+            isVisible: true,
+            name: 'Deep Shape',
+            position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+            rotation: emuDegree(0),
+            type: 'shape',
+            zIndex: 0,
+          },
         ],
       });
 
-      g.addConnector({ from: { shapeId: 'deep-shape', position: 'right' }, to: { x: inches(5), y: inches(5) } });
+      g.addConnector({ from: { position: 'right', shapeId: 'deep-shape' }, to: { x: inches(5), y: inches(5) } });
 
       expect(() => {
-        g.addConnector({ from: { shapeId: 'missing-shape', position: 'right' }, to: { x: inches(5), y: inches(5) } });
+        g.addConnector({ from: { position: 'right', shapeId: 'missing-shape' }, to: { x: inches(5), y: inches(5) } });
       }).toThrow('Shape with id "missing-shape" was not found on this slide');
     });
   });
@@ -690,10 +700,10 @@ describe('Slide Class auto ID counter collision skip', () => {
     const slide = pres.addSlide();
 
     // Manually add shape with id "1"
-    slide.addShape('rect', { id: '1', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('rect', { h: inches(2), id: '1', w: inches(2), x: inches(1), y: inches(1) });
 
     // Next element without ID must auto-generate "2" by skipping "1"
-    slide.addShape('rect', { x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('rect', { h: inches(2), w: inches(2), x: inches(3), y: inches(1) });
 
     expect(slide.getElements()[0].id).toBe('1');
     expect(slide.getElements()[1].id).toBe('2');
@@ -706,10 +716,10 @@ describe('Slide Class initial elements counter collision', () => {
     const slide = pres.addSlide();
 
     // Shape with manual id "2" (occupying the 2nd slot ahead of time)
-    slide.addShape('rect', { id: '2', x: inches(1), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('rect', { h: inches(2), id: '2', w: inches(2), x: inches(1), y: inches(1) });
 
     // Next auto-allocated shape sees _elementCounter=2, which exists, so while loop increments it to 3
-    slide.addShape('rect', { x: inches(3), y: inches(1), w: inches(2), h: inches(2) });
+    slide.addShape('rect', { h: inches(2), w: inches(2), x: inches(3), y: inches(1) });
 
     expect(slide.getElements()[0].id).toBe('2');
     expect(slide.getElements()[1].id).toBe('3');
@@ -731,7 +741,7 @@ describe('Slide Class initial elements counter collision', () => {
     expect(slide.ast.background).toBeUndefined();
 
     // Text with rotation
-    slide.addText('Rotated Text', { h: inches(1), rotation: 45, w: inches(3), x: inches(1), y: inches(1) });
+    slide.addText('Rotated Text', { h: inches(1), rotation: degrees(45), w: inches(3), x: inches(1), y: inches(1) });
     expect(slide.getElements()[0].rotation).toBe(2700000);
 
     // Image from ArrayBuffer with jpeg extension
@@ -741,9 +751,9 @@ describe('Slide Class initial elements counter collision', () => {
 
     // Group builder default counter and position fallbacks
     const gb = new GroupBuilder();
-    gb.addText('Text in group', { h: inches(1), id: 'g-txt', rotation: 30, w: inches(2), x: inches(1), y: inches(1) });
+    gb.addText('Text in group', { h: inches(1), id: 'g-txt', rotation: degrees(30), w: inches(2), x: inches(1), y: inches(1) });
     gb.addText('Default pos text', {});
-    const groupElement = gb.build('grp-1', 'Group 1', { h: inches(4), rotation: 15, w: inches(4), x: inches(1), y: inches(1) });
+    const groupElement = gb.build('grp-1', 'Group 1', { h: inches(4), rotation: degrees(15), w: inches(4), x: inches(1), y: inches(1) });
     expect(groupElement.rotation).toBe(900000);
     expect(groupElement.children).toHaveLength(2);
 

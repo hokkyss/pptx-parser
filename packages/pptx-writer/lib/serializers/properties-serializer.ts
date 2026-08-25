@@ -5,7 +5,7 @@ import { serializeXml } from '../xml/xml-builder';
  * Serializes extended document metadata to `docProps/app.xml`.
  * @param metadata
  */
-export function serializeAppProperties(metadata: PptxMetadata): string {
+export function serializeAppProperties(metadata: Partial<PptxMetadata> = {}): string {
   const appObj: Record<string, unknown> = {
     Properties: {
       '@_xmlns': 'http://schemas.openxmlformats.org/officeDocument/2006/extended-properties',
@@ -52,7 +52,7 @@ export function serializeAppProperties(metadata: PptxMetadata): string {
  * Serializes document metadata to `docProps/core.xml` (Dublin Core & OpenXML metadata).
  * @param metadata
  */
-export function serializeCoreProperties(metadata: PptxMetadata): string {
+export function serializeCoreProperties(metadata: Partial<PptxMetadata> = {}): string {
   const createdDate = metadata.created ? metadata.created.toISOString() : new Date().toISOString();
   const modifiedDate = metadata.modified ? metadata.modified.toISOString() : createdDate;
 

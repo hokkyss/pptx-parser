@@ -124,7 +124,6 @@ describe('serializeGroup', () => {
   });
 
   it('defaults position values to 0/1000000 when position is undefined', () => {
-    // @ts-expect-error Testing undefined position resilience
     const group = makeGroup({ position: undefined });
     const result = serializeGroup(group);
     const xfrm = (result['p:grpSpPr'] as Record<string, unknown>)['a:xfrm'] as Record<string, Record<string, unknown>>;
@@ -146,7 +145,6 @@ describe('serializeGroup', () => {
   });
 
   it('handles undefined children gracefully', () => {
-    // @ts-expect-error Testing undefined children resilience
     const group = makeGroup({ children: undefined });
     expect(() => serializeGroup(group)).not.toThrow();
     const result = serializeGroup(group);

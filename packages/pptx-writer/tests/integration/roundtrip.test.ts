@@ -107,7 +107,7 @@ describe('Round-Trip Integration (Synthetic Presentation)', () => {
           animations: [],
           notesBody: {
             bodyProperties: {},
-            paragraphs: [{ properties: {}, runs: [{ text: 'Structured speaker notes' }] }],
+            paragraphs: [{ properties: {}, runs: [{ properties: {}, text: 'Structured speaker notes' }] }],
           },
           elements: [
             {

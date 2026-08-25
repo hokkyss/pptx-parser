@@ -219,7 +219,7 @@ describe('parseFill with unsupported color node', () => {
       },
     });
     expect(gradPath?.type).toBe('gradient');
-    if (gradPath?.type === 'gradient') {
+    if (gradPath?.type === 'gradient' && gradPath.gradient) {
       expect(gradPath.gradient.type).toBe('radial');
     }
   });

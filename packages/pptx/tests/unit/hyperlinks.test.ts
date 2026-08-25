@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { inches, points } from '@hokkyss/pptx-core';
 import { Presentation } from '../../lib/presentation';
 
 describe('Fluent Hyperlinks (@hokkyss/pptx)', () => {
@@ -8,12 +9,12 @@ describe('Fluent Hyperlinks (@hokkyss/pptx)', () => {
     // Slide 1: Introduction with external links & slide jump
     const slide1 = pres.addSlide();
     slide1.addText('Hokkyss PPTX Parser', {
-      fontSize: 28,
-      h: 1,
+      fontSize: points(28),
+      h: inches(1),
       hyperlink: { tooltip: 'Official Repo', url: 'https://github.com/hokkyss/pptx-parser' },
-      w: 8,
-      x: 1,
-      y: 1,
+      w: inches(8),
+      x: inches(1),
+      y: inches(1),
     });
 
     slide1.addText([
@@ -26,43 +27,43 @@ describe('Fluent Hyperlinks (@hokkyss/pptx)', () => {
       },
       { text: ' or navigate using buttons below.' },
     ], {
-      fontSize: 16,
-      h: 1.5,
-      w: 8,
-      x: 1,
-      y: 2.5,
+      fontSize: points(16),
+      h: inches(1.5),
+      w: inches(8),
+      x: inches(1),
+      y: inches(2.5),
     });
 
     slide1.addShape('roundRect', {
       fill: '10B981',
-      h: 0.8,
+      h: inches(0.8),
       hyperlink: { action: 'nextSlide', tooltip: 'Next Slide' },
       text: 'Next Slide ➔',
-      textOptions: { color: 'FFFFFF', fontSize: 14 },
-      w: 2.5,
-      x: 1,
-      y: 4.5,
+      textOptions: { color: 'FFFFFF', fontSize: points(14) },
+      w: inches(2.5),
+      x: inches(1),
+      y: inches(4.5),
     });
 
     // Slide 2: Destination slide with back action
     const slide2 = pres.addSlide();
     slide2.addText('Slide 2: Welcome!', {
-      fontSize: 24,
-      h: 1,
-      w: 8,
-      x: 1,
-      y: 1,
+      fontSize: points(24),
+      h: inches(1),
+      w: inches(8),
+      x: inches(1),
+      y: inches(1),
     });
 
     slide2.addShape('roundRect', {
       fill: '64748B',
-      h: 0.8,
+      h: inches(0.8),
       hyperlink: { action: 'firstSlide', tooltip: 'Return Home' },
       text: '⬅ Back to Start',
-      textOptions: { color: 'FFFFFF', fontSize: 14 },
-      w: 2.5,
-      x: 1,
-      y: 3,
+      textOptions: { color: 'FFFFFF', fontSize: points(14) },
+      w: inches(2.5),
+      x: inches(1),
+      y: inches(3),
     });
 
     const buffer = await pres.toBuffer();
@@ -122,14 +123,14 @@ describe('Fluent Hyperlinks (@hokkyss/pptx)', () => {
     });
 
     slide.addShape('roundRect', {
-      h: 1,
+      h: inches(1),
       hyperlink: {
         tooltip: 'Malicious\r\nTooltip\0Breakout',
         url: 'file:///etc/passwd',
       },
-      w: 2,
-      x: 1,
-      y: 1,
+      w: inches(2),
+      x: inches(1),
+      y: inches(1),
     });
 
     const buffer = await pres.toBuffer();
