@@ -296,5 +296,30 @@ describe('Presentation Class theme guards and rich slide duplication', () => {
     pres2.ast.slideLayouts = [];
     const s = pres2.addSlide();
     expect(s.layoutId).toBe('slideLayout1');
+
+    // Presentation with undefined slides/masters/layouts
+    // @ts-expect-error Testing undefined collections at runtime
+    const presWithUndefinedArrays = new Presentation({ ...doc, slideLayouts: undefined, slideMasters: undefined, slides: undefined });
+    expect(presWithUndefinedArrays.slides).toHaveLength(0);
+    expect(presWithUndefinedArrays.getMasters()).toHaveLength(0);
+
+    // Duplicate slide with undefined animations/elements/shapes
+    const slideWithUndefinedArrays: PptxSlide = {
+      animations: [],
+      elements: [],
+      shapes: [],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    // @ts-expect-error Testing undefined animations at runtime
+    delete slideWithUndefinedArrays.animations;
+    // @ts-expect-error Testing undefined elements at runtime
+    delete slideWithUndefinedArrays.elements;
+    // @ts-expect-error Testing undefined shapes at runtime
+    delete slideWithUndefinedArrays.shapes;
+    presWithUndefinedArrays.ast.slides = [slideWithUndefinedArrays];
+    const pres3 = new Presentation(presWithUndefinedArrays.ast);
+    const dupSlide = pres3.duplicateSlide(1);
+    expect(dupSlide.slideNumber).toBe(2);
   });
 });

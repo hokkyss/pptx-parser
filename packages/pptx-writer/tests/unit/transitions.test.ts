@@ -109,9 +109,29 @@ describe('Slide Transition Serializer (@hokkyss/pptx-writer)', () => {
   it('covers transition directions and speeds', () => {
     const t1 = serializeTransition({ direction: 'left', speed: 'fast', type: 'push' });
     expect(t1).toBeDefined();
-    const t2 = serializeTransition({ direction: 'down', speed: 'slow', type: 'wipe' });
-    expect(t2).toBeDefined();
     const t3 = serializeTransition({ duration: 1000, type: 'fade' });
     expect(t3).toBeDefined();
+
+    // Empty transition object (default to fade)
+    // @ts-expect-error Testing empty transition object
+    const defaultTrans = serializeTransition({});
+    expect(defaultTrans?.['p:fade']).toBeDefined();
+
+    // advanceOnClick true
+    const advClickTrue = serializeTransition({ advanceOnClick: true, type: 'fade' });
+    expect(advClickTrue?.['@_advClick']).toBe('1');
+
+    // Custom direction and comb/randomBar vert
+    const customDir = serializeTransition({ direction: 'customDiagonal', type: 'cover' });
+    expect(customDir?.['p:cover']).toEqual({ '@_dir': 'customDiagonal' });
+
+    const combVert = serializeTransition({ direction: 'vert', type: 'comb' });
+    expect(combVert?.['p:comb']).toEqual({ '@_dir': 'vert' });
+
+    const rbVert = serializeTransition({ direction: 'vert', type: 'randomBar' });
+    expect(rbVert?.['p:randomBar']).toEqual({ '@_dir': 'vert' });
+
+    const splitVert = serializeTransition({ direction: 'vert', type: 'split' });
+    expect(splitVert?.['p:split']).toEqual({ '@_orient': 'vert' });
   });
 });

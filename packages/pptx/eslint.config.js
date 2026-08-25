@@ -12,6 +12,9 @@ export default defineConfig(
     tsconfigRootDir: import.meta.dirname,
   }),
   {
+    ignores: ['dist/**', 'coverage/**', '**/*.json'],
+  },
+  {
     rules: {
       '@typescript-eslint/no-base-to-string': 'off',
       'jsdoc/check-param-names': 'off',

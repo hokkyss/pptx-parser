@@ -6,6 +6,7 @@ import {
   serializeBulletProperties,
   serializeColorNode,
   serializeFill,
+  serializeHyperlink,
   serializeParagraph,
   serializeRunProperties,
   serializeTextBody,
@@ -267,5 +268,165 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       ],
     });
     expect(tBodyObj).toBeDefined();
+  });
+
+  it('covers gradient stop auto-interpolation, radial fillToRect fallbacks, and opacity overrides', () => {
+    // Stops without explicit position (auto-interpolation)
+    const autoStops = serializeFill({
+      gradient: {
+        rotateWithShape: true,
+        stops: [
+          // @ts-expect-error Testing missing position auto-interpolation
+          { color: '#FF0000' },
+          // @ts-expect-error Testing missing position auto-interpolation
+          { color: '#00FF00' },
+          // @ts-expect-error Testing missing position auto-interpolation
+          { color: '#0000FF' },
+        ],
+        type: 'linear',
+      },
+      type: 'gradient',
+    });
+    expect(autoStops?.['a:gradFill']).toBeDefined();
+    const gs = (autoStops?.['a:gradFill'] as Record<string, Record<string, Record<string, number>[]>>)?.['a:gsLst']?.['a:gs'];
+    expect(gs[0]['@_pos']).toBe(0);
+    expect(gs[1]['@_pos']).toBe(50000);
+    expect(gs[2]['@_pos']).toBe(100000);
+
+    // Single stop without position
+    const singleStop = serializeFill({
+      gradient: {
+        rotateWithShape: false,
+        // @ts-expect-error Testing missing position on single stop
+        stops: [{ color: '#FF0000' }],
+        type: 'linear',
+      },
+      type: 'gradient',
+    });
+    const singleGs = (singleStop?.['a:gradFill'] as Record<string, Record<string, Record<string, number>[]>>)?.['a:gsLst']?.['a:gs'];
+    expect(singleGs[0]['@_pos']).toBe(0);
+
+    // Radial gradient with default fillToRect (no pathBounds)
+    const radialDefault = serializeFill({
+      gradient: {
+        stops: [{ color: '#111111', position: thousandthsPercent(0) }],
+        type: 'radial',
+      },
+      type: 'gradient',
+    });
+    const fillToRect = (radialDefault?.['a:gradFill'] as Record<string, Record<string, Record<string, number>>>)?.['a:path']?.['a:fillToRect'];
+    expect(fillToRect?.['@_l']).toBe(50000);
+
+    // Radial gradient with pathBounds <= 1 scaling
+    const radialBounded = serializeFill({
+      gradient: {
+        pathBounds: { bottom: 0.9, left: 0.1, right: 0.9, top: 0.1 },
+        stops: [{ color: '#222222', position: thousandthsPercent(0) }],
+        type: 'radial',
+      },
+      type: 'gradient',
+    });
+    const scaledBounds = (radialBounded?.['a:gradFill'] as Record<string, Record<string, Record<string, number>>>)?.['a:path']?.['a:fillToRect'];
+    expect(scaledBounds?.['@_l']).toBe(10000);
+
+    // Solid fill with opacity override
+    const colorWithOpacity = serializeColorNode('#ABCDEF', 0.75);
+    expect((colorWithOpacity['a:srgbClr'] as Record<string, Record<string, number>>)['a:alpha']?.['@_val']).toBe(75000);
+
+    const colorWithAlphaVal = serializeColorNode('#ABCDEF', 80000);
+    expect((colorWithAlphaVal['a:srgbClr'] as Record<string, Record<string, number>>)['a:alpha']?.['@_val']).toBe(80000);
+  });
+
+  it('covers run color object, underline/strikethrough styles, and hyperlink actions', () => {
+    // Run with color object
+    // @ts-expect-error Testing object color on text run
+    const rPrWithColorObj = serializeRunProperties({ color: { type: 'srgb', value: '10B981' } });
+    expect(rPrWithColorObj['a:solidFill']).toBeDefined();
+
+    // Run with explicit underline and strikethrough styles
+    const styledRPr = serializeRunProperties({
+      bold: true,
+      italic: true,
+      strikethrough: 'dblStrike',
+      underline: 'dbl',
+    });
+    expect(styledRPr['@_u']).toBe('dbl');
+    expect(styledRPr['@_strike']).toBe('dblStrike');
+
+    // Run with string hyperlink with and without override
+    expect(serializeHyperlink('https://example.com', 'rId99')).toEqual({ '@_r:id': 'rId99' });
+    expect(serializeHyperlink('https://example.com')).toBeUndefined();
+    expect(serializeHyperlink(undefined)).toBeUndefined();
+
+    // Hyperlink with standard actions
+    expect(serializeHyperlink({ action: 'firstSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=firstslide' });
+    expect(serializeHyperlink({ action: 'nextSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=nextslide' });
+    expect(serializeHyperlink({ action: 'endShow' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=endshow' });
+    expect(serializeHyperlink({ action: 'lastSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=lastslide' });
+    expect(serializeHyperlink({ action: 'previousSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=previousslide' });
+    expect(serializeHyperlink({ slideIndex: 3 })).toEqual({ '@_action': 'ppaction://hlinksldjump' });
+
+    // Hyperlink with rId and tooltip
+    expect(serializeHyperlink({ rId: 'rId5', tooltip: 'My Tooltip' })).toEqual({
+      '@_r:id': 'rId5',
+      '@_tooltip': 'My Tooltip',
+    });
+
+    // Run properties with hyperlink
+    const rPrWithHlink = serializeRunProperties({ hyperlink: { action: 'nextSlide', tooltip: 'Next' } });
+    expect(rPrWithHlink['a:hlinkClick']).toBeDefined();
+
+    // Empty run properties
+    expect(serializeRunProperties(undefined)).toEqual({});
+  });
+
+  it('covers bullet startAt, text body padding insets, and empty text body', () => {
+    // Bullet autoNum with startAt
+    const numberedBullet = serializeBulletProperties({ autoNumType: 'romanUcPeriod', startAt: 5, type: 'autoNum' });
+    expect(numberedBullet?.['a:buAutoNum']).toEqual({ '@_startAt': 5, '@_type': 'romanUcPeriod' });
+    // @ts-expect-error Testing unsupported bullet type fallback
+    expect(serializeBulletProperties({ type: 'other' })).toBeUndefined();
+
+    // Body properties with all insets
+    const bodyPr = serializeBodyProperties({
+      bottomInset: emu(20000),
+      leftInset: emu(10000),
+      rightInset: emu(30000),
+      topInset: emu(40000),
+      wrap: 'square',
+    });
+    expect(bodyPr['@_lIns']).toBe(10000);
+    expect(bodyPr['@_tIns']).toBe(40000);
+    expect(bodyPr['@_rIns']).toBe(30000);
+    expect(bodyPr['@_bIns']).toBe(20000);
+
+    // Empty text body fallback
+    const emptyBody = serializeTextBody({ bodyProperties: {}, paragraphs: [] });
+    expect(emptyBody['a:p']).toHaveLength(1);
+
+    // Paragraph with justify alignment and single char bullet margin
+    const justifyPara = serializeParagraph({
+      properties: {
+        alignment: 'justify',
+        bullet: { char: '-', type: 'char' },
+      },
+      runs: [{ properties: {}, text: 'Justified item' }],
+    });
+    const pPr = justifyPara['a:pPr'] as Record<string, unknown>;
+    expect(pPr['@_algn']).toBe('justify');
+    expect(pPr['@_marL']).toBe(152400);
+    expect(pPr['@_indent']).toBe(-152400);
+
+    // Scheme color string
+    const schemeNode = serializeColorNode('accent2');
+    expect(schemeNode['a:schemeClr']).toBeDefined();
+
+    // Degree angle <= 360 gradient
+    const angleGrad = serializeFill({
+      gradient: { angle: 90, stops: [] },
+      type: 'gradient',
+    });
+    const linNode = (angleGrad?.['a:gradFill'] as Record<string, Record<string, number>>)?.['a:lin'];
+    expect(linNode?.['@_ang']).toBe(5400000);
   });
 });

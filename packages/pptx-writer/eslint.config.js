@@ -12,7 +12,7 @@ export default defineConfig(
     tsconfigRootDir: import.meta.dirname,
   }),
   {
-    ignores: ['dist/**', 'types/vite-env.d.ts', 'scripts/**', '**/*.json'],
+    ignores: ['dist/**', 'coverage/**', 'types/vite-env.d.ts', 'scripts/**', '**/*.json'],
   },
   {
     rules: {

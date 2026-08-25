@@ -222,5 +222,36 @@ describe('parseFill with unsupported color node', () => {
     if (gradPath?.type === 'gradient' && gradPath.gradient) {
       expect(gradPath.gradient.type).toBe('radial');
     }
+
+    // sysClr with @_val fallback and no lastClr
+    const sysValFill = parseFill({
+      'a:solidFill': {
+        'a:sysClr': {
+          '@_val': 'windowText',
+        },
+      },
+    });
+    expect(sysValFill?.solidColor?.type).toBe('system');
+    expect(sysValFill?.solidColor?.value).toBe('WINDOWTEXT');
+
+    // Gradient with path='rect', flip='x', and rotWithShape='false'
+    const gradRect = parseFill({
+      'a:gradFill': {
+        '@_flip': 'x',
+        '@_rotWithShape': 'false',
+        'a:gsLst': {
+          'a:gs': [{ '@_pos': 0, 'a:srgbClr': { '@_val': '00FF00' } }],
+        },
+        'a:path': {
+          '@_path': 'rect',
+          'a:fillToRect': { '@_l': 10000 },
+        },
+      },
+    });
+    expect(gradRect?.gradient?.type).toBe('path');
+    expect(gradRect?.gradient?.flip).toBe('x');
+    expect(gradRect?.gradient?.rotateWithShape).toBe(false);
+    expect(gradRect?.gradient?.pathBounds?.left).toBe(0.1);
+    expect(gradRect?.gradient?.pathBounds?.top).toBeUndefined();
   });
 });

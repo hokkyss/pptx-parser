@@ -368,4 +368,74 @@ describe('Table Serializer cell fill styling', () => {
     const tblXml = serializeTable(tblEl);
     expect(tblXml).toBeDefined();
   });
+
+  it('covers table spanning, empty textBody, insets, fill, empty columns, and position fallbacks', () => {
+    const fallbackTable: PptxTableElement = {
+      elementType: 'table',
+      id: '',
+      isVisible: true,
+      name: '',
+      rotation: emuDegree(0),
+      table: {
+        columnWidths: [],
+        columns: [{ width: emu(1500000) }, {}],
+        rows: [
+          {
+            cells: [
+              {
+                colSpan: 2,
+                rowSpan: 3,
+                properties: {
+                  bottomInset: emu(10000),
+                  fill: { solidColor: { type: 'srgb', value: '10B981' }, type: 'solid' },
+                  leftInset: emu(20000),
+                  rightInset: emu(30000),
+                  topInset: emu(40000),
+                },
+              },
+              {
+                // @ts-expect-error Testing legacy gridSpan property
+                gridSpan: 2,
+              },
+            ],
+            // @ts-expect-error Testing undefined height fallback
+            height: undefined,
+          },
+          {
+            // @ts-expect-error Testing undefined cells fallback
+            cells: undefined,
+            height: emu(300000),
+          },
+        ],
+      },
+      type: 'graphicFrame',
+      zIndex: 0,
+    };
+
+    const xml = serializeTable(fallbackTable);
+    expect(xml).toBeDefined();
+    const nvPr = xml['p:nvGraphicFramePr'] as Record<string, Record<string, string>>;
+    expect(nvPr['p:cNvPr']['@_id']).toBe('3');
+    expect(nvPr['p:cNvPr']['@_name']).toBe('Table 3');
+
+    const xfrm = xml['p:xfrm'] as Record<string, Record<string, number>>;
+    expect(xfrm['a:off']['@_x']).toBe(0);
+    expect(xfrm['a:ext']['@_cx']).toBe(4000000);
+
+    // Empty gridCols fallback
+    const emptyGridTable: PptxTableElement = {
+      elementType: 'table',
+      id: '5',
+      isVisible: true,
+      name: 'T5',
+      position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
+      table: { columnWidths: [], rows: [] },
+      type: 'graphicFrame',
+      zIndex: 0,
+    };
+    const emptyGridXml = serializeTable(emptyGridTable);
+    const tbl = (emptyGridXml['a:graphic'] as Record<string, Record<string, Record<string, { 'a:gridCol': Record<string, number>[] }>>>)['a:graphicData']['a:tbl'];
+    expect(tbl['a:tblGrid']['a:gridCol']).toHaveLength(1);
+  });
 });

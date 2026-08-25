@@ -58,4 +58,23 @@ describe('Content Types Serializer extended options', () => {
     expect(ctXml).toContain('slideMaster2.xml');
     expect(ctXml).toContain('theme2.xml');
   });
+
+  it('covers no argument defaults and explicit .xml file names in overrides', () => {
+    const defaultXml = serializeContentTypes();
+    expect(defaultXml).toContain('slide1.xml');
+    expect(defaultXml).toContain('slideLayout1.xml');
+    expect(defaultXml).toContain('slideMaster1.xml');
+    expect(defaultXml).toContain('theme1.xml');
+
+    const withXmlSuffix = serializeContentTypes({
+      customPartOverrides: [{ contentType: 'application/xml', partName: '/custom/part.xml' }],
+      layoutNames: ['slideLayout1.xml'],
+      masterNames: ['slideMaster1.xml'],
+      themeNames: ['theme1.xml'],
+    });
+    expect(withXmlSuffix).toContain('/ppt/slideLayouts/slideLayout1.xml');
+    expect(withXmlSuffix).toContain('/ppt/slideMasters/slideMaster1.xml');
+    expect(withXmlSuffix).toContain('/ppt/theme/theme1.xml');
+    expect(withXmlSuffix).toContain('/custom/part.xml');
+  });
 });

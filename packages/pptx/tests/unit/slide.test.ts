@@ -761,5 +761,16 @@ describe('Slide Class initial elements counter collision', () => {
     slide.addShape('rect', { h: inches(1), id: 'ph-title', name: 'Title 1', w: inches(4), x: inches(1), y: inches(1) });
     slide.addText('Title Content', { h: inches(1), placeholder: 'Title 1', w: inches(4), x: inches(1), y: inches(1) });
     slide.addText('Centered Title', { h: inches(1), placeholder: 'ctrTitle', w: inches(5), x: inches(1), y: inches(1) });
+
+    // Shape with undefined position in connector endpoint resolution
+    const slideWithPoslessShape = pres.addSlide();
+    slideWithPoslessShape.addShape('rect', { h: inches(1), id: 'posless', w: inches(1), x: inches(1), y: inches(1) });
+    // @ts-expect-error Deleting position for fallback test
+    delete slideWithPoslessShape.getElements()[0].position;
+    slideWithPoslessShape.addConnector({
+      from: { position: 'bottom', shapeId: 'posless' },
+      to: { x: inches(2), y: inches(2) },
+    });
+    expect(slideWithPoslessShape.getElements()).toHaveLength(2);
   });
 });

@@ -330,7 +330,19 @@ describe('Shape Serializer helper direct exports', () => {
       id: '50',
       isLocked: true,
       isVisible: false,
-      locks: { noGrp: true, noMove: true, noResize: true, noRot: true },
+      locks: {
+        noAdjustHandles: true,
+        noChangeAspect: true,
+        noChangeShapeType: true,
+        noCrop: true,
+        noEditPoints: true,
+        noGrp: true,
+        noMove: true,
+        noResize: true,
+        noRot: true,
+        noSelect: true,
+        noUngrp: true,
+      },
       name: 'Locked Shape',
       placeholder: { idx: '0', type: 'title' },
       position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
@@ -341,5 +353,61 @@ describe('Shape Serializer helper direct exports', () => {
     };
     const shapeXml = serializeShape(shape);
     expect(shapeXml).toBeDefined();
+  });
+
+  it('covers PRESET_GEOMETRY_MAP, placeholder without size, and connector position/attachment fallbacks', () => {
+    // PRESET_GEOMETRY_MAP types
+    const geomTypes = ['box', 'circle', 'cylinder', 'oval', 'square', 'star', 'wedgeRoundRect'];
+    for (const shapeType of geomTypes) {
+      const s: PptxShapeElement = {
+        elementType: 'shape',
+        id: '1',
+        isVisible: true,
+        name: 'S',
+        position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+        rotation: emuDegree(0),
+        shapeType,
+        type: 'shape',
+        zIndex: 0,
+      };
+      const xml = serializeShape(s);
+      expect((xml['p:spPr'] as Record<string, Record<string, string>>)['a:prstGeom']).toBeDefined();
+    }
+
+    // Placeholder shape with 0 size (inherits geometry from layout)
+    const phShape: PptxShapeElement = {
+      elementType: 'shape',
+      id: '2',
+      isVisible: true,
+      name: 'PH',
+      placeholder: { type: 'body' },
+      position: { cx: emu(0), cy: emu(0), x: emu(0), y: emu(0) },
+      rotation: emuDegree(0),
+      type: 'shape',
+      zIndex: 0,
+    };
+    const phXml = serializeShape(phShape);
+    expect((phXml['p:spPr'] as Record<string, unknown>)['a:xfrm']).toBeUndefined();
+
+    // Connector with empty name/id, undefined position, and top/bottom connection points
+    // @ts-expect-error Testing undefined position
+    const connMinimal: PptxConnectorElement = {
+      elementType: 'connector',
+      endConnection: { position: 'bottom', shapeId: 's2' },
+      id: '',
+      isVisible: true,
+      name: '',
+      rotation: emuDegree(0),
+      startConnection: { position: 'top', shapeId: 's1' },
+      type: 'connector',
+      zIndex: 0,
+    };
+    const connXml = serializeConnector(connMinimal);
+    const nv = connXml['p:nvCxnSpPr'] as Record<string, Record<string, string>>;
+    expect(nv['p:cNvPr']['@_id']).toBe('2');
+    expect(nv['p:cNvPr']['@_name']).toBe('Connector 2');
+    const xfrm = (connXml['p:spPr'] as Record<string, Record<string, Record<string, number>>>)['a:xfrm'];
+    expect(xfrm['a:off']['@_x']).toBe(0);
+    expect(xfrm['a:ext']['@_cx']).toBe(100000);
   });
 });

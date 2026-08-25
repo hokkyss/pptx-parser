@@ -551,4 +551,175 @@ describe('Slide Serializer ID collision skipping, actions, and invalid slide jum
     const bytes = await writePptx(testDoc);
     expect(bytes).toBeDefined();
   });
+
+  it('covers chart graphicFrame defaults, shapes fallback, and pictureEmbedMap id lookup', () => {
+    // Slide with shapes array instead of elements array
+    const slideWithShapes: PptxSlide = {
+      animations: [],
+      // @ts-expect-error Testing empty elements fallback to shapes
+      elements: undefined,
+      shapes: [
+        {
+          elementType: 'shape',
+          id: '2',
+          isVisible: true,
+          name: 'ShapeFromShapes',
+          position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'shape',
+          zIndex: 0,
+        },
+      ],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    const xmlShapes = serializeSlide(slideWithShapes);
+    expect(xmlShapes).toContain('ShapeFromShapes');
+
+    // Chart element with default position and fallback chartRelIds
+    const slideWithChart: PptxSlide = {
+      animations: [],
+      elements: [
+        // @ts-expect-error Testing chart graphicFrame with missing position
+        {
+          chart: { categories: [], chartType: 'bar', series: [] },
+          elementType: 'chart',
+          id: '',
+          isVisible: true,
+          name: '',
+          rotation: emuDegree(0),
+          type: 'graphicFrame',
+          zIndex: 0,
+        },
+      ],
+      shapes: [],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    const chartXml = serializeSlide(slideWithChart);
+    expect(chartXml).toContain('<c:chart');
+    expect(chartXml).toContain('r:id="rId2"');
+
+    // Picture with pictureEmbedMap matching el.id
+    const picMap = new Map<string, string>();
+    picMap.set('2', 'rId999');
+    const slideWithPic: PptxSlide = {
+      animations: [],
+      elements: [
+        {
+          elementType: 'picture',
+          id: 'pic-id-1',
+          isVisible: true,
+          name: 'MappedPic',
+          picture: { mediaId: 'non-matching-media-id' },
+          position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+          rotation: emuDegree(0),
+          type: 'picture',
+          zIndex: 0,
+        },
+      ],
+      shapes: [],
+      slideId: 'rId1',
+      slideNumber: 1,
+    };
+    const picXml = serializeSlide(slideWithPic, picMap);
+    expect(picXml).toContain('r:embed="rId999"');
+  });
+
+  it('covers writer document themes, masters, layouts, media, notesBody, and custom notesMaster rels', async () => {
+    const fullDoc: PptxDocument = {
+      customXml: [
+        { path: 'ppt/notesMasters/notesMaster1.xml', xmlString: '<p:notesMaster/>' },
+        { binaryData: new Uint8Array([1, 2, 3]), path: 'customBinary' },
+      ],
+      media: [
+        { data: new Uint8Array([0, 1]), filename: 'image1.png', id: 'med1', mimeType: 'image/png', path: 'ppt/media/image1.png' },
+      ],
+      metadata: { created: new Date(), modified: new Date(), revision: 1, slideCount: 1, slideHeight: emu(6858000), slideWidth: emu(12192000) },
+      slideLayouts: [
+        { elements: [], id: 'slideLayoutCustom', masterId: 'slideMasterCustom', name: 'Layout', rawXml: '<p:sldLayout/>', shapes: [], type: 'blank' },
+      ],
+      slideMasters: [
+        { elements: [], id: 'slideMasterCustom', layoutIds: [], rawXml: '<p:sldMaster/>', shapes: [] },
+      ],
+      slides: [
+        {
+          animations: [],
+          elements: [
+            {
+              elementType: 'shape',
+              hyperlink: { rId: 'rId99' },
+              id: 's1',
+              isVisible: true,
+              name: 'PreAssignedHlink',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              // @ts-expect-error Testing textBody without paragraphs
+              textBody: {},
+              type: 'shape',
+              zIndex: 0,
+            },
+            {
+              elementType: 'table',
+              id: 'tbl1',
+              isVisible: true,
+              name: 'TblWithoutRows',
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              // @ts-expect-error Testing table without rows
+              table: {},
+              type: 'graphicFrame',
+              zIndex: 1,
+            },
+            {
+              elementType: 'picture',
+              id: 'picUnmatched',
+              isVisible: true,
+              name: 'PUnmatched',
+              picture: { mediaId: '' },
+              position: { cx: emu(100), cy: emu(100), x: emu(0), y: emu(0) },
+              rotation: emuDegree(0),
+              type: 'picture',
+              zIndex: 2,
+            },
+          ],
+          layoutId: 'slideLayoutCustom',
+          notesBody: {
+            bodyProperties: {},
+            paragraphs: [{ properties: {}, runs: [{ properties: {}, text: 'Speaker note run' }] }],
+          },
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [
+        {
+          colorScheme: {
+            accent1: '0284C7',
+            accent2: '10B981',
+            accent3: 'F59E0B',
+            accent4: 'EF4444',
+            accent5: '8B5CF6',
+            accent6: 'EC4899',
+            dk1: '000000',
+            dk2: '111111',
+            folHlink: '6366F1',
+            hlink: '3B82F6',
+            lt1: 'FFFFFF',
+            lt2: 'EEEEEE',
+          },
+          customColors: {},
+          fontScheme: { majorFont: 'Calibri', minorFont: 'Calibri', name: 'Office' },
+          formatScheme: {},
+          id: 'themeCustom',
+          name: 'Theme Custom',
+        },
+      ],
+    };
+
+    const bytes = await writePptx(fullDoc);
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(bytes.length).toBeGreaterThan(0);
+  });
 });

@@ -98,5 +98,24 @@ describe('normalizeBullet invalid input fallback', () => {
 
     const body3 = buildTextBody([{ text: 'Multi\nLine' }, { text: 'Single' }]);
     expect(body3.paragraphs).toHaveLength(2);
+
+    // ParagraphConfig with explicit runs array and options merging
+    const bodyWithRuns = buildTextBody([
+      {
+        align: 'right',
+        bullet: true,
+        runs: [{ bold: true, text: 'R1' }, { italic: true, text: 'R2' }],
+      },
+      'Simple paragraph string',
+    ], { align: 'center', bullet: 'number', level: 2 });
+    expect(bodyWithRuns.paragraphs[0].runs).toHaveLength(2);
+    expect(bodyWithRuns.paragraphs[0].properties.alignment).toBe('right');
+    expect(bodyWithRuns.paragraphs[1].runs[0].text).toBe('Simple paragraph string');
+    expect(bodyWithRuns.paragraphs[1].properties.alignment).toBe('center');
+
+    // Content with array of strings containing empty lines
+    const bodyWithEmptyLines = buildTextBody(['Line 1', '', 'Line 3']);
+    expect(bodyWithEmptyLines.paragraphs).toHaveLength(1);
+    expect(bodyWithEmptyLines.paragraphs[0].runs).toHaveLength(3);
   });
 });

@@ -111,5 +111,32 @@ describe('Picture Serializer rotation', () => {
     expect(blipFill?.['a:blip']?.['@_r:embed']).toBe('rId8');
     const nvPicPr = obj['p:nvPicPr'];
     expect(nvPicPr?.['p:cNvPr']?.['@_id']).toBe('4');
+
+    // Override embedId, hyperlink, partial crops, undefined position
+    // @ts-expect-error Testing undefined position
+    const picWithOverride: PptxPictureElement = {
+      elementType: 'picture',
+      hyperlink: { rId: 'rIdHlink', url: 'https://example.com' },
+      id: '9',
+      isVisible: true,
+      name: 'P9',
+      picture: {
+        crop: {
+          bottom: thousandthsPercent(1000),
+          left: thousandthsPercent(2000),
+          right: thousandthsPercent(3000),
+          top: thousandthsPercent(4000),
+        },
+        mediaId: 'med-override',
+      },
+      rotation: emuDegree(0),
+      type: 'picture',
+      zIndex: 0,
+    };
+    const overridden = serializePicture(picWithOverride, 'rIdOverride');
+    const overBlip = (overridden['p:blipFill'] as Record<string, Record<string, string>>)['a:blip'];
+    expect(overBlip['@_r:embed']).toBe('rIdOverride');
+    const cNvPr = (overridden['p:nvPicPr'] as Record<string, Record<string, unknown>>)['p:cNvPr'];
+    expect(cNvPr['a:hlinkClick']).toBeDefined();
   });
 });

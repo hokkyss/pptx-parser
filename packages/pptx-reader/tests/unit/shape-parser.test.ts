@@ -259,5 +259,41 @@ describe('Shape Parser connector arrowheads and attachment parsing', () => {
     expect(shapes).toHaveLength(1);
     expect(shapes[0].rotation).toBe(2700000);
     expect(shapes[0].line?.dashStyle).toBe('dash');
+
+    // graphicFrame with table and chart variations
+    const gfXml = `<?xml version="1.0"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:graphicFrame>
+        <p:nvGraphicFramePr><p:cNvPr id="20" name="Table 20"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr>
+        <p:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="1000"/></p:xfrm>
+        <a:graphic>
+          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+            <a:tbl><a:tblGrid/><a:tr/></a:tbl>
+          </a:graphicData>
+        </a:graphic>
+      </p:graphicFrame>
+      <p:graphicFrame>
+        <p:nvGraphicFramePr><p:cNvPr id="21" name="Chart 21"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr>
+        <p:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="1000"/></p:xfrm>
+        <a:graphic>
+          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">
+            <c:chart id="rIdChart"/>
+          </a:graphicData>
+        </a:graphic>
+      </p:graphicFrame>
+      <p:grpSp>
+        <p:nvGrpSpPr><p:cNvPr id="30" name="Empty Group"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+        <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/><a:chOff x="0" y="0"/><a:chExt cx="100" cy="100"/></a:xfrm></p:grpSpPr>
+      </p:grpSp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+    const gfShapes = parseShapes(gfXml, dummyResolver);
+    expect(gfShapes).toHaveLength(3);
+    expect((gfShapes[0] as { _tblNode?: Record<string, Record<string, string>> } & PptxElement)._tblNode).toBeDefined();
+    expect((gfShapes[1] as { _chartRelId?: string } & PptxElement)._chartRelId).toBe('rIdChart');
+    expect(gfShapes[2].type).toBe('group');
   });
 });
