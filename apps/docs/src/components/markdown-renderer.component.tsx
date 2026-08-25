@@ -2,12 +2,15 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
+import remarkDirective from 'remark-directive';
 import remarkGemoji from 'remark-gemoji';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkCallout from '../lib/plugins/remark-callout.plugin';
+import remarkTabs from '../lib/plugins/remark-tabs.plugin';
 import CodeCopyButton from './code-copy-button.component';
 import MarkdownCallout from './markdown-callout.component';
+import MarkdownTabs from './markdown-tabs.component';
 
 interface CodeBlockProps extends ComponentPropsWithoutRef<'code'> {
   children?: ReactNode;
@@ -19,7 +22,7 @@ interface MarkdownRendererProps {
 }
 
 /**
- * React Server Component (RSC) markdown renderer supporting GFM tables, math (KaTeX), emojis, syntax highlighting, and GitHub-style callouts.
+ * React Server Component (RSC) markdown renderer supporting GFM tables, math (KaTeX), emojis, syntax highlighting, callouts, and container tabs.
  * @param root0 Component props
  * @param root0.content Raw markdown string to render
  * @returns React node
@@ -63,6 +66,9 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
               || props.className === 'markdown-callout-description'
             ) {
               return <MarkdownCallout {...props} />;
+            }
+            if (props.className === 'markdown-tabs') {
+              return <MarkdownTabs {...props} />;
             }
             return <div {...props} />;
           },
@@ -109,7 +115,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           [rehypeHighlight, { ignoreMissing: true }],
           rehypeKatex,
         ]}
-        remarkPlugins={[remarkGfm, remarkGemoji, remarkMath, remarkCallout]}
+        remarkPlugins={[remarkGfm, remarkGemoji, remarkMath, remarkDirective, remarkTabs, remarkCallout]}
       >
         {content}
       </ReactMarkdown>
@@ -127,16 +133,18 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
 function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   const codeText = extractNodeText(children).replace(/\n$/, '');
   const match = /language-(\w+)/.exec(className || '');
-  const language = match ? match[1] : '';
+  const rawLang = match ? match[1] : '';
+  const isTerminal = rawLang === 'bash' || rawLang === 'sh' || rawLang === 'shell' || rawLang === 'zsh';
+  const label = isTerminal ? '>_ Terminal' : rawLang || 'text';
 
   return (
-    <div className="relative my-6 group rounded-xl overflow-hidden border border-border bg-card shadow-sm max-w-full">
+    <div className="relative my-4 group rounded-xl overflow-hidden border border-border bg-card shadow-sm max-w-full">
       <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-muted/80 border-b border-border text-xs font-mono text-muted-foreground">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-destructive/80" />
           <span className="h-2.5 w-2.5 rounded-full bg-warning/80" />
           <span className="h-2.5 w-2.5 rounded-full bg-success/80" />
-          <span className="ml-1.5 font-semibold text-foreground">{language || 'text'}</span>
+          <span className="ml-1.5 font-semibold text-foreground">{label}</span>
         </div>
         <CodeCopyButton code={codeText} />
       </div>

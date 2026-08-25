@@ -9,19 +9,28 @@ section: "getting-started"
 
 Install `@hokkyss/pptx` and its optional companion packages using your package manager of choice:
 
+:::tabs{sync="package-manager"}
+:::tab{label="pnpm"}
 ```bash
-# Using pnpm (Recommended)
 pnpm add @hokkyss/pptx
-
-# Using npm
+```
+:::
+:::tab{label="npm"}
+```bash
 npm install @hokkyss/pptx
-
-# Using yarn
+```
+:::
+:::tab{label="yarn"}
+```bash
 yarn add @hokkyss/pptx
-
-# Using bun
+```
+:::
+:::tab{label="bun"}
+```bash
 bun add @hokkyss/pptx
 ```
+:::
+:::
 
 ---
 

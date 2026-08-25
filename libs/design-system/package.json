@@ -728,6 +728,30 @@
       "browser": "./dist/client/table.js",
       "default": "./dist/ssr/table.js"
     },
+    "./tabs-content": {
+      "types": "./dist/types/src/tabs/tabs-content.d.ts",
+      "react-server": "./dist/rsc/tabs-content.js",
+      "browser": "./dist/client/tabs-content.js",
+      "default": "./dist/ssr/tabs-content.js"
+    },
+    "./tabs-list": {
+      "types": "./dist/types/src/tabs/tabs-list.d.ts",
+      "react-server": "./dist/rsc/tabs-list.js",
+      "browser": "./dist/client/tabs-list.js",
+      "default": "./dist/ssr/tabs-list.js"
+    },
+    "./tabs-trigger": {
+      "types": "./dist/types/src/tabs/tabs-trigger.d.ts",
+      "react-server": "./dist/rsc/tabs-trigger.js",
+      "browser": "./dist/client/tabs-trigger.js",
+      "default": "./dist/ssr/tabs-trigger.js"
+    },
+    "./tabs": {
+      "types": "./dist/types/src/tabs/tabs.d.ts",
+      "react-server": "./dist/rsc/tabs.js",
+      "browser": "./dist/client/tabs.js",
+      "default": "./dist/ssr/tabs.js"
+    },
     "./textarea": {
       "types": "./dist/types/src/textarea/textarea.d.ts",
       "react-server": "./dist/rsc/textarea.js",
