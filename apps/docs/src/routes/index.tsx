@@ -97,7 +97,8 @@ function HomePage() {
 }
 
 /**
- *
+ * Teaser snippet component rendered from React Server Component query.
+ * @returns Rendered React node
  */
 function Teaser() {
   const { data: renderedTeaser } = useSuspenseQuery({
