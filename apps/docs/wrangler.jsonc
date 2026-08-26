@@ -18,14 +18,14 @@
   },
   "env": {
     "production": {
-      "name": "docs-production",
+      "name": "hokkyss-pptx-parser-docs-production",
       "browser": {
         "binding": "BROWSER",
         "remote": true
       }
     },
     "development": {
-      "name": "docs-development",
+      "name": "hokkyss-pptx-parser-docs-development",
       "browser": {
         "binding": "BROWSER",
         "remote": true

@@ -46,7 +46,7 @@ jobs:
         env:
           CLOUDFLARE: true
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          CLOUDFLARE_ENV: docs-production
+          CLOUDFLARE_ENV: production
         run: |
           pnpm --filter @monorepo/docs... run build
 
