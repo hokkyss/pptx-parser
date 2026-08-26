@@ -2172,6 +2172,7 @@ async function runShowcase() {
 
       rows.forEach((r, idx) => {
         const bg = idx % 2 === 0 ? '1E293B' : '0F172A';
+        const height = idx % 2 ? inches(0.36) : inches(0.72)
         tbl.addRow({
           cells: [
             { bold: true, color: 'FFFFFF', fill: bg, fontSize: points(9.5), text: r.scenario },
@@ -2179,7 +2180,7 @@ async function runShowcase() {
             { bold: true, color: '10B981', fill: bg, fontSize: points(9.5), text: r.lat, align: 'right' },
             { bold: true, color: '94A3B8', fill: bg, fontSize: points(9), text: r.badge, align: 'center' },
           ],
-          h: inches(0.36),
+          h: height,
         });
       });
     },

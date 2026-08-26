@@ -2,13 +2,15 @@ import { resolve } from 'node:path';
 import { defineConfig, esmExternalRequirePlugin } from 'vite';
 import dts from 'vite-plugin-dts';
 import pkg from './package.json' with { type: 'json' };
+import viteVersionPlugin from '@monorepo/vite-plugins/version';
 
 export default defineConfig({
   build: {
     emptyOutDir: true,
     lib: {
-      entry: resolve(import.meta.dirname, 'lib/index.ts'),
-      fileName: () => 'index.js',
+      entry: {
+        index: resolve(import.meta.dirname, 'lib/index.ts'),
+      },
       formats: ['es'],
     },
     ssr: true,
@@ -32,5 +34,6 @@ export default defineConfig({
       entryRoot: './lib',
       exclude: ['tests/**', 'scripts/**'],
     }),
+    viteVersionPlugin(pkg.version),
   ],
 });

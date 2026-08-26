@@ -1,0 +1,36 @@
+{
+  "name": "@monorepo/template",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": {
+      "production": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "default": "./lib/index.ts"
+    }
+  },
+  "types": "./index.d.ts",
+  "files": [
+    "dist",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "lint": "eslint",
+    "build": "tsc && vite build",
+    "postinstall": "pnpm build"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "@monorepo/eslint": "workspace:^",
+    "@types/node": "^24.0.14",
+    "eslint": "catalog:eslint",
+    "typescript": "catalog:ts5",
+    "vite": "catalog:vite",
+    "vite-plugin-dts": "catalog:vite"
+  },
+  "dependencies": {}
+}

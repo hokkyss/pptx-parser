@@ -1,0 +1,23 @@
+{
+  "name": "@monorepo/cli",
+  "version": "1.0.0",
+  "description": "Scaffolding CLI",
+  "bin": {
+    "boil": "./bin/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "postinstall": "pnpm build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/prompts": "^2.4.9",
+    "typescript": "catalog:ts5"
+  }
+}

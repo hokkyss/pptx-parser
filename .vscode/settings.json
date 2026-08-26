@@ -35,7 +35,8 @@
     "**/.yarn": true,
     "**/routeTree.gen.ts": true,
     "**/.pnp.*": true,
-    "**/app/**/*": true
+    "**/app/**/*": true,
+    ".agents/**/*": true
   },
   "eslint.debug": true,
   "typescript.enablePromptUseWorkspaceTsdk": true,
@@ -67,5 +68,8 @@
   "tailwindCSS.lint.suggestCanonicalClasses": "error",
   "tailwindCSS.codeActions": true,
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-  "reactCompilerMarker.babelPluginPath": "apps/public-tanstack-start/node_modules/babel-plugin-react-compiler"
+  "reactCompilerMarker.babelPluginPath": "apps/public-tanstack-start/node_modules/babel-plugin-react-compiler",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
 }

@@ -1,0 +1,54 @@
+{
+  "name": "@monorepo/common",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./logger": {
+      "production": {
+        "types": "./dist/logger/index.d.ts",
+        "default": "./dist/logger.js"
+      },
+      "default": "./lib/logger/index.ts"
+    },
+    "./types": {
+      "production": {
+        "types": "./dist/types.d.ts"
+      },
+      "default": "./lib/types.ts"
+    },
+    "./errors/application-error": {
+      "production": {
+        "types": "./dist/errors/application.error.d.ts",
+        "default": "./dist/errors/application-error.js"
+      },
+      "default": "./lib/errors/application.error.ts"
+    }
+  },
+  "types": "./index.d.ts",
+  "files": [
+    "dist",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "lint": "eslint",
+    "build": "tsc && vite build",
+    "postinstall": "pnpm build"
+  },
+  "peerDependencies": {
+    "zod": "catalog:zod4"
+  },
+  "devDependencies": {
+    "@monorepo/eslint": "workspace:^",
+    "@types/node": "^24.0.14",
+    "eslint": "catalog:eslint",
+    "typescript": "catalog:ts5",
+    "vite": "catalog:vite",
+    "vite-plugin-dts": "catalog:vite",
+    "zod": "catalog:zod4"
+  },
+  "dependencies": {
+    "ts-pattern": "^5.9.0"
+  }
+}

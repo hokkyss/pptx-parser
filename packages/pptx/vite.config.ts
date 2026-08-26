@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { defineConfig, esmExternalRequirePlugin } from 'vite';
 import dts from 'vite-plugin-dts';
 import pkg from './package.json' with { type: 'json' };
+import viteVersionPlugin from '@monorepo/vite-plugins/version';
 
 export default defineConfig({
   build: {
@@ -27,5 +28,6 @@ export default defineConfig({
       entryRoot: './lib',
       exclude: ['tests/**', 'scripts/**'],
     }),
+    viteVersionPlugin(pkg.version),
   ],
 });

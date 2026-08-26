@@ -1,0 +1,7 @@
+[build]
+command = "pnpm --filter @monorepo/docs... run build"
+publish = "apps/docs/dist/client"
+base = "/"
+
+[functions]
+directory = "apps/docs/.netlify/v1/functions"
