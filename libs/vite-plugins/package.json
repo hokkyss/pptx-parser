@@ -5,8 +5,11 @@
   "private": true,
   "exports": {
     "./version": {
-      "types": "./dist/version.plugin.d.ts",
-      "default": "./dist/version.js"
+      "production": {
+        "types": "./dist/version.plugin.d.ts",
+        "default": "./dist/version.js"
+      },
+      "default": "./lib/version.plugin.ts"
     }
   },
   "types": "./dist/version.plugin.d.ts",
