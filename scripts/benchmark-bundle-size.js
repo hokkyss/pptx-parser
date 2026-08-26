@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
+import { build as viteBuild } from 'vite';
 
 function formatBytes(bytes) {
   if (bytes === 0) return '0 B';
@@ -50,28 +51,15 @@ const packages = [
   },
 ];
 
-async function getViteInstance() {
-  try {
-    const viteModule = await import(resolve(process.cwd(), 'node_modules/.pnpm/vite@8.2.1_@types+node@24.13.3_esbuild@0.28.2_yaml@2.9.0/node_modules/vite/dist/node/index.js'));
-    return viteModule;
-  } catch {
-    try {
-      return await import('vite');
-    } catch {
-      return null;
-    }
-  }
-}
-
 /**
  * Calculates exact standalone production bundle size with all dependencies inlined,
  * matching Bundlephobia's Webpack/esbuild bundling methodology.
  */
-async function calculateBundlephobiaSize(vite, entryPath, external = []) {
+async function calculateBundlephobiaSize(entryPath, external = []) {
   const defaultExternal = ['node:fs', 'node:fs/promises', 'node:path', 'node:zlib', 'node:perf_hooks', 'node:console'];
   const rollupExternal = [...new Set([...defaultExternal, ...external])];
 
-  const res = await vite.build({
+  const res = await viteBuild({
     configFile: false,
     logLevel: 'silent',
     build: {
@@ -104,9 +92,6 @@ async function calculateBundlephobiaSize(vite, entryPath, external = []) {
 }
 
 export async function runTreeShakingBenchmarks() {
-  const vite = await getViteInstance();
-  if (!vite) return null;
-
   const tmpDir = resolve(process.cwd(), '.tmp-bundle-bench');
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
 
@@ -129,7 +114,7 @@ export async function runTreeShakingBenchmarks() {
     writeFileSync(entryFile, s.code);
 
     try {
-      const res = await vite.build({
+      const res = await viteBuild({
         configFile: false,
         logLevel: 'silent',
         build: {
@@ -170,7 +155,6 @@ export async function runTreeShakingBenchmarks() {
 }
 
 export async function getBundleSizeData() {
-  const vite = await getViteInstance();
   const rawData = {};
   const packageResults = [];
 
@@ -180,9 +164,9 @@ export async function getBundleSizeData() {
       throw new Error(`Source entry missing: ${pkg.entry}`);
     }
 
-    let bundleSizes = { minifiedBytes: 0, gzipBytes: 0, brotliBytes: 0 };
-    if (vite) {
-      bundleSizes = await calculateBundlephobiaSize(vite, fullEntryPath, pkg.external || []);
+    const bundleSizes = await calculateBundlephobiaSize(fullEntryPath, pkg.external || []);
+    if (bundleSizes.minifiedBytes === 0) {
+      throw new Error(`Bundle calculation produced 0 bytes for ${pkg.name}`);
     }
 
     let dtsSize = 0;
