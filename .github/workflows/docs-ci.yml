@@ -61,5 +61,5 @@ jobs:
         if: matrix.platform == 'cloudflare'
         env:
           CLOUDFLARE: true
-          CLOUDFLARE_ENV: docs-production
+          CLOUDFLARE_ENV: production
         run: pnpm --filter @monorepo/docs... run build

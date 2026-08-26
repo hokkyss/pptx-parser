@@ -27,7 +27,7 @@ export interface MarkdownTabsTriggerProps extends ComponentProps<typeof TabsTrig
  * @param root0."data-default-value" Fallback default tab value from markdown directive
  * @param root0."data-sync-key" Cookie and event synchronization key
  * @param root0.defaultValue Default value prop
- * @param root0.syncKey
+ * @param root0.syncKey Synchronization key for tab selection across page and cookies
  * @returns React node
  */
 export function MarkdownTabs({

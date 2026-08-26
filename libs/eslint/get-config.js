@@ -22,6 +22,7 @@ import stylistic from '@stylistic/eslint-plugin'
  * @property {boolean} react Enable react eslint config.
  * @property {string} tsconfigRootDir Root directory of tsconfig.json file
  * @property {"browser" | "node" | "isomorphic"} environment Eslint environment. Defaults to `isomorphic`
+ * @property {string[]} [ignores] Custom ignore patterns.
  */
 
 /**
@@ -87,8 +88,17 @@ export default function getConfig(opts = {}) {
   }
   resolvedTsconfigRootDir = opts.tsconfigRootDir;
 
+  const defaultIgnores = [
+    resolvedOutputDirectory,
+    "**/.netlify/**",
+    "**/.wrangler/**",
+    "**/.nitro/**",
+    "**/.output/**",
+    ...(opts.ignores || []),
+  ];
+
   return defineConfig(
-    { ignores: [resolvedOutputDirectory] },
+    { ignores: defaultIgnores },
     isTanstackRouterEnabled ? [{ ignores: ["**/routeTree.gen.ts"] }] : [],
     stylistic.configs.customize({
       jsx: isReactEnabled,

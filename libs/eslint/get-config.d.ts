@@ -40,6 +40,10 @@ export declare interface MonorepoEslintOptions {
      * Custom projectService setting for typescript-eslint parserOptions.
      */
     projectService?: boolean | Record<string, unknown>;
+    /**
+     * Additional ignore patterns
+     */
+    ignores?: string[];
 }
 
 export default function getConfig(opts: MonorepoEslintOptions): Config[];
