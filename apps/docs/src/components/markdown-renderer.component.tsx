@@ -1,7 +1,4 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import TabsContent from '@monorepo/design-system/tabs-content';
-import TabsList from '@monorepo/design-system/tabs-list';
-import TabsTrigger from '@monorepo/design-system/tabs-trigger';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
@@ -13,7 +10,12 @@ import remarkCallout from '../lib/plugins/remark-callout.plugin';
 import remarkTabs from '../lib/plugins/remark-tabs.plugin';
 import CodeCopyButton from './code-copy-button.component';
 import MarkdownCallout from './markdown-callout.component';
-import MarkdownTabs from './markdown-tabs.component';
+import {
+  MarkdownTabs,
+  MarkdownTabsContent,
+  MarkdownTabsList,
+  MarkdownTabsTrigger,
+} from './markdown-tabs.component';
 
 interface CodeBlockProps extends ComponentPropsWithoutRef<'code'> {
   children?: ReactNode;
@@ -70,46 +72,24 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             ) {
               return <MarkdownCallout {...props} />;
             }
-            //   <TabsList className="inline-flex items-center gap-1 p-1 bg-muted/60 dark:bg-muted/40 rounded-lg border border-border/50">
-            //   {tabs.map((tab) => (
-            //     <TabsTrigger
-            //       className="px-3 py-1 rounded-md text-xs font-semibold font-mono text-muted-foreground hover:text-foreground data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-card transition"
-            //       key={tab.value}
-            //       value={tab.value}
-            //     >
-            //       {tab.label}
-            //     </TabsTrigger>
-            //   ))}
-            // </TabsList>
             if (props.className === 'markdown-tab-item') {
               return (
-                <TabsTrigger
-                  className="px-3 py-1 rounded-md text-xs font-semibold font-mono text-muted-foreground hover:text-foreground data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-card transition"
-                  // NOTE: We have validated `data-value` value inside our remark-tabs plugin
+                <MarkdownTabsTrigger
+                // NOTE: We have validated `data-value` value inside our remark-tabs plugin
                   value={(props as Record<string, string>)['data-value']}
                 >
                   {props.children}
-                </TabsTrigger>
+                </MarkdownTabsTrigger>
               );
             }
             if (props.className === 'markdown-tabs-list') {
-              return (
-                <TabsList className="inline-flex items-center gap-1 p-1 bg-muted/60 dark:bg-muted/40 rounded-lg border border-border/50">{props.children}</TabsList>
-              );
+              return <MarkdownTabsList {...props} />;
             }
             if (props.className === 'markdown-tabs-content') {
-              return (
-                <TabsContent
-                  // NOTE: We have validated `data-value` value inside our remark-tabs plugin
-                  value={(props as Record<string, string>)['data-value']}
-                >
-                  {props.children}
-                </TabsContent>
-              );
+              return <MarkdownTabsContent {...props} value={(props as Record<string, string>)['data-value']} />;
             }
-
             if (props.className === 'markdown-tabs') {
-              return <MarkdownTabs {...props} />;
+              return <MarkdownTabs {...props} defaultValue={(props as Record<string, string>)['data-default-value']} syncKey={(props as Record<string, string>)['data-sync-key']} />;
             }
             return <div {...props} />;
           },
