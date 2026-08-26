@@ -4,7 +4,8 @@
   "scripts": {
     "lint": "eslint",
     "build": "vite build",
-    "dev": "vite build --mode development --watch"
+    "dev": "vite build --mode development --watch",
+    "postinstall": "pnpm build"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
