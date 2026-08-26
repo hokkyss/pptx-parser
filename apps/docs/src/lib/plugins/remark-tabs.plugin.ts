@@ -1,29 +1,15 @@
+import type {
+  ContainerDirective,
+  LeafDirective,
+  TextDirective,
+} from 'mdast-util-directive';
 import type { Plugin } from 'unified';
-import type { Node, Parent } from 'unist';
+import type { Node } from 'unist';
 import { visit } from 'unist-util-visit';
 
 export interface TabItemMeta {
   label: string;
   value: string;
-}
-
-interface DirectiveNode extends Parent {
-  attributes?: Record<string, string>;
-  data?: {
-    hName?: string;
-    hProperties?: Record<string, unknown>;
-  };
-  name?: string;
-  type: string;
-}
-
-/**
- * Slugifies a label into a valid HTML / React tab identifier.
- * @param str Label string
- * @returns Clean slug identifier
- */
-function slugify(str: string): string {
-  return str.toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 /**
@@ -33,60 +19,91 @@ function slugify(str: string): string {
  * @returns Unified transformer function
  */
 export const remarkTabs: Plugin = () => {
-  return (tree: Node) => {
+  return (tree, file) => {
     visit(tree, (node: Node) => {
-      const directive = node as DirectiveNode;
+      // We handle only container directives and text directives.
+      // Content directive is below
+      // ::: name [inline-content] {key=val}
+      // <the content>
+      // :::
+      //
+      // Text/inline directive is below
+      // :name[content]{key=value}
+      if (node.type !== 'containerDirective' && node.type !== 'textDirective' && node.type !== 'leafDirective') {
+        return;
+      }
 
-      if (
-        (directive.type === 'containerDirective' || directive.type === 'leafDirective')
-        && directive.name === 'tabs'
-      ) {
-        const attributes = directive.attributes || {};
-        const syncKey = attributes.sync || attributes['data-sync'] || attributes['sync-key'] || undefined;
-        let defaultValue = attributes.default || attributes['default-value'] || undefined;
+      const directiveNode = node as ContainerDirective | LeafDirective | TextDirective;
+      const data = directiveNode.data || (directiveNode.data = {});
+      const attributes = directiveNode.attributes || {};
 
-        const tabsMeta: TabItemMeta[] = [];
+      /**
+       * Reads up `:tab-item[label]{value="<stringvalue>"}`
+       */
+      if (directiveNode.type === 'textDirective') {
+        if (directiveNode.name === 'tab-item') {
+          if (!attributes.value) {
+            file.fail(`tab-item must have value attribute`, node);
+          }
 
-        if (Array.isArray(directive.children)) {
-          directive.children.forEach((childNode: Node, index: number) => {
-            const childDirective = childNode as DirectiveNode;
+          data.hName = 'div';
+          data.hProperties = {
+            className: ['markdown-tab-item'],
+            'data-value': attributes.value,
+          };
+          return;
+        }
+        file.fail(`Invalid text/inline directive: "${directiveNode.name}"`, node);
+      }
 
-            if (
-              (childDirective.type === 'containerDirective' || childDirective.type === 'leafDirective')
-              && childDirective.name === 'tab'
-            ) {
-              const childAttrs = childDirective.attributes || {};
-              const label = childAttrs.label || childAttrs.title || childAttrs.name || `Tab ${index + 1}`;
-              const value = childAttrs.value || slugify(label) || `tab-${index}`;
+      if (directiveNode.type === 'containerDirective') {
+        /**
+         * Reads up `:::tabs{sync="name",defaultValue="<value>"}`
+         *
+         * If for some reason "value" is not a valid tab, that will be rendered as is without any validation.
+         */
+        if (directiveNode.name === 'tabs-root') {
+          const syncKey = attributes.sync;
+          const defaultValue = attributes.defaultValue;
 
-              if (index === 0 && !defaultValue) {
-                defaultValue = value;
-              }
+          if (!defaultValue) {
+            file.fail(`No defaultValue for tabs ${directiveNode.name}`, node);
+          }
 
-              tabsMeta.push({ label, value });
-
-              childDirective.data = {
-                hName: 'div',
-                hProperties: {
-                  className: 'markdown-tab-panel',
-                  'data-tab-label': label,
-                  'data-tab-value': value,
-                },
-              };
-            }
-          });
+          data.hName = 'div';
+          data.hProperties = {
+            className: ['markdown-tabs'],
+            'data-default-value': defaultValue,
+            'data-sync-key': syncKey,
+          };
+          return;
         }
 
-        directive.data = {
-          hName: 'div',
-          hProperties: {
-            className: 'markdown-tabs',
-            'data-default-value': defaultValue || (tabsMeta[0]?.value ?? 'tab-0'),
-            'data-sync-key': syncKey,
-            'data-tabs': JSON.stringify(tabsMeta),
-          },
-        };
+        if (directiveNode.name === 'tabs-list') {
+          data.hName = 'div';
+          data.hProperties = {
+            className: ['markdown-tabs-list'],
+          };
+          return;
+        }
+
+        if (directiveNode.name === 'tab-content') {
+          if (!attributes.value) {
+            file.fail(`No value for ${directiveNode.name}`, node);
+          }
+
+          data.hName = 'div';
+          data.hProperties = {
+            className: ['markdown-tabs-content'],
+            'data-value': attributes.value,
+          };
+          return;
+        }
+
+        file.fail(`Invalid container directive "${directiveNode.name}"`, node);
       }
+
+      file.fail(`Invalid leaf directive: "${directiveNode.name}"`, node);
     });
   };
 };

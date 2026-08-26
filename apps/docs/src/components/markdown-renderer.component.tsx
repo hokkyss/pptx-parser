@@ -1,4 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import TabsContent from '@monorepo/design-system/tabs-content';
+import TabsList from '@monorepo/design-system/tabs-list';
+import TabsTrigger from '@monorepo/design-system/tabs-trigger';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
@@ -67,6 +70,44 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
             ) {
               return <MarkdownCallout {...props} />;
             }
+            //   <TabsList className="inline-flex items-center gap-1 p-1 bg-muted/60 dark:bg-muted/40 rounded-lg border border-border/50">
+            //   {tabs.map((tab) => (
+            //     <TabsTrigger
+            //       className="px-3 py-1 rounded-md text-xs font-semibold font-mono text-muted-foreground hover:text-foreground data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-card transition"
+            //       key={tab.value}
+            //       value={tab.value}
+            //     >
+            //       {tab.label}
+            //     </TabsTrigger>
+            //   ))}
+            // </TabsList>
+            if (props.className === 'markdown-tab-item') {
+              return (
+                <TabsTrigger
+                  className="px-3 py-1 rounded-md text-xs font-semibold font-mono text-muted-foreground hover:text-foreground data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-card transition"
+                  // NOTE: We have validated `data-value` value inside our remark-tabs plugin
+                  value={(props as Record<string, string>)['data-value']}
+                >
+                  {props.children}
+                </TabsTrigger>
+              );
+            }
+            if (props.className === 'markdown-tabs-list') {
+              return (
+                <TabsList className="inline-flex items-center gap-1 p-1 bg-muted/60 dark:bg-muted/40 rounded-lg border border-border/50">{props.children}</TabsList>
+              );
+            }
+            if (props.className === 'markdown-tabs-content') {
+              return (
+                <TabsContent
+                  // NOTE: We have validated `data-value` value inside our remark-tabs plugin
+                  value={(props as Record<string, string>)['data-value']}
+                >
+                  {props.children}
+                </TabsContent>
+              );
+            }
+
             if (props.className === 'markdown-tabs') {
               return <MarkdownTabs {...props} />;
             }

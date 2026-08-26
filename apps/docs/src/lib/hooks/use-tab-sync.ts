@@ -1,3 +1,5 @@
+'use client';
+
 import { createIsomorphicFn } from '@tanstack/react-start';
 import { getCookie as getServerCookie } from '@tanstack/react-start/server';
 import { useCallback, useState, useSyncExternalStore } from 'react';
@@ -48,14 +50,9 @@ export default function useTabSync({ defaultValue, syncKey }: UseTabSyncOptions)
     (onStoreChange: () => void) => {
       if (!syncKey) return () => {};
 
-      const handleSync = () => {
-        onStoreChange();
-      };
+      window.addEventListener('tab-sync', onStoreChange);
 
-      window.addEventListener('tab-sync', handleSync);
-      return () => {
-        window.removeEventListener('tab-sync', handleSync);
-      };
+      return () => window.removeEventListener('tab-sync', onStoreChange);
     },
     [syncKey],
   );
@@ -65,6 +62,7 @@ export default function useTabSync({ defaultValue, syncKey }: UseTabSyncOptions)
       const stored = getCookie(cookieName);
       if (stored) return stored;
     }
+
     return defaultValue;
   }, [cookieName, defaultValue]);
 
@@ -73,6 +71,7 @@ export default function useTabSync({ defaultValue, syncKey }: UseTabSyncOptions)
       const serverStored = getCookie(cookieName);
       if (serverStored) return serverStored;
     }
+
     return defaultValue;
   }, [cookieName, defaultValue]);
 
@@ -82,28 +81,17 @@ export default function useTabSync({ defaultValue, syncKey }: UseTabSyncOptions)
 
   const setActiveTab = (val: string) => {
     if (syncKey && cookieName) {
-      setCookie(cookieName, val);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(
-          new CustomEvent('tab-sync', {
-            detail: { syncKey, value: val },
-          }),
-        );
-      }
+      document.cookie = `${cookieName}=${encodeURIComponent(val)}; path=/; max-age=31536000; SameSite=Lax`;
+
+      window.dispatchEvent(
+        new CustomEvent('tab-sync', {
+          detail: { syncKey, value: val },
+        }),
+      );
     } else {
       setLocalTab(val);
     }
   };
 
   return { activeTab, setActiveTab };
-}
-
-/**
- * Sets a persistent cookie for 1 year with SameSite=Lax.
- * @param name Cookie name
- * @param value Cookie value
- */
-function setCookie(name: string, value: string): void {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
 }
