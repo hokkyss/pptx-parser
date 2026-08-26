@@ -41,13 +41,25 @@ jobs:
       - name: Compute Target Base Branch Benchmark Baseline
         run: |
           BASE_REF="${{ github.base_ref || 'main' }}"
+          TARGET_DIR="/tmp/base-worktree"
+          mkdir -p benchmarks
           git fetch origin "$BASE_REF" --depth=1 || true
-          git checkout "origin/$BASE_REF" -- packages/ pnpm-lock.yaml package.json || true
-          pnpm build || true
-          node scripts/benchmark-bundle-size.js --save-baseline || true
-          pnpm bench:json || true
-          cp benchmarks/benchmark-report.json benchmarks/perf-baseline.json || true
-          git checkout HEAD -- packages/ pnpm-lock.yaml package.json || true
+          git worktree add "$TARGET_DIR" "origin/$BASE_REF" || true
+          if [ -d "$TARGET_DIR" ]; then
+            cd "$TARGET_DIR"
+            pnpm install --no-frozen-lockfile || true
+            pnpm build || true
+            node scripts/benchmark-bundle-size.js --save-baseline || true
+            pnpm bench:json || true
+            if [ -f "benchmarks/bundle-baseline.json" ]; then
+              cp benchmarks/bundle-baseline.json "$GITHUB_WORKSPACE/benchmarks/bundle-baseline.json" || true
+            fi
+            if [ -f "benchmarks/benchmark-report.json" ]; then
+              cp benchmarks/benchmark-report.json "$GITHUB_WORKSPACE/benchmarks/perf-baseline.json" || true
+            fi
+            cd "$GITHUB_WORKSPACE"
+            git worktree remove --force "$TARGET_DIR" || rm -rf "$TARGET_DIR" || true
+          fi
 
       - name: Typecheck & Build Monorepo
         run: pnpm build
