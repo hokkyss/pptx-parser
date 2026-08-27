@@ -1,4 +1,4 @@
-import { createMiddleware, createStart } from '@tanstack/react-start';
+import { createCsrfMiddleware, createMiddleware, createStart } from '@tanstack/react-start';
 import functionLoggerMiddleware from './clients/logger/middlewares/function-logger.middleware';
 import loggerInstanceMiddleware from './clients/logger/middlewares/logger-instance.middleware';
 import requestIdMiddleware from './clients/logger/middlewares/request-id.middleware';
@@ -16,6 +16,10 @@ const isFunctionCalledFromClient = createMiddleware({ type: 'function' })
     });
   });
 
+const csrfMiddleware = createCsrfMiddleware({
+  filter: (ctx) => ctx.handlerType === 'serverFn',
+});
+
 export const startInstance = createStart(() => ({
   defaultSsr: true,
   functionMiddleware: [
@@ -23,6 +27,7 @@ export const startInstance = createStart(() => ({
     isFunctionCalledFromClient,
   ],
   requestMiddleware: [
+    csrfMiddleware,
     cacheMiddleware,
     queryClientMiddleware,
     nonceMiddleware,
