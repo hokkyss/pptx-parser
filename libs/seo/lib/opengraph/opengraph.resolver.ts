@@ -5,7 +5,6 @@ import type { OpenGraph } from './opengraph.interface';
 /**
  * Create a opengraph meta tags properties from OpenGraph configuration defined using `defineOpenGraph`
  * @param data - OpenGraph configuration defined using `defineOpenGraph`
- * @param og
  * @returns opengraph meta tags properties
  * @see https://ogp.me/
  * @see {@link https://github.com/vercel/next.js/blob/e68639f83a4853c91f60aa6044bb4502a9365996/packages/next/src/lib/metadata/metadata.tsx#L807 Source implementation}

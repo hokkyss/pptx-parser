@@ -1,5 +1,5 @@
 import Skeleton from '@monorepo/design-system/skeleton';
-import { ArrowRightIcon, LightningIcon, SparkleIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon, SparkleIcon } from '@phosphor-icons/react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Await, createFileRoute, Link, useLoaderData } from '@tanstack/react-router';
 import { Suspense } from 'react';
@@ -54,13 +54,13 @@ function HomePage() {
             <span>Get Started in 30 Seconds</span>
             <ArrowRightIcon className="h-4 w-4" />
           </Link>
-          <Link
+          {/* <Link
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold text-sm border border-border shadow-sm transition active:scale-95 text-center"
             to="/playground"
           >
             <LightningIcon className="h-4 w-4 text-primary" />
             <span>Try Live Playground</span>
-          </Link>
+          </Link> */}
         </div>
 
         {/* Feature Pill Grid */}

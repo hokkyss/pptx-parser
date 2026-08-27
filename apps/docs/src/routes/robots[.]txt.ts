@@ -16,7 +16,7 @@ export const Route = createFileRoute('/robots.txt')({
               host: origin,
               rules: {
                 allow: serverEnv.enableRobots ? '/' : undefined,
-                disallow: serverEnv.enableRobots ? undefined : '*',
+                disallow: serverEnv.enableRobots ? undefined : '/',
                 userAgent: '*',
               },
               sitemap: new URL('sitemap.xml', origin).toString(),
@@ -24,7 +24,8 @@ export const Route = createFileRoute('/robots.txt')({
 
             return new Response(resolveRobots(robots), {
               headers: {
-                'Content-Type': 'text/plain',
+                'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+                'Content-Type': 'text/plain; charset=utf-8',
               },
             });
           },

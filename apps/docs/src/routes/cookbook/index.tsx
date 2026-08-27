@@ -1,3 +1,6 @@
+import { defineMetadata, resolveMetadata } from '@monorepo/seo/metadata';
+import { defineOpenGraph, resolveOpenGraph } from '@monorepo/seo/opengraph';
+import { defineTwitter, resolveTwitter } from '@monorepo/seo/twitter';
 import { ArrowRightIcon, SparkleIcon } from '@phosphor-icons/react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Await, createFileRoute, Link } from '@tanstack/react-router';
@@ -6,12 +9,45 @@ import CookbookSkeleton from '../../components/cookbook-skeleton.component';
 import listDocsQuery from '../../lib/content/queries/list-docs.query';
 
 export const Route = createFileRoute('/cookbook/')({
-  component: CookbookPageWrapper,
   loader: ({ context }) => {
     return {
       recipesPromise: context.queryClient.ensureQueryData(listDocsQuery('cookbook/')),
     };
   },
+  head: () => {
+    const title = 'Cookbook & Production Recipes — @hokkyss/pptx';
+    const description = 'Copy-pasteable, production-ready recipe implementations for common enterprise PowerPoint slide decks.';
+
+    const metaSeo = resolveMetadata(
+      defineMetadata({
+        description,
+        title,
+      }),
+    );
+
+    const ogSeo = resolveOpenGraph(
+      defineOpenGraph({
+        description,
+        siteName: '@hokkyss/pptx Cookbook',
+        title,
+        type: 'website',
+      }),
+    );
+
+    const twitterSeo = resolveTwitter(
+      defineTwitter({
+        card: 'summary_large_image',
+        description,
+        title,
+      }),
+    );
+
+    return {
+      links: [...metaSeo.links, ...ogSeo.links, ...twitterSeo.links],
+      meta: [...metaSeo.metas, ...ogSeo.metas, ...twitterSeo.metas],
+    };
+  },
+  component: CookbookPageWrapper,
 });
 
 /**

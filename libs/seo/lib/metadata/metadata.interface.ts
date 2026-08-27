@@ -4,7 +4,6 @@ import type { Pinterest } from './pinterest.interface';
 
 /**
  * Metadata interface to describe all the metadata fields that can be set in a document.
- * @remarks
  * This interface covers all the metadata fields available in Next.js including title, description,
  * icons, twitter, and more. Fields such as `metadataBase` help in composing absolute URLs
  * from relative ones.
@@ -31,7 +30,6 @@ import type { Pinterest } from './pinterest.interface';
 export type Metadata = {
   /**
    * A brief description of the web page.
-   * @remarks
    * Rendered as the `abstract` meta tag. This is *not recommended* as it is superseded by `description`.
    * @example
    * ```tsx
@@ -43,7 +41,6 @@ export type Metadata = {
 
   /**
    * The canonical and alternate URLs for the document.
-   * @remarks
    * This field allows defining a canonical URL as well as alternate URLs (such as for multiple languages).
    * @example
    * ```tsx
@@ -114,7 +111,6 @@ export type Metadata = {
 
   /**
    * The bookmarks link rel property.
-   * @remarks
    * Although technically against the HTML spec, this is used in practice.
    * @example
    * ```tsx
@@ -167,7 +163,6 @@ export type Metadata = {
 
   /**
    * The Facebook metadata for the document.
-   * @remarks
    * Specify either `appId` or `admins` (but not both) to configure Facebook integration.
    * @example
    * ```tsx
@@ -202,7 +197,6 @@ export type Metadata = {
 
   /**
    * The metadata for the iTunes App.
-   * @remarks
    * Adds the `name="apple-itunes-app"` meta tag.
    * @example
    * ```tsx
@@ -214,7 +208,6 @@ export type Metadata = {
 
   /**
    * The keywords for the document.
-   * @remarks
    * When an array is provided, keywords are flattened into a comma-separated string.
    * @example
    * ```tsx
@@ -238,7 +231,6 @@ export type Metadata = {
 
   /**
    * Arbitrary name/value pairs for additional metadata.
-   * @remarks
    * Use this field to define custom meta tags that are not directly supported.
    * @example
    * ```tsx
@@ -299,7 +291,6 @@ export type Metadata = {
   referrer?: ReferrerEnum;
   /**
    * The document title.
-   * @remarks
    * The title can be a simple string (e.g., `"My Blog"`) or an object with:
    * - `default`: A fallback title for child segments.
    * - `template`: A title template (e.g., `"%s | My Website"`) applied to child titles.

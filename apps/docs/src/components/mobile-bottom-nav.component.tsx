@@ -1,9 +1,7 @@
 import {
   BookOpenIcon,
   CodeIcon,
-  CubeIcon,
   HouseIcon,
-  PlayIcon,
   SparkleIcon,
 } from '@phosphor-icons/react';
 import { Link, useRouterState } from '@tanstack/react-router';
@@ -33,8 +31,8 @@ const NAV_ITEMS: NavItem[] = [
     params: { _splat: 'pptx/presentation' },
     to: '/api-reference/$',
   },
-  { icon: PlayIcon, label: 'Playground', matchPattern: /^\/playground/, to: '/playground' },
-  { icon: CubeIcon, label: 'Showcase', matchPattern: /^\/showcase/, to: '/showcase' },
+  // { icon: PlayIcon, label: 'Playground', matchPattern: /^\/playground/, to: '/playground' },
+  // { icon: CubeIcon, label: 'Showcase', matchPattern: /^\/showcase/, to: '/showcase' },
 ];
 
 /**

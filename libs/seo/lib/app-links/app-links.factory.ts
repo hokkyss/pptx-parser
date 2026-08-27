@@ -2,7 +2,7 @@ import { AppLinks } from './app-links.interface';
 
 /**
  * The Facebook AppLinks metadata for the document.
- * @param appLinks
+ * @param appLinks The AppLinks configuration
  * @returns meta tags properties
  * @example
  * ```tsx

@@ -8,7 +8,6 @@ import DocsToc from '../../components/docs-toc.component';
 import getDocQuery from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/cookbook/$slug')({
-  component: RecipePageWrapper,
   params: z.object({
     slug: z.string(),
   }),
@@ -17,6 +16,7 @@ export const Route = createFileRoute('/cookbook/$slug')({
       docPromise: context.queryClient.ensureQueryData(getDocQuery(`cookbook/${params.slug}`)),
     };
   },
+  component: RecipePageWrapper,
 });
 
 /**

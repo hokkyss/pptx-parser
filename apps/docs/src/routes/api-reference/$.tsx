@@ -6,12 +6,12 @@ import DocsToc from '../../components/docs-toc.component';
 import getDocQuery from '../../lib/content/queries/get-doc.query';
 
 export const Route = createFileRoute('/api-reference/$')({
-  component: ApiPageWrapper,
   loader: ({ context, params }) => {
     return {
       docPromise: context.queryClient.ensureQueryData(getDocQuery(`api-reference/${params._splat}`)),
     };
   },
+  component: ApiPageWrapper,
 });
 
 /**

@@ -2,12 +2,10 @@ import { Metadata } from './metadata.interface';
 
 /**
  * Metadata interface to describe all the metadata fields that can be set in a document.
- * @param metadata the metadata
+ * This interface covers all the metadata fields including title, description,
+ * icons, twitter, and more.
+ * @param metadata The metadata configuration
  * @returns Metadata configuration
- * @remarks
- * This interface covers all the metadata fields available in Next.js including title, description,
- * icons, twitter, and more. Fields such as `metadataBase` help in composing absolute URLs
- * from relative ones.
  * @example
  * ```tsx
  * defineMetadata({
