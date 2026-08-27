@@ -29,7 +29,7 @@ export const getServerEnv = createIsomorphicFn()
   .server(() => {
     const serverEnvSchema = z
       .object({
-        enableRobots: z.coerce.boolean(),
+        enableRobots: z.optional(z.string()).transform((v) => v === 'true'),
         environment: z.literal('server').default('server'),
         gtmId: z.string().optional(),
       })

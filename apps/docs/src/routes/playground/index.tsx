@@ -1,11 +1,14 @@
 import { LightningIcon } from '@phosphor-icons/react';
-import { ClientOnly, createFileRoute } from '@tanstack/react-router';
+import { ClientOnly, createFileRoute, notFound } from '@tanstack/react-router';
 import { useState } from 'react';
 import MonacoEditor from '../../components/monaco-editor.component';
 import SlideCanvas from '../../components/slide-canvas.component';
 
 export const Route = createFileRoute('/playground/')({
   component: PlaygroundPage,
+  beforeLoad() {
+    throw notFound();
+  },
 });
 
 const PRESETS: Record<string, { code: string; name: string }> = {

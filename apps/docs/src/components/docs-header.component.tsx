@@ -1,5 +1,5 @@
 import pptxVersion from '@hokkyss/pptx/version';
-import { BookOpenIcon, CodeIcon, CubeIcon, GithubLogoIcon, PlayIcon, SparkleIcon } from '@phosphor-icons/react';
+import { BookOpenIcon, CodeIcon, CubeIcon, GithubLogoIcon, SparkleIcon } from '@phosphor-icons/react';
 import { Link } from '@tanstack/react-router';
 import ThemeSwitcher from './theme-switcher.component';
 
@@ -56,14 +56,14 @@ export default function DocsHeader() {
               <CodeIcon className="h-4 w-4 text-primary" />
               API Reference
             </Link>
-            <Link
+            {/* <Link
               activeProps={{ className: 'text-foreground font-semibold bg-muted/60' }}
               className="px-3 py-1.5 rounded-md hover:text-foreground hover:bg-muted/40 transition flex items-center gap-1.5"
               to="/playground"
             >
               <PlayIcon className="h-4 w-4 text-primary" />
               Playground
-            </Link>
+            </Link> */}
             <Link
               activeProps={{ className: 'text-foreground font-semibold bg-muted/60' }}
               className="px-3 py-1.5 rounded-md hover:text-foreground hover:bg-muted/40 transition flex items-center gap-1.5"
