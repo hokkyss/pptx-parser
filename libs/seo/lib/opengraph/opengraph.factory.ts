@@ -1,11 +1,9 @@
 import type { OpenGraph } from './opengraph.interface';
 
 /**
- * The Open Graph metadata for the document.
+ * The Open Graph metadata for the document. Follows the Open Graph protocol to enrich link previews.
  * @param opengraph The opengraph configuration.
  * @returns The opengraph configuration.
- * @remarks
- * Follows the Open Graph protocol to enrich link previews.
  * @example
  * ```tsx
  * openGraph: {

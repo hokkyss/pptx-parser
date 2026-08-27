@@ -4,6 +4,7 @@ import { defineConfig } from 'eslint/config';
 export default defineConfig(
   getConfig({
     environment: 'isomorphic',
+    ignores: ['public/**'],
     outDir: 'dist',
     react: true,
     tanstackQuery: true,

@@ -1,7 +1,43 @@
+import { defineMetadata, resolveMetadata } from '@monorepo/seo/metadata';
+import { defineOpenGraph, resolveOpenGraph } from '@monorepo/seo/opengraph';
+import { defineTwitter, resolveTwitter } from '@monorepo/seo/twitter';
 import { CubeIcon } from '@phosphor-icons/react';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/showcase/')({
+  head: () => {
+    const title = 'Visual Showcase Gallery (14-Slide Suite) — @hokkyss/pptx';
+    const description = 'Explore the complete 14-slide visual showcase deck generated with pure TypeScript and @hokkyss/pptx.';
+
+    const metaSeo = resolveMetadata(
+      defineMetadata({
+        description,
+        title,
+      }),
+    );
+
+    const ogSeo = resolveOpenGraph(
+      defineOpenGraph({
+        description,
+        siteName: '@hokkyss/pptx Showcase',
+        title,
+        type: 'website',
+      }),
+    );
+
+    const twitterSeo = resolveTwitter(
+      defineTwitter({
+        card: 'summary_large_image',
+        description,
+        title,
+      }),
+    );
+
+    return {
+      links: [...metaSeo.links, ...ogSeo.links, ...twitterSeo.links],
+      meta: [...metaSeo.metas, ...ogSeo.metas, ...twitterSeo.metas],
+    };
+  },
   component: ShowcasePage,
 });
 

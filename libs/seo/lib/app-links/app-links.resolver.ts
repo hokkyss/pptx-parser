@@ -3,8 +3,7 @@ import type { AppLinks } from './app-links.interface';
 
 /**
  * @see {@link https://github.com/vercel/next.js/blob/e68639f83a4853c91f60aa6044bb4502a9365996/packages/next/src/lib/metadata/metadata.tsx#L1663 Source}
- * @param data App links data defined using `defineAppLinks`
- * @param appLinks
+ * @param appLinks App links data defined using `defineAppLinks`
  * @returns App links HTML meta tags properties
  */
 export function resolveAppLinks(appLinks: AppLinks): SeoMetadata {
