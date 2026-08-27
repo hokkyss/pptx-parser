@@ -28,12 +28,12 @@ export const Route = createFileRoute('/sitemap.xml')({
                 priority: 0.8,
                 url: `${origin}/cookbook`,
               },
-              {
-                changeFrequency: 'monthly',
-                lastModified: now,
-                priority: 0.7,
-                url: `${origin}/showcase`,
-              },
+              // {
+              //   changeFrequency: 'monthly',
+              //   lastModified: now,
+              //   priority: 0.7,
+              //   url: `${origin}/showcase`,
+              // },
             ];
 
             // 3. Documentation & API Reference & Cookbook Markdown Pages
@@ -46,6 +46,8 @@ export const Route = createFileRoute('/sitemap.xml')({
                 || path === 'cookbook/index'
                 || path === 'playground/index'
                 || path === 'showcase/index'
+                || path.startsWith('showcase/')
+                || path.startsWith('playground/')
               ) {
                 continue;
               }

@@ -79,12 +79,12 @@ export const Route = createFileRoute('/manifest.webmanifest')({
                   short_name: 'Cookbook',
                   url: '/cookbook',
                 },
-                {
-                  description: 'Visual gallery and 14-slide showcase',
-                  name: 'Showcase Gallery',
-                  short_name: 'Showcase',
-                  url: '/showcase',
-                },
+                // {
+                //   description: 'Visual gallery and 14-slide showcase',
+                //   name: 'Showcase Gallery',
+                //   short_name: 'Showcase',
+                //   url: '/showcase',
+                // },
               ],
               start_url: '/',
               theme_color: '#09090b',

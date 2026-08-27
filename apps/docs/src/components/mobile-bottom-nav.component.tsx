@@ -1,7 +1,6 @@
 import {
   BookOpenIcon,
   CodeIcon,
-  CubeIcon,
   HouseIcon,
   SparkleIcon,
 } from '@phosphor-icons/react';
@@ -33,7 +32,7 @@ const NAV_ITEMS: NavItem[] = [
     to: '/api-reference/$',
   },
   // { icon: PlayIcon, label: 'Playground', matchPattern: /^\/playground/, to: '/playground' },
-  { icon: CubeIcon, label: 'Showcase', matchPattern: /^\/showcase/, to: '/showcase' },
+  // { icon: CubeIcon, label: 'Showcase', matchPattern: /^\/showcase/, to: '/showcase' },
 ];
 
 /**

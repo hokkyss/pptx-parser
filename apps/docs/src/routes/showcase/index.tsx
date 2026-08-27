@@ -2,9 +2,12 @@ import { defineMetadata, resolveMetadata } from '@monorepo/seo/metadata';
 import { defineOpenGraph, resolveOpenGraph } from '@monorepo/seo/opengraph';
 import { defineTwitter, resolveTwitter } from '@monorepo/seo/twitter';
 import { CubeIcon } from '@phosphor-icons/react';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, notFound } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/showcase/')({
+  beforeLoad() {
+    throw notFound();
+  },
   head: () => {
     const title = 'Visual Showcase Gallery (14-Slide Suite) — @hokkyss/pptx';
     const description = 'Explore the complete 14-slide visual showcase deck generated with pure TypeScript and @hokkyss/pptx.';
