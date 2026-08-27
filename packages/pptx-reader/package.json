@@ -1,6 +1,6 @@
 {
   "name": "@hokkyss/pptx-reader",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Isomorphic and high-performance OpenXML PowerPoint (.pptx) presentation parser for TypeScript.",
   "type": "module",
   "sideEffects": false,
