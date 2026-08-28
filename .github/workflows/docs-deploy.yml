@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: docs-deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -21,9 +21,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
-          version: 11
+          run_install: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
