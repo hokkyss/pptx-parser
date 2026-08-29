@@ -12,10 +12,12 @@ export type {
 } from '@hokkyss/pptx-core';
 
 export {
+  type AddAudioOptions,
   type AddConnectorOptions,
   type AddGroupOptions,
   type AddImageOptions,
   type AddTextOptions,
+  type AddVideoOptions,
   type ConnectionPosition,
   type ConnectorEndpoint,
   GroupBuilder,

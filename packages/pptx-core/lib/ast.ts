@@ -255,15 +255,109 @@ export interface PptxTableElement extends PptxBaseElement {
 }
 
 /**
- * Universal Discriminated Union for any visual slide element (Shape, Text Box, Picture, Table, Chart, Group, Connector).
+ * Playback control options for embedded audio and video media.
+ *
+ * Maps directly to OpenXML `<p:cMediaNode>` and `<p14:trim>` extension attributes.
+ */
+export interface PptxMediaPlayback {
+  /**
+   * End trim position in milliseconds. Clips playback to this time.
+   * OpenXML: `<p14:trim end="..."/>` inside `<p:extLst>`
+   */
+  endTime?: number;
+  /**
+   * Whether to hide the media icon after playback finishes.
+   * OpenXML: `<p:cMediaNode hideWhenStopped="0">` with `<p:endCondLst>`
+   */
+  hideWhenDone?: boolean;
+  /**
+   * Whether to loop the media indefinitely.
+   * OpenXML: `<p:cMediaNode>` with loop `<p:iterate>` timing.
+   */
+  loop?: boolean;
+  /**
+   * Whether to show the media placeholder icon when stopped.
+   * OpenXML: `<p:cMediaNode showWhenStopped="1">`
+   */
+  showWhenStopped?: boolean;
+  /**
+   * Start trim position in milliseconds. Clips playback from this offset.
+   * OpenXML: `<p14:trim st="..."/>` inside `<p:extLst>`
+   */
+  startTime?: number;
+  /**
+   * Playback trigger. `'onClick'` plays on click (default). `'automatic'` plays on slide load.
+   * OpenXML: `<p:cond delay="0"/>` inside `<p:stCondLst>` of the timing node.
+   */
+  trigger?: 'automatic' | 'onClick';
+  /**
+   * Playback volume from 0 (silent) to 1 (full). Audio only.
+   * OpenXML: `<p:cMediaNode vol="...">` (stored as thousandths: 80000 = 0.8)
+   */
+  volume?: number;
+}
+
+/**
+ * Embedded audio element.
+ *
+ * OpenXML: `<p:pic>` with `<p:nvPr><p:audioFile r:link="rIdN"/>`.
+ * A native PowerPoint speaker icon is rendered automatically.
+ *
+ * **Note**: Supported audio formats are `mp3`, `wav`, `m4a`, `wma`.
+ * Other formats (e.g. `ogg`) are embedded as-is; playback depends on the host OS/codec.
+ */
+export interface PptxAudioElement extends PptxBaseElement {
+  /** Audio-specific data. OpenXML: `<p:nvPr><p:audioFile r:link="rIdN"/>` */
+  audio: {
+    /** Reference ID to the media asset in `PptxDocument.media`. */
+    mediaId: string;
+    /** MIME type required by the caller (e.g. `'audio/mpeg'`, `'audio/x-wav'`). */
+    mimeType: string;
+    /** Playback control options. */
+    playback?: PptxMediaPlayback;
+  };
+  elementType: 'audio';
+  type: 'picture';
+}
+
+/**
+ * Embedded video element.
+ *
+ * OpenXML: `<p:pic>` with `<p:nvPr><p:videoFile r:link="rIdN"/>`.
+ * A native PowerPoint film strip icon is rendered automatically when stopped.
+ *
+ * **Note**: `mp4` (H.264) is the most portable format across PowerPoint on Windows and macOS.
+ * `wmv`/`avi` are Windows-only; `mov` is macOS-only. All formats are embedded as-is —
+ * the PPTX file remains valid regardless, but playback depends on the host OS/codec.
+ */
+export interface PptxVideoElement extends PptxBaseElement {
+  elementType: 'video';
+  /** Video-specific data. OpenXML: `<p:nvPr><p:videoFile r:link="rIdN"/>` */
+  video: {
+    /** Reference ID to the media asset in `PptxDocument.media`. */
+    mediaId: string;
+    /** MIME type required by the caller (e.g. `'video/mp4'`, `'video/quicktime'`). */
+    mimeType: string;
+    /** Whether to mute audio track on playback. OpenXML: `<p:cMediaNode vol="0">` */
+    muted?: boolean;
+    /** Playback control options. */
+    playback?: PptxMediaPlayback;
+  };
+  type: 'picture';
+}
+
+/**
+ * Universal Discriminated Union for any visual slide element (Shape, Text Box, Picture, Table, Chart, Group, Connector, Audio, Video).
  */
 export type PptxElement
-  = | PptxChartElement
+  = | PptxAudioElement
+    | PptxChartElement
     | PptxConnectorElement
     | PptxGroupElement
     | PptxPictureElement
     | PptxShapeElement
-    | PptxTableElement;
+    | PptxTableElement
+    | PptxVideoElement;
 
 /** Alias for PptxElement */
 export type PptxShape = PptxElement;

@@ -1,6 +1,6 @@
-import type { PptxElement, PptxSlide } from '@hokkyss/pptx-core';
+import type { PptxElement, PptxMediaPlayback, PptxSlide } from '@hokkyss/pptx-core';
 import { serializeXml } from '../xml/xml-builder';
-import { serializeAnimations } from './animation-serializer';
+import { buildSlideTiming, serializeAudio, serializeVideo } from './audio-video-serializer';
 import { serializeGroup } from './group-serializer';
 import { serializePicture } from './picture-serializer';
 import { serializeConnector, serializeShape } from './shape-serializer';
@@ -99,6 +99,7 @@ export function serializeSlide(
   slide: PptxSlide,
   pictureEmbedMap?: Map<string, string>,
   chartRelIds?: string[],
+  audioVideoRelMap?: Map<string, { embedRelId: string; imageRelId?: string; linkRelId: string }>,
 ): string {
   const elements = (slide.elements && slide.elements.length > 0) ? slide.elements : (slide.shapes || []);
 
@@ -131,6 +132,13 @@ export function serializeSlide(
 
   let chartIdx = 0;
 
+  const mediaTimingList: Array<{
+    id: string;
+    mediaType: 'audio' | 'video';
+    muted?: boolean;
+    playback?: PptxMediaPlayback;
+  }> = [];
+
   for (const rawEl of elements) {
     const elWithId = normalizeElementWithUniqueIds(rawEl, getUniqueId);
 
@@ -144,6 +152,29 @@ export function serializeSlide(
     } else if (elWithId.elementType === 'picture') {
       const overrideEmbedId = pictureEmbedMap?.get(elWithId.picture.mediaId) ?? pictureEmbedMap?.get(elWithId.id);
       picList.push(serializePicture(elWithId, overrideEmbedId));
+    } else if (elWithId.elementType === 'audio') {
+      const rels = audioVideoRelMap?.get(elWithId.audio.mediaId);
+      const linkRelId = rels?.linkRelId ?? 'rId2';
+      const embedRelId = rels?.embedRelId ?? 'rId3';
+      const imageRelId = rels?.imageRelId;
+      picList.push(serializeAudio(elWithId, linkRelId, embedRelId, imageRelId));
+      mediaTimingList.push({
+        id: elWithId.id,
+        mediaType: 'audio',
+        playback: elWithId.audio.playback,
+      });
+    } else if (elWithId.elementType === 'video') {
+      const rels = audioVideoRelMap?.get(elWithId.video.mediaId);
+      const linkRelId = rels?.linkRelId ?? 'rId2';
+      const embedRelId = rels?.embedRelId ?? 'rId3';
+      const imageRelId = rels?.imageRelId;
+      picList.push(serializeVideo(elWithId, linkRelId, embedRelId, imageRelId));
+      mediaTimingList.push({
+        id: elWithId.id,
+        mediaType: 'video',
+        muted: elWithId.video.muted,
+        playback: elWithId.video.playback,
+      });
     } else if (elWithId.elementType === 'group') {
       grpSpList.push(serializeGroup(elWithId));
     } else if (elWithId.elementType === 'connector') {
@@ -209,8 +240,8 @@ export function serializeSlide(
   const sldRoot: Record<string, unknown> = {
     'p:sld': {
       '@_xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-      '@_xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
       '@_xmlns:p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+      '@_xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
       'p:cSld': cSld,
       'p:clrMapOvr': {
         'a:masterClrMapping': {},
@@ -223,7 +254,7 @@ export function serializeSlide(
     (sldRoot['p:sld'] as Record<string, unknown>)['p:transition'] = transitionNode;
   }
 
-  const timingNode = serializeAnimations(slide.animations);
+  const timingNode = buildSlideTiming(slide.animations, mediaTimingList);
   if (timingNode) {
     (sldRoot['p:sld'] as Record<string, unknown>)['p:timing'] = timingNode;
   }

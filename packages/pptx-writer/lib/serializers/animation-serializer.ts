@@ -13,6 +13,11 @@ export function serializeAnimations(animations?: PptxAnimation[]): Record<string
         '@_dur': anim.duration ?? 500,
         '@_id': idx + 1,
         '@_nodeType': anim.trigger === 'afterPrevious' ? 'afterEffect' : anim.trigger === 'withPrevious' ? 'withEffect' : 'clickEffect',
+        'p:stCondLst': {
+          'p:cond': {
+            '@_delay': anim.delay ?? 0,
+          },
+        },
         'p:childTnLst': {
           'p:set': {
             'p:cBhvr': {
@@ -26,11 +31,6 @@ export function serializeAnimations(animations?: PptxAnimation[]): Record<string
                 },
               },
             },
-          },
-        },
-        'p:stCondLst': {
-          'p:cond': {
-            '@_delay': anim.delay ?? 0,
           },
         },
       },

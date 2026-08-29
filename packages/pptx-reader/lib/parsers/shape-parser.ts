@@ -332,12 +332,68 @@ export function parseSingleShape(
   };
 
   if (shapeType === 'picture') {
+    const innerNvPr = getXmlChild(nvPrNode, 'nvPr') || {};
+    const audioFileNode = getXmlChild(innerNvPr, 'audioFile');
+    const videoFileNode = getXmlChild(innerNvPr, 'videoFile');
+
+    if (audioFileNode) {
+      const audioRelId = (audioFileNode['@_r:link'] as string) || (audioFileNode['@_link'] as string);
+      const resolvedTarget = audioRelId ? relationshipResolver?.getTarget(audioRelId) : undefined;
+      const mediaId = resolvedTarget || audioRelId || blipEmbedId || '';
+      const ext = mediaId.split('.').pop()?.toLowerCase() || '';
+      const mimeMap: Record<string, string> = {
+        m4a: 'audio/mp4',
+        mp3: 'audio/mpeg',
+        ogg: 'audio/ogg',
+        wav: 'audio/x-wav',
+        wma: 'audio/x-ms-wma',
+      };
+      const mimeType = mimeMap[ext] || 'audio/mpeg';
+
+      return {
+        ...baseResult,
+        audio: {
+          mediaId,
+          mimeType,
+        },
+        blipEmbedId,
+        elementType: 'audio',
+        type: 'picture',
+      };
+    }
+
+    if (videoFileNode) {
+      const videoRelId = (videoFileNode['@_r:link'] as string) || (videoFileNode['@_link'] as string);
+      const resolvedTarget = videoRelId ? relationshipResolver?.getTarget(videoRelId) : undefined;
+      const mediaId = resolvedTarget || videoRelId || blipEmbedId || '';
+      const ext = mediaId.split('.').pop()?.toLowerCase() || '';
+      const mimeMap: Record<string, string> = {
+        avi: 'video/x-msvideo',
+        mov: 'video/quicktime',
+        mp4: 'video/mp4',
+        webm: 'video/webm',
+        wmv: 'video/x-ms-wmv',
+      };
+      const mimeType = mimeMap[ext] || 'video/mp4';
+
+      return {
+        ...baseResult,
+        blipEmbedId,
+        elementType: 'video',
+        type: 'picture',
+        video: {
+          mediaId,
+          mimeType,
+        },
+      };
+    }
+
     return {
       ...baseResult,
-      type: 'picture',
+      blipEmbedId,
       elementType: 'picture',
       picture: picture || { mediaId: blipEmbedId || '' },
-      blipEmbedId,
+      type: 'picture',
     };
   }
 
