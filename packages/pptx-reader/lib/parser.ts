@@ -144,6 +144,10 @@ function refineElementType(
   parseChartFn?: (xml: string, parser?: XmlParser) => import('@hokkyss/pptx-core').PptxChart | undefined,
   parseTableFn?: (xml: Record<string, unknown> | string, parser?: XmlParser) => import('@hokkyss/pptx-core').PptxTable | undefined,
 ): void {
+  if (shape.elementType === 'audio' || shape.elementType === 'video') {
+    return;
+  }
+
   if (shape.type === 'picture') {
     shape.elementType = 'picture';
     return;

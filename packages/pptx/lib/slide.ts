@@ -1,4 +1,5 @@
 import type {
+  PptxAudioElement,
   PptxConnectionPosition,
   PptxConnectorElement,
   PptxElement,
@@ -9,7 +10,9 @@ import type {
   PptxLineEndLength,
   PptxLineEndType,
   PptxLineEndWidth,
+  PptxMediaPlayback,
   PptxPictureElement,
+  PptxPosterOption,
   PptxShapeAttachment,
   PptxShapeElement,
   PptxSlide,
@@ -17,6 +20,7 @@ import type {
   PptxTransitionDirection,
   PptxTransitionSpeed,
   PptxTransitionType,
+  PptxVideoElement,
 } from '@hokkyss/pptx-core';
 
 export type ConnectionPosition = PptxConnectionPosition;
@@ -114,6 +118,138 @@ export interface AddImageOptions {
   w?: Inches;
   x?: Inches;
   y?: Inches;
+  zIndex?: number;
+}
+
+/**
+ * Options for embedding an audio file on a slide.
+ *
+ * The native PowerPoint speaker icon is rendered automatically.
+ * Position and size default to PowerPoint's small icon placement (~1"×1" at top-left)
+ * if not specified.
+ *
+ * **Supported natively by PowerPoint**: `mp3`, `wav`, `m4a`, `wma`.
+ * Other formats may be embedded but playback depends on the host OS/codec.
+ */
+export interface AddAudioOptions {
+  /**
+   * Trim end position in milliseconds. Clips audio playback to this time.
+   * OpenXML: `<p14:trim end="..."/>` (requires `p14` namespace)
+   */
+  endTime?: number;
+  /** File name for the media asset stored in `ppt/media/`. */
+  fileName: string;
+  /** Height of the icon placeholder in inches. Defaults to 1". */
+  h?: Inches;
+  /** Whether to hide the speaker icon after playback finishes. */
+  hideWhenDone?: boolean;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for O(1) shape querying (`slide.getElementById`), element deletion (`slide.removeElement`).
+   */
+  id?: string;
+  /** Whether to loop the audio indefinitely. */
+  loop?: boolean;
+  /** MIME type of the audio file (e.g. `'audio/mpeg'` for mp3, `'audio/x-wav'` for wav). Required. */
+  mimeType: string;
+  /** Element name shown in the PowerPoint selection pane. */
+  name?: string;
+  /**
+   * Optional custom poster frame (thumbnail) image displayed on the slide for the audio shape.
+   * If omitted, a high-resolution default speaker icon is automatically generated.
+   */
+  poster?: PptxPosterOption;
+  /** Whether to show the speaker icon when audio is stopped (default: true). */
+  showWhenStopped?: boolean;
+  /**
+   * Trim start position in milliseconds. Clips audio playback from this offset.
+   * OpenXML: `<p14:trim st="..."/>` (requires `p14` namespace)
+   */
+  startTime?: number;
+  /**
+   * Playback trigger. `'onClick'` (default) plays on mouse click.
+   * `'automatic'` plays immediately when the slide loads.
+   */
+  trigger?: 'automatic' | 'onClick';
+  /** Playback volume from 0 (silent) to 1 (full). */
+  volume?: number;
+  /** Width of the icon placeholder in inches. Defaults to 1". */
+  w?: Inches;
+  /** X position in inches. Defaults to 0.5". */
+  x?: Inches;
+  /** Y position in inches. Defaults to 0.5". */
+  y?: Inches;
+  /** Z-order layer index. */
+  zIndex?: number;
+}
+
+/**
+ * Options for embedding a video file on a slide.
+ *
+ * The native PowerPoint film strip icon is rendered when stopped if poster is omitted.
+ * Position and size default to a 4"×3" centered region if not specified.
+ *
+ * **Most portable format**: `mp4` (H.264) — works on both Windows and macOS.
+ * `wmv`/`avi` are Windows-only; `mov` requires QuickTime (macOS).
+ * All formats are embedded as valid PPTX — PowerPoint only fails on *play*, not on *open*.
+ */
+export interface AddVideoOptions {
+  /**
+   * Trim end position in milliseconds. Clips video playback to this time.
+   * OpenXML: `<p14:trim end="..."/>` (requires `p14` namespace)
+   */
+  endTime?: number;
+  /** File name for the media asset stored in `ppt/media/`. */
+  fileName: string;
+  /** Height of the video placeholder in inches. Defaults to 3". */
+  h?: Inches;
+  /** Whether to hide the video frame after playback finishes. */
+  hideWhenDone?: boolean;
+  /**
+   * Unique element identifier.
+   *
+   * **ID Scoping**: Scoped per slide (`ppt/slides/slideN.xml`).
+   * - Must be unique among all elements on the same slide.
+   * - Identical IDs may be reused on different slides without collision.
+   * - Used for O(1) shape querying (`slide.getElementById`), element deletion (`slide.removeElement`).
+   */
+  id?: string;
+  /** Whether to loop the video indefinitely. */
+  loop?: boolean;
+  /** MIME type of the video file (e.g. `'video/mp4'`, `'video/quicktime'`). Required. */
+  mimeType: string;
+  /** Whether to mute the video's audio track on playback. */
+  muted?: boolean;
+  /** Element name shown in the PowerPoint selection pane. */
+  name?: string;
+  /**
+   * Optional custom poster frame (thumbnail) image displayed on the slide for the video shape.
+   * If omitted, a high-resolution default video player poster is automatically generated.
+   */
+  poster?: PptxPosterOption;
+  /** Whether to show the video placeholder when stopped (default: true). */
+  showWhenStopped?: boolean;
+  /**
+   * Trim start position in milliseconds. Clips video playback from this offset.
+   * OpenXML: `<p14:trim st="..."/>` (requires `p14` namespace)
+   */
+  startTime?: number;
+  /**
+   * Playback trigger. `'onClick'` (default) plays on mouse click.
+   * `'automatic'` plays immediately when the slide loads.
+   */
+  trigger?: 'automatic' | 'onClick';
+  /** Width of the video placeholder in inches. Defaults to 4". */
+  w?: Inches;
+  /** X position in inches. Defaults to 2.5" (centered on a 9.14" slide). */
+  x?: Inches;
+  /** Y position in inches. Defaults to 1.5" (centered on a 5.14" slide). */
+  y?: Inches;
+  /** Z-order layer index. */
   zIndex?: number;
 }
 
@@ -499,6 +635,191 @@ export class Slide {
 
     this._registerElement(picElement);
     this._ast.elements.push(picElement);
+    delete this._ast.rawXml;
+    return this;
+  }
+
+  /**
+   * Embeds an audio file on the slide.
+   * PowerPoint renders a native speaker icon automatically.
+   * The icon is placed at the specified position (defaults to 0.5", 0.5") with 1"×1" size.
+   * @example
+   * ```ts
+   * const mp3Bytes = await fs.promises.readFile('sound.mp3');
+   * slide.addAudio(mp3Bytes, {
+   *   fileName: 'sound.mp3',
+   *   mimeType: 'audio/mpeg',
+   *   x: 0.5, y: 0.5, w: 1, h: 1,
+   *   trigger: 'onClick',
+   *   loop: false,
+   * });
+   * ```
+   */
+  addAudio(
+    audioData: ArrayBuffer | Uint8Array,
+    options: AddAudioOptions,
+  ): this {
+    const bytes = audioData instanceof Uint8Array ? audioData : new Uint8Array(audioData);
+    const id = options.id || this._getNextElementId();
+    const name = options.name || `Audio ${id}`;
+    const mediaId = `audio_${Date.now()}_${id}`;
+
+    this._presentation.ast.media.push({
+      data: bytes,
+      fileName: options.fileName,
+      filename: options.fileName,
+      id: mediaId,
+      mimeType: options.mimeType,
+      path: `ppt/media/${options.fileName}`,
+    });
+
+    let posterImageId: string | undefined;
+    if (options.poster) {
+      const posterBytes = options.poster.data instanceof Uint8Array ? options.poster.data : new Uint8Array(options.poster.data);
+      const posterExt = options.poster.mimeType === 'image/jpeg' ? 'jpg' : (options.poster.fileName?.split('.').pop() || 'png');
+      const posterFileName = options.poster.fileName || `poster_audio_${Date.now()}_${id}.${posterExt}`;
+      posterImageId = `poster_audio_${Date.now()}_${id}`;
+
+      this._presentation.ast.media.push({
+        data: posterBytes,
+        fileName: posterFileName,
+        filename: posterFileName,
+        id: posterImageId,
+        mimeType: options.poster.mimeType || 'image/png',
+        path: `ppt/media/${posterFileName}`,
+      });
+    }
+
+    const playback: PptxMediaPlayback = {
+      endTime: options.endTime,
+      hideWhenDone: options.hideWhenDone,
+      loop: options.loop,
+      showWhenStopped: options.showWhenStopped ?? true,
+      startTime: options.startTime,
+      trigger: options.trigger ?? 'onClick',
+      volume: options.volume,
+    };
+
+    const audioElement: PptxAudioElement = {
+      audio: {
+        mediaId,
+        mimeType: options.mimeType,
+        playback,
+        ...(posterImageId !== undefined ? { posterImageId } : {}),
+      },
+      elementType: 'audio',
+      id,
+      isVisible: true,
+      name,
+      position: {
+        cx: inchesToEmu(options.w ?? 1),
+        cy: inchesToEmu(options.h ?? 1),
+        x: inchesToEmu(options.x ?? 0.5),
+        y: inchesToEmu(options.y ?? 0.5),
+      },
+      rotation: emuDegree(0),
+      type: 'picture',
+      zIndex: options.zIndex ?? 0,
+    };
+
+    this._registerElement(audioElement);
+    this._ast.elements.push(audioElement);
+    delete this._ast.rawXml;
+    return this;
+  }
+
+  /**
+   * Embeds a video file on the slide.
+   * PowerPoint renders a native film strip / video frame placeholder when stopped (or custom poster if provided).
+   * Defaults to a 4"×3" centered region if position/size are not specified.
+   *
+   * **Portability note**: `mp4` (H.264) is the most portable format.
+   * `wmv`/`avi` are Windows-only; `mov` requires QuickTime (macOS).
+   * All formats produce a valid PPTX — PowerPoint only fails on *play*, not on *open*.
+   * @example
+   * ```ts
+   * const mp4Bytes = await fs.promises.readFile('demo.mp4');
+   * const posterBytes = await fs.promises.readFile('cover.png');
+   * slide.addVideo(mp4Bytes, {
+   *   fileName: 'demo.mp4',
+   *   mimeType: 'video/mp4',
+   *   poster: { data: posterBytes, mimeType: 'image/png' },
+   *   x: 2.5, y: 1.5, w: 4, h: 3,
+   *   trigger: 'automatic',
+   *   loop: true,
+   *   muted: true,
+   * });
+   * ```
+   */
+  addVideo(
+    videoData: ArrayBuffer | Uint8Array,
+    options: AddVideoOptions,
+  ): this {
+    const bytes = videoData instanceof Uint8Array ? videoData : new Uint8Array(videoData);
+    const id = options.id || this._getNextElementId();
+    const name = options.name || `Video ${id}`;
+    const mediaId = `video_${Date.now()}_${id}`;
+
+    this._presentation.ast.media.push({
+      data: bytes,
+      fileName: options.fileName,
+      filename: options.fileName,
+      id: mediaId,
+      mimeType: options.mimeType,
+      path: `ppt/media/${options.fileName}`,
+    });
+
+    let posterImageId: string | undefined;
+    if (options.poster) {
+      const posterBytes = options.poster.data instanceof Uint8Array ? options.poster.data : new Uint8Array(options.poster.data);
+      const posterExt = options.poster.mimeType === 'image/jpeg' ? 'jpg' : (options.poster.fileName?.split('.').pop() || 'png');
+      const posterFileName = options.poster.fileName || `poster_video_${Date.now()}_${id}.${posterExt}`;
+      posterImageId = `poster_video_${Date.now()}_${id}`;
+
+      this._presentation.ast.media.push({
+        data: posterBytes,
+        fileName: posterFileName,
+        filename: posterFileName,
+        id: posterImageId,
+        mimeType: options.poster.mimeType || 'image/png',
+        path: `ppt/media/${posterFileName}`,
+      });
+    }
+
+    const playback: PptxMediaPlayback = {
+      endTime: options.endTime,
+      hideWhenDone: options.hideWhenDone,
+      loop: options.loop,
+      showWhenStopped: options.showWhenStopped ?? true,
+      startTime: options.startTime,
+      trigger: options.trigger ?? 'onClick',
+    };
+
+    const videoElement: PptxVideoElement = {
+      elementType: 'video',
+      id,
+      isVisible: true,
+      name,
+      position: {
+        cx: inchesToEmu(options.w ?? 4),
+        cy: inchesToEmu(options.h ?? 3),
+        x: inchesToEmu(options.x ?? 2.5),
+        y: inchesToEmu(options.y ?? 1.5),
+      },
+      rotation: emuDegree(0),
+      type: 'picture',
+      video: {
+        mediaId,
+        mimeType: options.mimeType,
+        muted: options.muted,
+        playback,
+        ...(posterImageId !== undefined ? { posterImageId } : {}),
+      },
+      zIndex: options.zIndex ?? 0,
+    };
+
+    this._registerElement(videoElement);
+    this._ast.elements.push(videoElement);
     delete this._ast.rawXml;
     return this;
   }

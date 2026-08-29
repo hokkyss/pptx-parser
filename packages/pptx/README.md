@@ -366,6 +366,56 @@ slide.addConnector({
 
 ---
 
+### 8. Audio & Video Media Embedding with Custom Posters
+
+Embed audio files (MP3, WAV, M4A) and video containers (MP4, MOV, AVI) directly into slides with playback triggers, loop control, volume, trimming, and custom thumbnail poster frames:
+
+```typescript
+// 1. Embed Audio with Custom Album Artwork Thumbnail
+const audioBytes = fs.readFileSync('soundtrack.mp3');
+const coverBytes = fs.readFileSync('album_art.png');
+
+slide.addAudio(audioBytes, {
+  fileName: 'soundtrack.mp3',
+  mimeType: 'audio/mpeg',
+  poster: {
+    data: coverBytes,
+    fileName: 'album_art.png',
+    mimeType: 'image/png',
+  },
+  x: inches(1),
+  y: inches(1),
+  trigger: 'onClick', // 'onClick' | 'automatic'
+  loop: true,
+  volume: 0.8,
+  startTime: 1000,
+  endTime: 15000,
+});
+
+// 2. Embed Video with Custom Cinematic Poster Frame
+const videoBytes = fs.readFileSync('demo.mp4');
+const posterBytes = fs.readFileSync('video_thumbnail.jpg');
+
+slide.addVideo(videoBytes, {
+  fileName: 'demo.mp4',
+  mimeType: 'video/mp4',
+  poster: {
+    data: posterBytes,
+    fileName: 'video_thumbnail.jpg',
+    mimeType: 'image/jpeg',
+  },
+  x: inches(2),
+  y: inches(1.5),
+  w: inches(6),
+  h: inches(4.5),
+  trigger: 'automatic',
+  loop: true,
+  muted: true,
+});
+```
+
+---
+
 ## Working with Units
 
 ```typescript

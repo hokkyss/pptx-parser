@@ -28,7 +28,31 @@ export interface WritePptxOptions {
   mode?: 'lenient' | 'strict';
 }
 
+/**
+ * Decodes a base64 string to a Uint8Array byte buffer.
+ * @param base64 - Base64 encoded string.
+ * @returns Uint8Array byte array.
+ */
+export function decodeBase64ToBytes(base64: string): Uint8Array {
+  if (typeof Buffer !== 'undefined') {
+    return new Uint8Array(Buffer.from(base64, 'base64'));
+  }
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+const DEFAULT_AUDIO_POSTER_BASE64 = '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';
+const DEFAULT_VIDEO_POSTER_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAUAAAAC0CAYAAADl5PURAAAE5UlEQVR4nO3X2U6cRxSF0VJewBM2NJPnITaeZ+f18m55rIqIRAtCg8H5/z7V2aukdX+0Lz6p2o3tlx0gUas+AKCKAAKxBBCIJYBArHZj52UHSNRu7rzqAIkEEIglgEAsAQRiCSAQSwCBWAIIxBJAIJYAArHazcWrDpCo3VwcdYBEAgjEarcWRx0gkQACsQQQiCWAQCwBBGIJIBBLAIFY7dbuUQdIJIBArHZr93UHSCSAQCwBBGK127uvO0AiAQRiCSAQSwCBWAIIxGq39153gEQCCMQSQCBWu733pgMkEkAglgACsQQQiNXu7L3pAIkEEIglgECsdmf/TQdIJIBALAEEYrU7+287QCIBBGIJIBBLAIFYAgjEEkAgVtvaf9sBErWtg7cdIJEAArEEEIglgECstnXwrgMkEkBK/fbnX+U3kEsAmd1x5H5V9e38vwkgs/gv0RND1kUAmcwc0RND5iSATGKd8RNBptK2Dt91+FUV4TsXwgF2YDO1u4fvOlxXdfRWqd6EzSOAXFt16ESQqQgg11IdOBFkSu3u4fsOV1EdtutFsH4vxieAXEl10ESQOQggP1UdMhFkLgLIpaoDJoLMSQC5VHW8BJA5CSAXqg6XCDK3dvf++w6rVEdr0gAOsCfjEUBWmio8x686fiLIRQSQc6aMzsmrjp8Iskq7d/99h9PmCOAoEazelrEIIOfMFcARQli9LWNp9+5/6HBi6uBc9GojWL8zYxBAzlhXACtDWL0x4xBAzlh3ACsiWL0x4xBAluaIzXWeCLJuAshSdQDXGcHqrRlDu/fgQ4djIwRwXRGs3poxCCBLowRwHSGs3poxCCBLowVwzghWb80YBJClEQM4Vwirt2YMAsjSyAGcOoLVWzOGtv3gY4e5vppzvKluq96cegLI0ugBnPKu6q0ZgwCyNHIAp76remvGIIAsjRjAOW4SQE4IIEujBXCu+AkgJ9r2w48djo0SwDnDtwzgAHtTTwBZGiGA64ifAHJCAFmqDuC64ieAnBBAzqgI4DrDJ36cJoCcse4Arjt+AshpAsgZ6wpgRfgEkH9r2w8/dTht7gDWxq9+X8bRdh5+6nDaXAGsDN+J6m0ZiwByzhwBrA6fALKKALLSlAGsjp74cZG28+hTh1WqgzVp/AbYk/EIIBeqjpYAMjcB5FLV4RI/5iSAXKo6XgLInASQn6oOmPgxFwHkSqpDJn7MQQC5suqgiR9TazuPPne4quqwXS1+9TuxGQSQa6sOnPgxlbZ49LnDdVWHbpXqTdg8bfH4c4dfVR29f8I3wA5sJgFkEsLHJhJAJiN+bBoBZBaixyYQQGYneoxKACklclQSQCBWWzz+0gESCSAQSwCBWG3x5EsHSNR2n3zpAIkEEIglgEAsAQRiCSAQSwCBWAIIxGq7T752gEQCCMRqu0+/doBEAgjEEkAgVtt7+rUDJBJAIJYAArEEEIglgECstvf0WwdIJIBArLb37FsHSCSAQCwBBGIJIBBLAIFYbf/Ztw6QSACBWAIIxBJAIFbbf/a9AyRq+8+/d4BEAgjEEkAglgACsQQQiCWAQCwBBGK1g+ffO0AiAQRiCSAQqx28+NEBEgkgEEsAgVgCCMQSQCCWAAKxBBCIJYBALAEEYrXDFz86QKJ2+PsfHSCRAAKxBBCIJYBALAEEYv0NFG41taG9cqwAAAAASUVORK5CYII=';
+
+const DEFAULT_AUDIO_POSTER_PNG = decodeBase64ToBytes(DEFAULT_AUDIO_POSTER_BASE64);
+const DEFAULT_VIDEO_POSTER_PNG = decodeBase64ToBytes(DEFAULT_VIDEO_POSTER_BASE64);
+
 const REL_TYPES = {
+  audio: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio',
   chart: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart',
   commentAuthors: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors',
   coreProperties: 'http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties',
@@ -36,6 +60,7 @@ const REL_TYPES = {
   handoutMaster: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/handoutMaster',
   hyperlink: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
   image: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+  media: 'http://schemas.microsoft.com/office/2007/relationships/media',
   notesMaster: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster',
   notesSlide: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide',
   officeDocument: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
@@ -45,6 +70,7 @@ const REL_TYPES = {
   slideMaster: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster',
   tableStyles: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles',
   theme: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme',
+  video: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/video',
   viewProps: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps',
 };
 
@@ -384,6 +410,7 @@ export async function writePptx(
 
     const slidePictureEmbedMap = new Map<string, string>();
     const slideChartRelIds: string[] = [];
+    const slideAudioVideoRelMap = new Map<string, { embedRelId: string; imageRelId?: string; linkRelId: string }>();
     let slideRelCounter = 2;
 
     const elements = (slide.elements && slide.elements.length > 0) ? slide.elements : (slide.shapes || []);
@@ -401,6 +428,74 @@ export async function writePptx(
 
         slidePictureEmbedMap.set(mediaId, picRelId);
         slidePictureEmbedMap.set(elem.id, picRelId);
+      } else if (elem.elementType === 'audio') {
+        const mediaId = elem.audio.mediaId;
+        const matchedFileName = mediaMap.get(mediaId) || `${mediaId}.mp3`;
+        const posterImageId = elem.audio.posterImageId;
+        let posterFileName = posterImageId ? mediaMap.get(posterImageId) : undefined;
+        if (!posterFileName) {
+          files['ppt/media/audio_poster.png'] = DEFAULT_AUDIO_POSTER_PNG;
+          mediaExtensions.add('png');
+          posterFileName = 'audio_poster.png';
+        }
+
+        // r:embed — image relationship (for <p:pic> <a:blip r:embed>)
+        const imageRelId = `rId${slideRelCounter++}`;
+        slideRels.push({
+          id: imageRelId,
+          target: `../media/${posterFileName}`,
+          type: REL_TYPES.image,
+        });
+
+        // r:link — audio relationship (for <a:audioFile r:link>)
+        const linkRelId = `rId${slideRelCounter++}`;
+        slideRels.push({
+          id: linkRelId,
+          target: `../media/${matchedFileName}`,
+          type: REL_TYPES.audio,
+        });
+        // r:embed — media relationship (for p14:media r:embed extension)
+        const embedRelId = `rId${slideRelCounter++}`;
+        slideRels.push({
+          id: embedRelId,
+          target: `../media/${matchedFileName}`,
+          type: REL_TYPES.media,
+        });
+        slideAudioVideoRelMap.set(mediaId, { embedRelId, imageRelId, linkRelId });
+      } else if (elem.elementType === 'video') {
+        const mediaId = elem.video.mediaId;
+        const matchedFileName = mediaMap.get(mediaId) || `${mediaId}.mp4`;
+        const posterImageId = elem.video.posterImageId;
+        let posterFileName = posterImageId ? mediaMap.get(posterImageId) : undefined;
+        if (!posterFileName) {
+          files['ppt/media/video_poster.png'] = DEFAULT_VIDEO_POSTER_PNG;
+          mediaExtensions.add('png');
+          posterFileName = 'video_poster.png';
+        }
+
+        // r:embed — image relationship (for <p:pic> <a:blip r:embed>)
+        const imageRelId = `rId${slideRelCounter++}`;
+        slideRels.push({
+          id: imageRelId,
+          target: `../media/${posterFileName}`,
+          type: REL_TYPES.image,
+        });
+
+        // r:link — video relationship (for <a:videoFile r:link>)
+        const linkRelId = `rId${slideRelCounter++}`;
+        slideRels.push({
+          id: linkRelId,
+          target: `../media/${matchedFileName}`,
+          type: REL_TYPES.video,
+        });
+        // r:embed — media relationship (for p14:media r:embed extension)
+        const embedRelId = `rId${slideRelCounter++}`;
+        slideRels.push({
+          id: embedRelId,
+          target: `../media/${matchedFileName}`,
+          type: REL_TYPES.media,
+        });
+        slideAudioVideoRelMap.set(mediaId, { embedRelId, imageRelId, linkRelId });
       } else if (elem.elementType === 'chart') {
         if (elem.chart) {
           const chartIndex = chartCounter++;
@@ -457,7 +552,7 @@ export async function writePptx(
     if (slide.rawXml) {
       files[`ppt/slides/slide${slideNum}.xml`] = slide.rawXml;
     } else {
-      files[`ppt/slides/slide${slideNum}.xml`] = serializeSlide(slide, slidePictureEmbedMap, slideChartRelIds);
+      files[`ppt/slides/slide${slideNum}.xml`] = serializeSlide(slide, slidePictureEmbedMap, slideChartRelIds, slideAudioVideoRelMap);
     }
   }
 

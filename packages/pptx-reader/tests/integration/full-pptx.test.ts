@@ -20,6 +20,7 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   <Override PartName="/ppt/slides/slide2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/slides/slide3.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/slides/slide4.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+  <Override PartName="/ppt/slides/slide5.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>
   <Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>
   <Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>
@@ -57,6 +58,7 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>
   <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide3.xml"/>
   <Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide4.xml"/>
+  <Relationship Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide5.xml"/>
 </Relationships>`),
 
       'ppt/presentation.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -67,6 +69,7 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
     <p:sldId id="257" r:id="rId3"/>
     <p:sldId id="258" r:id="rId5"/>
     <p:sldId id="259" r:id="rId6"/>
+    <p:sldId id="260" r:id="rId7"/>
   </p:sldIdLst>
   <p:sldSz cx="12192000" cy="6858000" type="screen16x9"/>
 </p:presentation>`),
@@ -215,6 +218,33 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   </p:cSld>
 </p:sld>`),
 
+      'ppt/slides/_rels/slide5.xml.rels': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio" Target="../media/soundtrack.mp3"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/video" Target="../media/video.mp4"/>
+</Relationships>`),
+
+      'ppt/slides/slide5.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+      <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+      <p:pic>
+        <p:nvPicPr><p:cNvPr id="40" name="Audio Clip"/><p:cNvPicPr/><p:nvPr><a:audioFile r:link="rId2"/></p:nvPr></p:nvPicPr>
+        <p:blipFill><a:blip/></p:blipFill>
+        <p:spPr><a:xfrm><a:off x="100000" y="100000"/><a:ext cx="914400" cy="914400"/></a:xfrm></p:spPr>
+      </p:pic>
+      <p:pic>
+        <p:nvPicPr><p:cNvPr id="41" name="Video Clip"/><p:cNvPicPr/><p:nvPr><a:videoFile r:link="rId3"/></p:nvPr></p:nvPicPr>
+        <p:blipFill><a:blip/></p:blipFill>
+        <p:spPr><a:xfrm><a:off x="200000" y="200000"/><a:ext cx="3657600" cy="2743200"/></a:xfrm></p:spPr>
+      </p:pic>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`),
+
       'ppt/charts/chart1.xml': strToU8(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
   <c:chart>
@@ -284,7 +314,7 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
   it('should parse metadata correctly including firstSlideNumber', () => {
     expect(doc.metadata.title).toBe('Synthetic Platform Architecture');
     expect(doc.metadata.creator).toBe('Synthetic Engineer');
-    expect(doc.metadata.slideCount).toBe(4);
+    expect(doc.metadata.slideCount).toBe(5);
     expect(doc.metadata.firstSlideNumber).toBe(0);
     expect(doc.metadata.slideWidth).toBe(12192000);
     expect(doc.metadata.slideHeight).toBe(6858000);
@@ -348,6 +378,13 @@ describe('Full PPTX Reader Integration (Multi-Slide Synthetic Package)', () => {
     expect(slide4.elements).toHaveLength(1);
     const picElem = slide4.elements[0];
     expect(picElem.elementType).toBe('picture');
+  });
+
+  it('should refine audio and video elements on slide5', () => {
+    const slide5 = doc.slides[4];
+    expect(slide5.elements).toHaveLength(2);
+    expect(slide5.elements[0].elementType).toBe('audio');
+    expect(slide5.elements[1].elementType).toBe('video');
   });
 
   it('honors parse options (disabling animations, transitions, and media)', async () => {

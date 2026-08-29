@@ -14,16 +14,24 @@ export interface ContentTypesOptions {
 }
 
 const MIME_EXTENSION_MAP: Record<string, string> = {
+  avi: 'video/x-msvideo',
   bmp: 'image/bmp',
   gif: 'image/gif',
   jpeg: 'image/jpeg',
   jpg: 'image/jpeg',
+  m4a: 'audio/mp4',
+  mov: 'video/quicktime',
+  mp3: 'audio/mpeg',
+  mp4: 'video/mp4',
   png: 'image/png',
   rels: 'application/vnd.openxmlformats-package.relationships+xml',
   svg: 'image/svg+xml',
   tif: 'image/tiff',
   tiff: 'image/tiff',
+  wav: 'audio/x-wav',
   wmf: 'image/x-wmf',
+  wmv: 'video/x-ms-wmv',
+  wma: 'audio/x-ms-wma',
   xml: 'application/xml',
 };
 

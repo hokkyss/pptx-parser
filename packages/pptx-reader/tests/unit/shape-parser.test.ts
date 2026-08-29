@@ -296,4 +296,66 @@ describe('Shape Parser connector arrowheads and attachment parsing', () => {
     expect((gfShapes[1] as { _chartRelId?: string } & PptxElement)._chartRelId).toBe('rIdChart');
     expect(gfShapes[2].type).toBe('group');
   });
+
+  it('parses embedded audio and video picture elements with custom posters', () => {
+    const mediaXml = `<?xml version="1.0"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:cSld>
+    <p:spTree>
+      <p:pic>
+        <p:nvPicPr>
+          <p:cNvPr id="50" name="Audio Shape"/>
+          <p:cNvPicPr/>
+          <p:nvPr>
+            <a:audioFile r:link="rIdAudio"/>
+          </p:nvPr>
+        </p:nvPicPr>
+        <p:blipFill>
+          <a:blip r:embed="rIdPosterAudio"/>
+        </p:blipFill>
+        <p:spPr>
+          <a:xfrm><a:off x="100" y="200"/><a:ext cx="914400" cy="914400"/></a:xfrm>
+        </p:spPr>
+      </p:pic>
+      <p:pic>
+        <p:nvPicPr>
+          <p:cNvPr id="51" name="Video Shape"/>
+          <p:cNvPicPr/>
+          <p:nvPr>
+            <a:videoFile r:link="rIdVideo"/>
+          </p:nvPr>
+        </p:nvPicPr>
+        <p:blipFill>
+          <a:blip r:embed="rIdPosterVideo"/>
+        </p:blipFill>
+        <p:spPr>
+          <a:xfrm><a:off x="500" y="600"/><a:ext cx="3657600" cy="2743200"/></a:xfrm>
+        </p:spPr>
+      </p:pic>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+
+    const relsXml = `<?xml version="1.0"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rIdAudio" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio" Target="../media/track.mp3"/>
+  <Relationship Id="rIdPosterAudio" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/audio_cover.png"/>
+  <Relationship Id="rIdVideo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/video" Target="../media/demo.mp4"/>
+  <Relationship Id="rIdPosterVideo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/video_cover.jpg"/>
+</Relationships>`;
+
+    const resolver = createRelationshipResolver(relsXml, 'ppt/slides/slide1.xml');
+    const mediaShapes = parseShapes(mediaXml, resolver);
+
+    expect(mediaShapes).toHaveLength(2);
+    expect(mediaShapes[0].elementType).toBe('audio');
+    expect((mediaShapes[0] as any).audio.mediaId).toBe('ppt/media/track.mp3');
+    expect((mediaShapes[0] as any).audio.mimeType).toBe('audio/mpeg');
+    expect((mediaShapes[0] as any).audio.posterImageId).toBe('ppt/media/audio_cover.png');
+
+    expect(mediaShapes[1].elementType).toBe('video');
+    expect((mediaShapes[1] as any).video.mediaId).toBe('ppt/media/demo.mp4');
+    expect((mediaShapes[1] as any).video.mimeType).toBe('video/mp4');
+    expect((mediaShapes[1] as any).video.posterImageId).toBe('ppt/media/video_cover.jpg');
+  });
 });
