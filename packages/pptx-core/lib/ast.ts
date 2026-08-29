@@ -298,16 +298,28 @@ export interface PptxMediaPlayback {
 }
 
 /**
+ * Custom poster frame (thumbnail) option for embedded audio/video media elements.
+ */
+export interface PptxPosterOption {
+  /** Raw image binary data for the poster thumbnail frame. */
+  data: Uint8Array | ArrayBuffer;
+  /** File name for the poster image inside `ppt/media/`. Defaults to `poster_<id>.png`. */
+  fileName?: string;
+  /** MIME type of the poster image (e.g. `'image/png'`, `'image/jpeg'`). Defaults to `'image/png'`. */
+  mimeType?: string;
+}
+
+/**
  * Embedded audio element.
  *
- * OpenXML: `<p:pic>` with `<p:nvPr><p:audioFile r:link="rIdN"/>`.
- * A native PowerPoint speaker icon is rendered automatically.
+ * OpenXML: `<p:pic>` with `<p:nvPr><a:audioFile r:link="rIdN"/>`.
+ * A native PowerPoint speaker icon is rendered automatically if posterImageId is omitted.
  *
  * **Note**: Supported audio formats are `mp3`, `wav`, `m4a`, `wma`.
  * Other formats (e.g. `ogg`) are embedded as-is; playback depends on the host OS/codec.
  */
 export interface PptxAudioElement extends PptxBaseElement {
-  /** Audio-specific data. OpenXML: `<p:nvPr><p:audioFile r:link="rIdN"/>` */
+  /** Audio-specific data. OpenXML: `<p:nvPr><a:audioFile r:link="rIdN"/>` */
   audio: {
     /** Reference ID to the media asset in `PptxDocument.media`. */
     mediaId: string;
@@ -315,6 +327,8 @@ export interface PptxAudioElement extends PptxBaseElement {
     mimeType: string;
     /** Playback control options. */
     playback?: PptxMediaPlayback;
+    /** Optional reference ID to the custom poster/thumbnail image asset in `PptxDocument.images`. */
+    posterImageId?: string;
   };
   elementType: 'audio';
   type: 'picture';
@@ -323,8 +337,8 @@ export interface PptxAudioElement extends PptxBaseElement {
 /**
  * Embedded video element.
  *
- * OpenXML: `<p:pic>` with `<p:nvPr><p:videoFile r:link="rIdN"/>`.
- * A native PowerPoint film strip icon is rendered automatically when stopped.
+ * OpenXML: `<p:pic>` with `<p:nvPr><a:videoFile r:link="rIdN"/>`.
+ * A native PowerPoint film strip icon is rendered automatically when stopped if posterImageId is omitted.
  *
  * **Note**: `mp4` (H.264) is the most portable format across PowerPoint on Windows and macOS.
  * `wmv`/`avi` are Windows-only; `mov` is macOS-only. All formats are embedded as-is —
@@ -332,7 +346,7 @@ export interface PptxAudioElement extends PptxBaseElement {
  */
 export interface PptxVideoElement extends PptxBaseElement {
   elementType: 'video';
-  /** Video-specific data. OpenXML: `<p:nvPr><p:videoFile r:link="rIdN"/>` */
+  /** Video-specific data. OpenXML: `<p:nvPr><a:videoFile r:link="rIdN"/>` */
   video: {
     /** Reference ID to the media asset in `PptxDocument.media`. */
     mediaId: string;
@@ -342,6 +356,8 @@ export interface PptxVideoElement extends PptxBaseElement {
     muted?: boolean;
     /** Playback control options. */
     playback?: PptxMediaPlayback;
+    /** Optional reference ID to the custom poster/thumbnail image asset in `PptxDocument.images`. */
+    posterImageId?: string;
   };
   type: 'picture';
 }

@@ -2169,12 +2169,18 @@ async function runShowcase() {
 
   // Embed actual audio track on slide
   const sampleAudioBytes = readFileSync(resolve(process.cwd(), 'assets/sample-audio.mp3'));
+  const defaultAudioPosterBytes = readFileSync(resolve(process.cwd(), 'assets/default-audio-poster.png'));
   slide14.addAudio(sampleAudioBytes, {
     fileName: 'sample-audio.mp3',
     h: inches(1.0),
     loop: true,
     mimeType: 'audio/mpeg',
     name: 'Showcase Audio Track',
+    poster: {
+      data: defaultAudioPosterBytes,
+      fileName: 'custom-audio-poster.png',
+      mimeType: 'image/png',
+    },
     showWhenStopped: true,
     trigger: 'onClick',
     volume: 0.8,
@@ -2186,8 +2192,8 @@ async function runShowcase() {
   slide14.addText([
     { bold: true, color: '0F172A', fontSize: points(11), text: 'Interactive Audio Clip (Click speaker icon in slideshow)\n' },
     { color: '0284C7', fontSize: points(9.5), text: '• Source: assets/sample-audio.mp3\n' },
-    { color: '64748B', fontSize: points(9.5), text: '• Trigger: onClick | Loop: true | Vol: 80%\n' },
-    { color: '64748B', fontSize: points(9.5), text: '• OpenXML: <p:audioFile> + <p14:media>' },
+    { color: '64748B', fontSize: points(9.5), text: '• Poster: custom-audio-poster.png (Custom thumbnail)\n' },
+    { color: '64748B', fontSize: points(9.5), text: '• Trigger: onClick | Loop: true | Vol: 80%' },
   ], {
     h: inches(1.2),
     w: inches(3.9),
@@ -2205,8 +2211,8 @@ async function runShowcase() {
   });
 
   slide14.addText([
-    { bold: true, color: '38BDF8', fontSize: points(9), text: '// Embed audio with custom playback controls\n' },
-    { color: 'E2E8F0', fontSize: points(8.5), text: 'slide.addAudio(audioBuffer, {\n  fileName: \'sample-audio.mp3\',\n  mimeType: \'audio/mpeg\',\n  trigger: \'onClick\', // or \'automatic\'\n  loop: true,\n  volume: 0.8,\n  startTime: 1000, endTime: 15000\n});' },
+    { bold: true, color: '38BDF8', fontSize: points(9), text: '// Embed audio with custom poster thumbnail & controls\n' },
+    { color: 'E2E8F0', fontSize: points(8.5), text: 'slide.addAudio(audioBuffer, {\n  fileName: \'sample-audio.mp3\',\n  mimeType: \'audio/mpeg\',\n  poster: { data: coverBytes, mimeType: \'image/png\' },\n  trigger: \'onClick\', // or \'automatic\'\n  loop: true,\n  volume: 0.8\n});' },
   ], {
     h: inches(1.8),
     w: inches(5.1),
@@ -2235,7 +2241,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide14.addText('Embed cross-platform MP4/MOV/AVI video containers with custom dimensions, looping, and mute:', {
+  slide14.addText('Embed cross-platform MP4/MOV/AVI video containers with custom poster thumbnails, looping, and mute:', {
     color: '64748B',
     fontSize: points(10.5),
     h: inches(0.45),
@@ -2256,6 +2262,7 @@ async function runShowcase() {
 
   // Embed actual video container on slide
   const sampleVideoBytes = readFileSync(resolve(process.cwd(), 'assets/sample-video.mp4'));
+  const defaultVideoPosterBytes = readFileSync(resolve(process.cwd(), 'assets/default-video-poster.png'));
   slide14.addVideo(sampleVideoBytes, {
     fileName: 'sample-video.mp4',
     h: inches(1.3),
@@ -2263,6 +2270,11 @@ async function runShowcase() {
     mimeType: 'video/mp4',
     muted: true,
     name: 'Showcase Video Track',
+    poster: {
+      data: defaultVideoPosterBytes,
+      fileName: 'custom-video-poster.png',
+      mimeType: 'image/png',
+    },
     trigger: 'automatic',
     w: inches(1.8),
     x: inches(7.15),
@@ -2272,8 +2284,8 @@ async function runShowcase() {
   slide14.addText([
     { bold: true, color: 'FFFFFF', fontSize: points(11), text: 'Embedded Video Player Container\n' },
     { color: '38BDF8', fontSize: points(9.5), text: '• Source: assets/sample-video.mp4 (H.264)\n' },
-    { color: '94A3B8', fontSize: points(9.5), text: '• Trigger: automatic | Muted: true\n' },
-    { color: '94A3B8', fontSize: points(9.5), text: '• OpenXML: <p:videoFile> + <p14:media>' },
+    { color: '94A3B8', fontSize: points(9.5), text: '• Poster: custom-video-poster.png (Custom thumbnail)\n' },
+    { color: '94A3B8', fontSize: points(9.5), text: '• Trigger: automatic | Muted: true' },
   ], {
     h: inches(1.2),
     w: inches(3.1),
@@ -2291,8 +2303,8 @@ async function runShowcase() {
   });
 
   slide14.addText([
-    { bold: true, color: '38BDF8', fontSize: points(9), text: '// Embed video with custom dimensions & muted\n' },
-    { color: 'E2E8F0', fontSize: points(8.5), text: 'slide.addVideo(videoBuffer, {\n  fileName: \'product_demo.mp4\',\n  mimeType: \'video/mp4\',\n  x: inches(2), y: inches(1.5),\n  w: inches(6), h: inches(4.5),\n  muted: true, loop: true,\n  trigger: \'automatic\'\n});' },
+    { bold: true, color: '38BDF8', fontSize: points(9), text: '// Embed video with custom poster thumbnail & controls\n' },
+    { color: 'E2E8F0', fontSize: points(8.5), text: 'slide.addVideo(videoBuffer, {\n  fileName: \'product_demo.mp4\',\n  mimeType: \'video/mp4\',\n  poster: { data: posterBytes, mimeType: \'image/png\' },\n  x: inches(2), y: inches(1.5),\n  w: inches(6), h: inches(4.5),\n  muted: true, loop: true\n});' },
   ], {
     h: inches(1.8),
     w: inches(5.1),

@@ -224,4 +224,77 @@ describe('Audio & Video Media Embedding (Unit & Integration Tests)', () => {
     expect(mediaList.some((m) => m.fileName === 'audio_sample.mp3' || m.filename === 'audio_sample.mp3')).toBe(true);
     expect(mediaList.some((m) => m.fileName === 'video_sample.mp4' || m.filename === 'video_sample.mp4')).toBe(true);
   });
+
+  it('embeds audio and video with custom poster frames (thumbnails)', () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    const customPosterPng = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const customPosterJpg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+
+    slide.addAudio(dummyAudioData, {
+      fileName: 'custom_audio.mp3',
+      mimeType: 'audio/mpeg',
+      poster: {
+        data: customPosterPng,
+        fileName: 'custom_audio_cover.png',
+        mimeType: 'image/png',
+      },
+    });
+
+    slide.addVideo(dummyVideoData, {
+      fileName: 'custom_video.mp4',
+      mimeType: 'video/mp4',
+      poster: {
+        data: customPosterJpg,
+        fileName: 'custom_video_thumb.jpg',
+        mimeType: 'image/jpeg',
+      },
+    });
+
+    const elements = slide.getElements();
+    expect(elements.length).toBe(2);
+
+    const audioEl = elements[0];
+    if (audioEl.elementType === 'audio') {
+      expect(audioEl.audio.posterImageId).toBeDefined();
+    }
+
+    const videoEl = elements[1];
+    if (videoEl.elementType === 'video') {
+      expect(videoEl.video.posterImageId).toBeDefined();
+    }
+
+    expect(pres.ast.media.some((m) => m.fileName === 'custom_audio_cover.png')).toBe(true);
+    expect(pres.ast.media.some((m) => m.fileName === 'custom_video_thumb.jpg')).toBe(true);
+  });
+
+  it('supports round-trip save and load with custom poster frame images', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    const customPosterPng = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+    slide.addVideo(dummyVideoData, {
+      fileName: 'recorded_webinar.mp4',
+      mimeType: 'video/mp4',
+      poster: {
+        data: customPosterPng,
+        fileName: 'webinar_cover.png',
+        mimeType: 'image/png',
+      },
+    });
+
+    const buffer = await pres.toBuffer();
+    const loaded = await Presentation.load(buffer);
+    const loadedSlide = loaded.slides[0];
+    const videoEl = loadedSlide.getElements()[0];
+
+    expect(videoEl.elementType).toBe('video');
+    if (videoEl.elementType === 'video') {
+      expect(videoEl.video.posterImageId).toBeDefined();
+    }
+
+    expect(loaded.ast.media.some((m) => m.fileName === 'webinar_cover.png' || m.filename === 'webinar_cover.png')).toBe(true);
+  });
 });

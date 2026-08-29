@@ -7,6 +7,7 @@ export {
 export type {
   PptxHyperlink,
   PptxHyperlinkAction,
+  PptxPosterOption,
   ThemeColorInput,
   ThemeFontInput,
 } from '@hokkyss/pptx-core';

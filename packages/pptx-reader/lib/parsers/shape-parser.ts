@@ -349,12 +349,15 @@ export function parseSingleShape(
         wma: 'audio/x-ms-wma',
       };
       const mimeType = mimeMap[ext] || 'audio/mpeg';
+      const posterTarget = blipEmbedId ? relationshipResolver?.getTarget(blipEmbedId) : undefined;
+      const posterImageId = posterTarget || blipEmbedId || undefined;
 
       return {
         ...baseResult,
         audio: {
           mediaId,
           mimeType,
+          ...(posterImageId !== undefined ? { posterImageId } : {}),
         },
         blipEmbedId,
         elementType: 'audio',
@@ -375,6 +378,8 @@ export function parseSingleShape(
         wmv: 'video/x-ms-wmv',
       };
       const mimeType = mimeMap[ext] || 'video/mp4';
+      const posterTarget = blipEmbedId ? relationshipResolver?.getTarget(blipEmbedId) : undefined;
+      const posterImageId = posterTarget || blipEmbedId || undefined;
 
       return {
         ...baseResult,
@@ -384,6 +389,7 @@ export function parseSingleShape(
         video: {
           mediaId,
           mimeType,
+          ...(posterImageId !== undefined ? { posterImageId } : {}),
         },
       };
     }

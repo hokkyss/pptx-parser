@@ -431,20 +431,23 @@ export async function writePptx(
       } else if (elem.elementType === 'audio') {
         const mediaId = elem.audio.mediaId;
         const matchedFileName = mediaMap.get(mediaId) || `${mediaId}.mp3`;
-
-        // Ensure default audio poster image exists in package
-        files['ppt/media/audio_poster.png'] = DEFAULT_AUDIO_POSTER_PNG;
-        mediaExtensions.add('png');
+        const posterImageId = elem.audio.posterImageId;
+        let posterFileName = posterImageId ? mediaMap.get(posterImageId) : undefined;
+        if (!posterFileName) {
+          files['ppt/media/audio_poster.png'] = DEFAULT_AUDIO_POSTER_PNG;
+          mediaExtensions.add('png');
+          posterFileName = 'audio_poster.png';
+        }
 
         // r:embed — image relationship (for <p:pic> <a:blip r:embed>)
         const imageRelId = `rId${slideRelCounter++}`;
         slideRels.push({
           id: imageRelId,
-          target: '../media/audio_poster.png',
+          target: `../media/${posterFileName}`,
           type: REL_TYPES.image,
         });
 
-        // r:link — audio relationship (for <p:audioFile r:link>)
+        // r:link — audio relationship (for <a:audioFile r:link>)
         const linkRelId = `rId${slideRelCounter++}`;
         slideRels.push({
           id: linkRelId,
@@ -462,20 +465,23 @@ export async function writePptx(
       } else if (elem.elementType === 'video') {
         const mediaId = elem.video.mediaId;
         const matchedFileName = mediaMap.get(mediaId) || `${mediaId}.mp4`;
-
-        // Ensure default video poster image exists in package
-        files['ppt/media/video_poster.png'] = DEFAULT_VIDEO_POSTER_PNG;
-        mediaExtensions.add('png');
+        const posterImageId = elem.video.posterImageId;
+        let posterFileName = posterImageId ? mediaMap.get(posterImageId) : undefined;
+        if (!posterFileName) {
+          files['ppt/media/video_poster.png'] = DEFAULT_VIDEO_POSTER_PNG;
+          mediaExtensions.add('png');
+          posterFileName = 'video_poster.png';
+        }
 
         // r:embed — image relationship (for <p:pic> <a:blip r:embed>)
         const imageRelId = `rId${slideRelCounter++}`;
         slideRels.push({
           id: imageRelId,
-          target: '../media/video_poster.png',
+          target: `../media/${posterFileName}`,
           type: REL_TYPES.image,
         });
 
-        // r:link — video relationship (for <p:videoFile r:link>)
+        // r:link — video relationship (for <a:videoFile r:link>)
         const linkRelId = `rId${slideRelCounter++}`;
         slideRels.push({
           id: linkRelId,

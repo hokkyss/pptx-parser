@@ -12,6 +12,7 @@ import type {
   PptxLineEndWidth,
   PptxMediaPlayback,
   PptxPictureElement,
+  PptxPosterOption,
   PptxShapeAttachment,
   PptxShapeElement,
   PptxSlide,
@@ -157,6 +158,11 @@ export interface AddAudioOptions {
   mimeType: string;
   /** Element name shown in the PowerPoint selection pane. */
   name?: string;
+  /**
+   * Optional custom poster frame (thumbnail) image displayed on the slide for the audio shape.
+   * If omitted, a high-resolution default speaker icon is automatically generated.
+   */
+  poster?: PptxPosterOption;
   /** Whether to show the speaker icon when audio is stopped (default: true). */
   showWhenStopped?: boolean;
   /**
@@ -184,7 +190,7 @@ export interface AddAudioOptions {
 /**
  * Options for embedding a video file on a slide.
  *
- * The native PowerPoint film strip icon is rendered when stopped.
+ * The native PowerPoint film strip icon is rendered when stopped if poster is omitted.
  * Position and size default to a 4"×3" centered region if not specified.
  *
  * **Most portable format**: `mp4` (H.264) — works on both Windows and macOS.
@@ -220,6 +226,11 @@ export interface AddVideoOptions {
   muted?: boolean;
   /** Element name shown in the PowerPoint selection pane. */
   name?: string;
+  /**
+   * Optional custom poster frame (thumbnail) image displayed on the slide for the video shape.
+   * If omitted, a high-resolution default video player poster is automatically generated.
+   */
+  poster?: PptxPosterOption;
   /** Whether to show the video placeholder when stopped (default: true). */
   showWhenStopped?: boolean;
   /**
@@ -662,6 +673,23 @@ export class Slide {
       path: `ppt/media/${options.fileName}`,
     });
 
+    let posterImageId: string | undefined;
+    if (options.poster) {
+      const posterBytes = options.poster.data instanceof Uint8Array ? options.poster.data : new Uint8Array(options.poster.data);
+      const posterExt = options.poster.mimeType === 'image/jpeg' ? 'jpg' : (options.poster.fileName?.split('.').pop() || 'png');
+      const posterFileName = options.poster.fileName || `poster_audio_${Date.now()}_${id}.${posterExt}`;
+      posterImageId = `poster_audio_${Date.now()}_${id}`;
+
+      this._presentation.ast.media.push({
+        data: posterBytes,
+        fileName: posterFileName,
+        filename: posterFileName,
+        id: posterImageId,
+        mimeType: options.poster.mimeType || 'image/png',
+        path: `ppt/media/${posterFileName}`,
+      });
+    }
+
     const playback: PptxMediaPlayback = {
       endTime: options.endTime,
       hideWhenDone: options.hideWhenDone,
@@ -677,6 +705,7 @@ export class Slide {
         mediaId,
         mimeType: options.mimeType,
         playback,
+        ...(posterImageId !== undefined ? { posterImageId } : {}),
       },
       elementType: 'audio',
       id,
@@ -701,18 +730,20 @@ export class Slide {
 
   /**
    * Embeds a video file on the slide.
-   * PowerPoint renders a native film strip / video frame placeholder.
+   * PowerPoint renders a native film strip / video frame placeholder when stopped (or custom poster if provided).
    * Defaults to a 4"×3" centered region if position/size are not specified.
    *
    * **Portability note**: `mp4` (H.264) is the most portable format.
    * `wmv`/`avi` are Windows-only; `mov` requires QuickTime (macOS).
-   * All formats produce a valid PPTX — PowerPoint only fails on *play*, not *open*.
+   * All formats produce a valid PPTX — PowerPoint only fails on *play*, not on *open*.
    * @example
    * ```ts
    * const mp4Bytes = await fs.promises.readFile('demo.mp4');
+   * const posterBytes = await fs.promises.readFile('cover.png');
    * slide.addVideo(mp4Bytes, {
    *   fileName: 'demo.mp4',
    *   mimeType: 'video/mp4',
+   *   poster: { data: posterBytes, mimeType: 'image/png' },
    *   x: 2.5, y: 1.5, w: 4, h: 3,
    *   trigger: 'automatic',
    *   loop: true,
@@ -737,6 +768,23 @@ export class Slide {
       mimeType: options.mimeType,
       path: `ppt/media/${options.fileName}`,
     });
+
+    let posterImageId: string | undefined;
+    if (options.poster) {
+      const posterBytes = options.poster.data instanceof Uint8Array ? options.poster.data : new Uint8Array(options.poster.data);
+      const posterExt = options.poster.mimeType === 'image/jpeg' ? 'jpg' : (options.poster.fileName?.split('.').pop() || 'png');
+      const posterFileName = options.poster.fileName || `poster_video_${Date.now()}_${id}.${posterExt}`;
+      posterImageId = `poster_video_${Date.now()}_${id}`;
+
+      this._presentation.ast.media.push({
+        data: posterBytes,
+        fileName: posterFileName,
+        filename: posterFileName,
+        id: posterImageId,
+        mimeType: options.poster.mimeType || 'image/png',
+        path: `ppt/media/${posterFileName}`,
+      });
+    }
 
     const playback: PptxMediaPlayback = {
       endTime: options.endTime,
@@ -765,6 +813,7 @@ export class Slide {
         mimeType: options.mimeType,
         muted: options.muted,
         playback,
+        ...(posterImageId !== undefined ? { posterImageId } : {}),
       },
       zIndex: options.zIndex ?? 0,
     };
