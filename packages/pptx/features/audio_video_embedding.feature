@@ -40,6 +40,17 @@ Feature: Audio and Video Media Embedding
       | endTime      | 12000     |
       | hideWhenDone | true      |
 
+  Scenario: Embedding audio with a custom album art poster thumbnail
+    Given raw binary audio data representing "podcast_ep1.mp3"
+    And raw binary image data representing "album_art.png"
+    When I call slide.addAudio(audioData, options) with:
+      | fileName | podcast_ep1.mp3                        |
+      | mimeType | audio/mpeg                             |
+      | poster   | { data: albumArt, mimeType: image/png } |
+    Then the audio element has a defined posterImageId
+    And the custom poster image asset is registered in presentation.ast.media
+    And the OpenXML picture blip links to the custom poster image relationship
+
   # =========================================================================
   # 2. VIDEO EMBEDDING & PLAYBACK CONTROLS
   # =========================================================================
@@ -69,6 +80,23 @@ Feature: Audio and Video Media Embedding
     Then the video element position is (x: 1.0", y: 1.0", w: 6.0", h: 4.5")
     And the video is configured with muted=true and loop=true
 
+  Scenario: Embedding a video with a custom cinematic poster frame thumbnail
+    Given raw binary video data representing "trailer.mp4"
+    And raw binary image data representing "cinematic_cover.jpg"
+    When I call slide.addVideo(videoData, options) with:
+      | fileName | trailer.mp4                               |
+      | mimeType | video/mp4                                 |
+      | poster   | { data: coverJpg, mimeType: image/jpeg } |
+    Then the video element has a defined posterImageId
+    And the custom poster image asset is registered in presentation.ast.media
+    And the OpenXML picture blip links to the custom poster image relationship
+
+  Scenario: Automatic fallback to crisp default posters when poster is omitted
+    Given an audio element and a video element added without poster options
+    When the presentation is exported to PPTX format
+    Then the writer automatically embeds "ppt/media/audio_poster.png" for the audio element
+    And the writer automatically embeds "ppt/media/video_poster.png" for the video element
+
   # =========================================================================
   # 3. ID UNIQUENESS & COLLISION PREVENTION
   # =========================================================================
@@ -90,7 +118,7 @@ Feature: Audio and Video Media Embedding
   Scenario: Serializing audio elements into OpenXML DrawingML and relationship parts
     Given a slide containing an audio element for "sound.mp3"
     When the presentation is exported to PPTX format
-    Then the slide XML contains `<p:audioFile @_r:link="rId2"/>`
+    Then the slide XML contains `<a:audioFile @_r:link="rId2"/>`
     And the slide XML contains `<p14:media @_r:embed="rId3"/>` inside `<p:extLst>`
     And the slide relationships contain an audio relationship pointing to `../media/sound.mp3`
     And the slide relationships contain a media relationship pointing to `../media/sound.mp3`
@@ -99,14 +127,15 @@ Feature: Audio and Video Media Embedding
   Scenario: Serializing video elements into OpenXML DrawingML and relationship parts
     Given a slide containing a video element for "clip.mp4"
     When the presentation is exported to PPTX format
-    Then the slide XML contains `<p:videoFile @_r:link="rId2"/>`
+    Then the slide XML contains `<a:videoFile @_r:link="rId2"/>`
     And the slide XML contains `<p14:media @_r:embed="rId3"/>` inside `<p:extLst>`
     And the slide relationships contain a video relationship pointing to `../media/clip.mp4`
     And the slide relationships contain a media relationship pointing to `../media/clip.mp4`
     And `[Content_Types].xml` includes the default MIME mapping for `mp4`
 
-  Scenario: Round-trip parsing of embedded audio and video elements
-    Given a PPTX file containing embedded audio and video slides
+  Scenario: Round-trip parsing of embedded audio, video, and custom poster elements
+    Given a PPTX file containing embedded audio and video slides with custom poster thumbnails
     When the presentation is parsed by @hokkyss/pptx-reader
     Then the parsed AST contains elements with elementType "audio" and "video"
-    And the media assets are extracted into document.media with correct binary data and MIME types
+    And each media element retains its posterImageId pointing to the extracted image asset
+    And all media and poster assets are extracted into document.media with correct binary data and MIME types

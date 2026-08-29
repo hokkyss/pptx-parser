@@ -176,7 +176,64 @@ addImage(
 | `alpha` | `ThousandthsPercent` | Transparency level ($100\% = 100{,}000$). |
 | `rotation` | `Degrees` | Image rotation angle. |
 | `placeholder` | `number | string` | Picture placeholder target. |
-| `hyperlink` | `PptxHyperlink | string` | Clickable hyperlink URL. |
+---
+
+### `addAudio(audioData, options)`
+
+Embeds an audio file binary (`Uint8Array` or `ArrayBuffer`) on the slide with playback triggers, loop control, volume, trimming, and custom poster artwork.
+
+```typescript
+addAudio(
+  audioData: ArrayBuffer | Uint8Array,
+  options: AddAudioOptions
+): this
+```
+
+#### `AddAudioOptions`
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `fileName` | `string` | **Required** | File name inside `ppt/media/` (e.g. `'soundtrack.mp3'`). |
+| `mimeType` | `string` | **Required** | Audio MIME type (`'audio/mpeg'`, `'audio/x-wav'`, `'audio/mp4'`). |
+| `poster` | `PptxPosterOption` | Auto speaker | Custom poster frame / thumbnail object (`{ data, mimeType?, fileName? }`). |
+| `trigger` | `'onClick' \| 'automatic'` | `'onClick'` | Playback trigger. |
+| `loop` | `boolean` | `false` | Loop playback continuously. |
+| `volume` | `number` | `0.8` | Playback volume (`0.0` to `1.0`). |
+| `startTime` | `number` | `undefined` | Trim start position in milliseconds. |
+| `endTime` | `number` | `undefined` | Trim end position in milliseconds. |
+| `hideWhenDone` | `boolean` | `false` | Hide the icon when playback finishes. |
+| `showWhenStopped` | `boolean` | `true` | Show placeholder icon when stopped. |
+| `x` / `y` | `Inches` | `inches(0.5)` | Position on slide canvas. |
+| `w` / `h` | `Inches` | `inches(1.0)` | Placeholder dimensions. |
+
+---
+
+### `addVideo(videoData, options)`
+
+Embeds a video container (`Uint8Array` or `ArrayBuffer`) on the slide with playback triggers, dimensions, muted audio, and custom cinematic poster frames.
+
+```typescript
+addVideo(
+  videoData: ArrayBuffer | Uint8Array,
+  options: AddVideoOptions
+): this
+```
+
+#### `AddVideoOptions`
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `fileName` | `string` | **Required** | File name inside `ppt/media/` (e.g. `'product_demo.mp4'`). |
+| `mimeType` | `string` | **Required** | Video MIME type (`'video/mp4'`, `'video/quicktime'`). |
+| `poster` | `PptxPosterOption` | Auto player | Custom poster frame / thumbnail object (`{ data, mimeType?, fileName? }`). |
+| `trigger` | `'onClick' \| 'automatic'` | `'onClick'` | Playback trigger (`'automatic'` plays on slide load). |
+| `loop` | `boolean` | `false` | Loop playback continuously. |
+| `muted` | `boolean` | `false` | Mute audio track on presentation. |
+| `startTime` | `number` | `undefined` | Trim start position in milliseconds. |
+| `endTime` | `number` | `undefined` | Trim end position in milliseconds. |
+| `hideWhenDone` | `boolean` | `false` | Hide video frame after playback concludes. |
+| `x` / `y` | `Inches` | `2.5" / 1.5"` | Position coordinates on slide. |
+| `w` / `h` | `Inches` | `4.0" / 3.0"` | Video placeholder dimensions. |
 
 ---
 
