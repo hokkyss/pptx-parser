@@ -206,24 +206,6 @@ export function buildSlideTiming(
   };
 }
 
-/**
- * Builds the `<p:timing>` block for a single media element.
- */
-function buildMediaTiming(
-  elementId: number | string,
-  _mediaRelId?: string,
-  playback?: PptxMediaPlayback,
-  muted?: boolean,
-): Record<string, unknown> {
-  return buildSlideTiming(undefined, [
-    {
-      id: String(elementId),
-      mediaType: 'audio',
-      muted,
-      playback,
-    },
-  ]) ?? {};
-}
 
 /**
  * Serializes a `PptxAudioElement` into an OpenXML `<p:pic>` object.

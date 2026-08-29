@@ -108,9 +108,83 @@ describe('Synthetic Presentation Generation', () => {
           slideId: 'rId2',
           slideNumber: 2,
         },
+        {
+          animations: [],
+          elements: [
+            {
+              audio: {
+                mediaId: 'sound_1',
+                playback: { loop: true, trigger: 'onClick', volume: 0.8 },
+                posterImageId: 'poster_1',
+              },
+              elementType: 'audio',
+              id: '4',
+              isVisible: true,
+              name: 'Audio Track',
+              position: {
+                cx: emu(914400),
+                cy: emu(914400),
+                x: emu(1000000),
+                y: emu(1000000),
+              },
+              rotation: emuDegree(0),
+              type: 'picture',
+              zIndex: 0,
+            },
+            {
+              elementType: 'video',
+              id: '5',
+              isVisible: true,
+              name: 'Video Clip',
+              position: {
+                cx: emu(3657600),
+                cy: emu(2743200),
+                x: emu(3000000),
+                y: emu(1000000),
+              },
+              rotation: emuDegree(0),
+              type: 'picture',
+              video: {
+                mediaId: 'video_1',
+                playback: { loop: true, muted: true, trigger: 'automatic' },
+              },
+              zIndex: 1,
+            },
+          ],
+          shapes: [],
+          slideId: 'rId3',
+          slideNumber: 3,
+        },
       ],
       themes: [],
     };
+
+    doc.media.push(
+      {
+        data: new Uint8Array([1, 2, 3]),
+        fileName: 'track.mp3',
+        filename: 'track.mp3',
+        id: 'sound_1',
+        mimeType: 'audio/mpeg',
+        path: 'ppt/media/track.mp3',
+      },
+      {
+        data: new Uint8Array([4, 5, 6]),
+        fileName: 'poster.png',
+        filename: 'poster.png',
+        id: 'poster_1',
+        mimeType: 'image/png',
+        path: 'ppt/media/poster.png',
+      },
+      {
+        data: new Uint8Array([7, 8, 9]),
+        fileName: 'clip.mp4',
+        filename: 'clip.mp4',
+        id: 'video_1',
+        mimeType: 'video/mp4',
+        path: 'ppt/media/clip.mp4',
+      },
+    );
 
     const buffer = await writePptx(doc);
     expect(buffer).toBeInstanceOf(Uint8Array);
@@ -118,7 +192,7 @@ describe('Synthetic Presentation Generation', () => {
 
     // Read back with pptx-reader
     const parsed = await parsePptx(buffer);
-    expect(parsed.slides).toHaveLength(2);
+    expect(parsed.slides).toHaveLength(3);
     expect(parsed.metadata.title).toBe('Quarterly Kickoff');
     expect(parsed.metadata.slideWidth).toBe(12192000);
     expect(parsed.metadata.slideHeight).toBe(6858000);
@@ -137,5 +211,11 @@ describe('Synthetic Presentation Generation', () => {
     if (tableElem.elementType === 'table') {
       expect(tableElem.table.rows).toHaveLength(2);
     }
+
+    // Verify slide 3 audio and video
+    const s3 = parsed.slides[2];
+    expect(s3.elements).toHaveLength(2);
+    expect(s3.elements[0].elementType).toBe('audio');
+    expect(s3.elements[1].elementType).toBe('video');
   });
 });

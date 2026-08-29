@@ -33,7 +33,7 @@ export interface WritePptxOptions {
  * @param base64 - Base64 encoded string.
  * @returns Uint8Array byte array.
  */
-function decodeBase64ToBytes(base64: string): Uint8Array {
+export function decodeBase64ToBytes(base64: string): Uint8Array {
   if (typeof Buffer !== 'undefined') {
     return new Uint8Array(Buffer.from(base64, 'base64'));
   }

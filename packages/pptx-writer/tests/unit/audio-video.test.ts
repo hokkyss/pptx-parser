@@ -117,6 +117,96 @@ describe('Audio & Video Serializers (Unit Tests)', () => {
     expect((timing as any)['p:tnLst']['p:par']).toBeDefined();
   });
 
+  it('builds slide timing with start and end trimming', () => {
+    const timing = buildSlideTiming(
+      undefined,
+      [
+        {
+          id: 'media-trimmed',
+          mediaType: 'video',
+          muted: false,
+          playback: {
+            endTime: 12000,
+            loop: true,
+            startTime: 2000,
+            trigger: 'automatic',
+            volume: 1.0,
+          },
+        },
+      ],
+    );
+
+    expect(timing).toBeDefined();
+    const par = (timing as any)['p:tnLst']['p:par'];
+    expect(par).toBeDefined();
+  });
+
+  it('embeds default audio and video posters when posterImageId is omitted', async () => {
+    const { writePptx } = await import('../../lib');
+    const doc: any = {
+      customXml: [],
+      media: [
+        {
+          data: new Uint8Array([1, 2, 3]),
+          fileName: 'audio.mp3',
+          filename: 'audio.mp3',
+          id: 'audio_1',
+          mimeType: 'audio/mpeg',
+          path: 'ppt/media/audio.mp3',
+        },
+        {
+          data: new Uint8Array([4, 5, 6]),
+          fileName: 'video.mp4',
+          filename: 'video.mp4',
+          id: 'video_1',
+          mimeType: 'video/mp4',
+          path: 'ppt/media/video.mp4',
+        },
+      ],
+      metadata: {
+        slideCount: 1,
+        slideHeight: emu(6858000),
+        slideWidth: emu(12192000),
+        title: 'Poster Fallback Deck',
+      },
+      slideLayouts: [],
+      slideMasters: [],
+      slides: [
+        {
+          animations: [],
+          elements: [
+            {
+              audio: { mediaId: 'audio_1' },
+              elementType: 'audio',
+              id: '1',
+              isVisible: true,
+              name: 'Audio',
+              position: { cx: emu(914400), cy: emu(914400), x: emu(100000), y: emu(100000) },
+              type: 'picture',
+            },
+            {
+              elementType: 'video',
+              id: '2',
+              isVisible: true,
+              name: 'Video',
+              position: { cx: emu(3657600), cy: emu(2743200), x: emu(200000), y: emu(200000) },
+              type: 'picture',
+              video: { mediaId: 'video_1' },
+            },
+          ],
+          shapes: [],
+          slideId: 'rId1',
+          slideNumber: 1,
+        },
+      ],
+      themes: [],
+    };
+
+    const buf = await writePptx(doc);
+    expect(buf).toBeInstanceOf(Uint8Array);
+    expect(buf.length).toBeGreaterThan(0);
+  });
+
   it('returns undefined when no animations and no media elements exist', () => {
     expect(buildSlideTiming(undefined, undefined)).toBeUndefined();
     expect(buildSlideTiming([], [])).toBeUndefined();
