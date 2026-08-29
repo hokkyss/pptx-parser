@@ -170,7 +170,7 @@ slide.addVideo(videoBytes, {
 | `startTime` | `number` | `undefined` | Trim start offset in milliseconds. |
 | `endTime` | `number` | `undefined` | Trim end offset in milliseconds. |
 | `hideWhenDone` | `boolean` | `false` | Hide video frame after playback concludes. |
-| `x` / `y` | `Inches` | `2.5" / 1.5"` | Position coordinates (centered by default on standard 16:9 slides). |
+| `x` / `y` | `Inches` | `2.5" / 1.5"` | Position coordinates (centered by default on standard 16\:9 slides). |
 | `w` / `h` | `Inches` | `4.0" / 3.0"` | Placeholder dimensions. |
 
 ---
