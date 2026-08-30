@@ -1113,14 +1113,250 @@ async function runShowcase() {
   addDisclaimer(slide8, true);
 
   // ==================================================================
-  // SLIDE 9: Connectors, Process Flow Pipelines & Composite Groups
+  // SLIDE 9: Hierarchical Block Indentation (bullet: false) & Non-Bulleted Outlines
   // ==================================================================
-  console.log('🔄 Generating Slide 9: Connectors & Composite Group Pipelines...');
+  console.log('📑 Generating Slide 9: Non-Bulleted Hierarchical Indentation (bullet: false)...');
   const slide9 = pres.addSlide();
-  slide9.setTransition('pull', { direction: 'right', speed: 'fast' });
-  slide9.setBackground('F8FAFC');
+  slide9.setTransition('wipe', { direction: 'right', speed: 'fast' });
+  slide9.setBackground('0F172A'); // Dark theme
 
-  slide9.addText('Flow Connectors & Composite Group Architecture', {
+  slide9.addText('Hierarchical Block Indentation (bullet: false) & Code Outlines', {
+    bold: true,
+    color: '38BDF8',
+    font: '+mj-lt',
+    fontSize: points(24),
+    h: inches(0.8),
+    w: inches(11.33),
+    x: inches(1.0),
+    y: inches(0.8),
+  });
+
+  slide9.addText(
+    'Demonstrating { level: N, bullet: false } (<a:buNone/>) — suppresses bullet glyphs while preserving precise margin indentation, soft breaks, and Tab / Shift+Tab cycling',
+    {
+      color: '94A3B8',
+      fontSize: points(13),
+      h: inches(0.4),
+      w: inches(11.33),
+      x: inches(1.0),
+      y: inches(1.5),
+    },
+  );
+
+  // Left Card: Architectural Outline with Block Notes (Level 0 bullet -> Level 1 & 2 non-bulleted notes)
+  slide9.addShape('roundRect', {
+    fill: '1E293B',
+    h: inches(4.9),
+    line: { color: '38BDF8', width: inches(0.015) },
+    shadow: { blur: inches(0.2), color: '000000', direction: degrees(90), distance: inches(0.05), opacity: 0.4 },
+    w: inches(5.4),
+    x: inches(1.0),
+    y: inches(2.0),
+  });
+
+  slide9.addText('📋 Architectural Block Outlining', {
+    bold: true,
+    color: '38BDF8',
+    fontSize: points(14),
+    h: inches(0.4),
+    w: inches(5.0),
+    x: inches(1.2),
+    y: inches(2.2),
+  });
+
+  slide9.addText([
+    {
+      bullet: true,
+      level: 0,
+      runs: [{ text: '1. Primary Storage Engine (Raft Consensus)', bold: true }],
+    },
+    {
+      bullet: false,
+      level: 1,
+      runs: [
+        { color: '94A3B8', text: '↳ level: 1, bullet: false — Block explanation indented under Level 0' },
+        { break: true },
+        { color: '64748B', text: 'Maintains strict linearizable consistency across all state machine nodes.' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 2,
+      runs: [
+        { color: '38BDF8', text: '• Technical SLA: ' },
+        { color: 'CBD5E1', text: 'P99 commit latency < 0.85ms over NVMe WAL' },
+      ],
+    },
+    {
+      bullet: true,
+      level: 0,
+      runs: [{ text: '2. Multi-Region Active Replication', bold: true }],
+    },
+    {
+      bullet: false,
+      level: 1,
+      runs: [
+        { color: '94A3B8', text: '↳ level: 1, bullet: false — Block commentary (no bullet glyph)' },
+        { break: true },
+        { color: '64748B', text: 'Automatic failover orchestration with zero operational downtime.' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 2,
+      runs: [
+        { color: '10B981', text: '• Health Heartbeat: ' },
+        { color: 'CBD5E1', text: 'Sub-50ms peer gossip discovery with eBPF probes' },
+      ],
+    },
+  ], {
+    color: 'E2E8F0',
+    fontSize: points(10.5),
+    h: inches(4.1),
+    lineSpacing: points(16),
+    spaceBefore: points(5),
+    w: inches(5.0),
+    x: inches(1.2),
+    y: inches(2.65),
+  });
+
+  // Right Card: Code & Configuration Outline (All non-bulleted with nested levels)
+  slide9.addShape('roundRect', {
+    fill: '1E293B',
+    h: inches(4.9),
+    line: { color: '6366F1', width: inches(0.015) },
+    shadow: { blur: inches(0.2), color: '000000', direction: degrees(90), distance: inches(0.05), opacity: 0.4 },
+    w: inches(5.4),
+    x: inches(6.8),
+    y: inches(2.0),
+  });
+
+  slide9.addText('💻 Code & Config Indentation Simulation', {
+    bold: true,
+    color: '818CF8',
+    fontSize: points(14),
+    h: inches(0.4),
+    w: inches(5.0),
+    x: inches(7.0),
+    y: inches(2.2),
+  });
+
+  slide9.addText([
+    {
+      bullet: false,
+      level: 0,
+      runs: [
+        { color: 'F43F5E', text: 'export interface ' },
+        { color: '38BDF8', bold: true, text: 'PresentationConfig ' },
+        { color: 'E2E8F0', text: '{' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 1,
+      runs: [
+        { color: 'CBD5E1', text: 'author: ' },
+        { color: '10B981', text: '\'Hokkyss Core Team\'' },
+        { color: 'E2E8F0', text: ';' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 1,
+      runs: [
+        { color: 'CBD5E1', text: 'dimensions: ' },
+        { color: 'E2E8F0', text: '{' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 2,
+      runs: [
+        { color: 'CBD5E1', text: 'width: ' },
+        { color: 'F59E0B', text: 'inches(13.33)' },
+        { color: 'E2E8F0', text: ';' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 2,
+      runs: [
+        { color: 'CBD5E1', text: 'height: ' },
+        { color: 'F59E0B', text: 'inches(7.5)' },
+        { color: 'E2E8F0', text: ';' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 1,
+      runs: [
+        { color: 'E2E8F0', text: '};' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 1,
+      runs: [
+        { color: 'CBD5E1', text: 'bulletFormatting: ' },
+        { color: 'E2E8F0', text: '{' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 2,
+      runs: [
+        { color: 'CBD5E1', text: 'type: ' },
+        { color: '10B981', text: '\'none\'' },
+        { color: '64748B', italic: true, text: ' // <a:buNone/> suppresses glyph' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 1,
+      runs: [
+        { color: 'E2E8F0', text: '};' },
+      ],
+    },
+    {
+      bullet: false,
+      level: 0,
+      runs: [
+        { color: 'E2E8F0', text: '}' },
+      ],
+    },
+  ], {
+    font: 'Courier New',
+    fontSize: points(11),
+    h: inches(4.1),
+    lineSpacing: points(17),
+    spaceBefore: points(3),
+    w: inches(5.0),
+    x: inches(7.0),
+    y: inches(2.65),
+  });
+
+  slide9.setNotes([
+    {
+      runs: [
+        { text: 'Presenter Notes — Non-Bulleted Hierarchical Indentation: ', bold: true, underline: true },
+      ],
+    },
+    { bullet: true, level: 0, text: 'Demonstrates { level: N, bullet: false } which emits <a:buNone/> with <a:pPr lvl="N">.' },
+    { bullet: true, level: 0, text: 'Enables block quotes, explanatory notes, and code blocks that indent hierarchically under bullets without rendering a dot.' },
+    { bullet: true, level: 1, text: 'Tab and Shift+Tab continue to promote and demote indentation depth seamlessly.' },
+  ]);
+
+  addDisclaimer(slide9, true);
+
+  // ==================================================================
+  // SLIDE 10: Connectors, Process Flow Pipelines & Composite Groups
+  // ==================================================================
+  console.log('🔄 Generating Slide 10: Connectors & Composite Group Pipelines...');
+  const slide10 = pres.addSlide();
+  slide10.setTransition('pull', { direction: 'right', speed: 'fast' });
+  slide10.setBackground('F8FAFC');
+
+  slide10.addText('Flow Connectors & Composite Group Architecture', {
     bold: true,
     color: '0F172A',
     font: '+mj-lt',
@@ -1131,7 +1367,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide9.addText('Demonstrating vector connectors (solid, dashed), coordinates, and composite group containers (addGroup)', {
+  slide10.addText('Demonstrating vector connectors (solid, dashed), coordinates, and composite group containers (addGroup)', {
     color: '64748B',
     fontSize: points(14),
     h: inches(0.4),
@@ -1141,7 +1377,7 @@ async function runShowcase() {
   });
 
   // Stage 1 Group: Ingress & Decompress
-  slide9.addGroup({
+  slide10.addGroup({
     h: inches(3.5),
     name: 'Stage 1 Ingress Container',
     w: inches(3.2),
@@ -1183,7 +1419,7 @@ async function runShowcase() {
   });
 
   // Stage 2 Group: AST Modeling & Mutator
-  slide9.addGroup({
+  slide10.addGroup({
     h: inches(3.5),
     name: 'Stage 2 AST Container',
     w: inches(3.2),
@@ -1225,7 +1461,7 @@ async function runShowcase() {
   });
 
   // Stage 3 Group: Serialization & Packaging
-  slide9.addGroup({
+  slide10.addGroup({
     h: inches(3.5),
     name: 'Stage 3 Packaging Container',
     w: inches(3.2),
@@ -1267,7 +1503,7 @@ async function runShowcase() {
   });
 
   // Connector 1 -> 2 (glued to stage-1 inner background and stage-2 inner background)
-  slide9.addConnector({
+  slide10.addConnector({
     color: '0284C7',
     dashStyle: 'solid',
     endArrow: { length: 'lg', type: 'triangle', width: 'lg' },
@@ -1277,7 +1513,7 @@ async function runShowcase() {
   });
 
   // Connector 2 -> 3 (glued to stage-2 inner background and stage-3 inner background)
-  slide9.addConnector({
+  slide10.addConnector({
     color: '6366F1',
     dashStyle: 'solid',
     endArrow: { length: 'lg', type: 'stealth', width: 'lg' },
@@ -1287,7 +1523,7 @@ async function runShowcase() {
   });
 
   // Connector feedback loop (dashed return line with arrows on both ends)
-  slide9.addConnector({
+  slide10.addConnector({
     color: '94A3B8',
     dashStyle: 'dash',
     endArrow: 'triangle',
@@ -1297,7 +1533,7 @@ async function runShowcase() {
     width: inches(0.02),
   });
 
-  slide9.addText('Isomorphic Pipeline Feedback Loop: 100% Roundtrip Bit-Exact Precision', {
+  slide10.addText('Isomorphic Pipeline Feedback Loop: 100% Roundtrip Bit-Exact Precision', {
     color: '64748B',
     fontSize: points(11),
     h: inches(0.4),
@@ -1307,7 +1543,7 @@ async function runShowcase() {
     align: 'center',
   });
 
-  slide9.setNotes([
+  slide10.setNotes([
     {
       runs: [
         { text: 'Architecture Deep Dive: ', bold: true },
@@ -1318,17 +1554,17 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'addConnector emits <p:cxnSp> connecting arbitrary coordinates across slide elements.' },
   ]);
 
-  addDisclaimer(slide9, false);
+  addDisclaimer(slide10, false);
 
   // ==================================================================
-  // SLIDE 10: Native OpenXML Charts & Visual Analytics
+  // SLIDE 11: Native OpenXML Charts & Visual Analytics
   // ==================================================================
-  console.log('📊 Generating Slide 10: Native OpenXML Charts & Visual Analytics...');
-  const slide10 = pres.addSlide();
-  slide10.setTransition('wheel', { spokes: 4, speed: 'med' });
-  slide10.setBackground('0F172A'); // Dark theme
+  console.log('📊 Generating Slide 11: Native OpenXML Charts & Visual Analytics...');
+  const slide11 = pres.addSlide();
+  slide11.setTransition('wheel', { spokes: 4, speed: 'med' });
+  slide11.setBackground('0F172A'); // Dark theme
 
-  slide10.addText('Native OpenXML Charts & Visual Analytics', {
+  slide11.addText('Native OpenXML Charts & Visual Analytics', {
     bold: true,
     color: '38BDF8',
     font: '+mj-lt',
@@ -1339,7 +1575,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide10.addText('Zero-dependency generation of native PowerPoint <c:chartSpace> data visualizations and multi-series metrics', {
+  slide11.addText('Zero-dependency generation of native PowerPoint <c:chartSpace> data visualizations and multi-series metrics', {
     color: '94A3B8',
     fontSize: points(14),
     h: inches(0.4),
@@ -1349,7 +1585,7 @@ async function runShowcase() {
   });
 
   // Chart Container Card
-  slide10.addShape('roundRect', {
+  slide11.addShape('roundRect', {
     fill: '1E293B',
     h: inches(4.5),
     line: { color: '334155', width: inches(0.015) },
@@ -1360,7 +1596,7 @@ async function runShowcase() {
   });
 
   // Embed Native Column Chart with Dark Theme High-Contrast Styling
-  slide10.addChart({
+  slide11.addChart({
     axisColor: '475569',
     categories: ['Cloudflare Workers', 'Bun 1.1', 'Node.js 22', 'Deno 2.0'],
     chartType: 'column',
@@ -1393,7 +1629,7 @@ async function runShowcase() {
 
   // Analytics Insight Cards on the right
   const rightX = inches(8.3);
-  slide10.addShape('roundRect', {
+  slide11.addShape('roundRect', {
     fill: '1E293B',
     h: inches(1.35),
     line: { color: '0284C7', width: inches(0.015) },
@@ -1404,7 +1640,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide10.addText('Generates ECMA-376 compliant DrawingML charts directly from pure TypeScript arrays without spawning Python, Java, or Excel subprocesses.', {
+  slide11.addText('Generates ECMA-376 compliant DrawingML charts directly from pure TypeScript arrays without spawning Python, Java, or Excel subprocesses.', {
     color: '94A3B8',
     fontSize: points(10),
     h: inches(0.8),
@@ -1413,7 +1649,7 @@ async function runShowcase() {
     y: inches(2.45),
   });
 
-  slide10.addShape('roundRect', {
+  slide11.addShape('roundRect', {
     fill: '1E293B',
     h: inches(1.35),
     line: { color: '10B981', width: inches(0.015) },
@@ -1424,7 +1660,7 @@ async function runShowcase() {
     y: inches(3.55),
   });
 
-  slide10.addText('Embedded as vector OpenXML chart spaces. Users can edit values, change themes, or modify series formatting natively inside Microsoft PowerPoint.', {
+  slide11.addText('Embedded as vector OpenXML chart spaces. Users can edit values, change themes, or modify series formatting natively inside Microsoft PowerPoint.', {
     color: '94A3B8',
     fontSize: points(10),
     h: inches(0.8),
@@ -1433,7 +1669,7 @@ async function runShowcase() {
     y: inches(4.0),
   });
 
-  slide10.addShape('roundRect', {
+  slide11.addShape('roundRect', {
     fill: '1E293B',
     h: inches(1.35),
     line: { color: '6366F1', width: inches(0.015) },
@@ -1444,7 +1680,7 @@ async function runShowcase() {
     y: inches(5.1),
   });
 
-  slide10.addText('Supports column, bar, line, area, and pie chart topologies with custom series coloring, categorical axes, and configurable legend alignments.', {
+  slide11.addText('Supports column, bar, line, area, and pie chart topologies with custom series coloring, categorical axes, and configurable legend alignments.', {
     color: '94A3B8',
     fontSize: points(10),
     h: inches(0.8),
@@ -1453,7 +1689,7 @@ async function runShowcase() {
     y: inches(5.55),
   });
 
-  slide10.setNotes([
+  slide11.setNotes([
     {
       runs: [
         { text: 'Chart Keynote: ', bold: true },
@@ -1465,17 +1701,17 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Custom series color fills and categorical string/number axis mapping.' },
   ]);
 
-  addDisclaimer(slide10, true);
+  addDisclaimer(slide11, true);
 
   // ==================================================================
-  // SLIDE 11: Multi-Topology Chart Gallery
+  // SLIDE 12: Multi-Topology Chart Gallery
   // -------------------------------------------------------------
-  console.log('📈 Generating Slide 11: Multi-Topology Chart Gallery...');
-  const slide11 = pres.addSlide();
-  slide11.setTransition('blinds', { direction: 'horz', speed: 'fast' });
-  slide11.setBackground('F8FAFC');
+  console.log('📈 Generating Slide 12: Multi-Topology Chart Gallery...');
+  const slide12 = pres.addSlide();
+  slide12.setTransition('blinds', { direction: 'horz', speed: 'fast' });
+  slide12.setBackground('F8FAFC');
 
-  slide11.addText('Multi-Topology Chart Gallery', {
+  slide12.addText('Multi-Topology Chart Gallery', {
     bold: true,
     color: '0F172A',
     font: '+mj-lt',
@@ -1486,7 +1722,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide11.addText('Smooth spline line trends, radial doughnut distributions, and horizontal bar comparisons', {
+  slide12.addText('Smooth spline line trends, radial doughnut distributions, and horizontal bar comparisons', {
     color: '64748B',
     fontSize: points(14),
     h: inches(0.4),
@@ -1500,7 +1736,7 @@ async function runShowcase() {
   const cardH = inches(4.5);
   const cardY = inches(2.0);
 
-  slide11.addShape('roundRect', {
+  slide12.addShape('roundRect', {
     fill: 'FFFFFF',
     h: cardH,
     line: { color: 'E2E8F0', width: inches(0.015) },
@@ -1510,7 +1746,7 @@ async function runShowcase() {
     y: cardY,
   });
 
-  slide11.addText('📈 Latency Curve vs Payload (ms)', {
+  slide12.addText('📈 Latency Curve vs Payload (ms)', {
     bold: true,
     color: '0F172A',
     fontSize: points(12),
@@ -1520,7 +1756,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide11.addChart({
+  slide12.addChart({
     categories: ['100K', '500K', '1MB', '5MB', '10MB'],
     chartType: 'line',
     h: inches(3.6),
@@ -1544,7 +1780,7 @@ async function runShowcase() {
   });
 
   // Card 2: Doughnut Chart (Distribution)
-  slide11.addShape('roundRect', {
+  slide12.addShape('roundRect', {
     fill: 'FFFFFF',
     h: cardH,
     line: { color: 'E2E8F0', width: inches(0.015) },
@@ -1554,7 +1790,7 @@ async function runShowcase() {
     y: cardY,
   });
 
-  slide11.addText('🍩 Runtime Execution Share', {
+  slide12.addText('🍩 Runtime Execution Share', {
     bold: true,
     color: '0F172A',
     fontSize: points(12),
@@ -1564,7 +1800,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide11.addChart({
+  slide12.addChart({
     categories: ['Cloudflare Workers', 'Client Browser', 'Edge V8', 'Node.js'],
     chartType: 'doughnut',
     dataLabels: { showPercent: true, showVal: false },
@@ -1584,7 +1820,7 @@ async function runShowcase() {
   });
 
   // Card 3: Horizontal Bar Chart (Format Comparison)
-  slide11.addShape('roundRect', {
+  slide12.addShape('roundRect', {
     fill: 'FFFFFF',
     h: cardH,
     line: { color: 'E2E8F0', width: inches(0.015) },
@@ -1594,7 +1830,7 @@ async function runShowcase() {
     y: cardY,
   });
 
-  slide11.addText('📊 Ecosystem Compression (x)', {
+  slide12.addText('📊 Ecosystem Compression (x)', {
     bold: true,
     color: '0F172A',
     fontSize: points(12),
@@ -1604,7 +1840,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide11.addChart({
+  slide12.addChart({
     categories: ['Raw XML', 'Uncompressed ZIP', 'Standard Deflate', 'fflate Pure TS'],
     chartType: 'horizontalBar',
     h: inches(3.6),
@@ -1621,7 +1857,7 @@ async function runShowcase() {
     y: inches(2.6),
   });
 
-  slide11.setNotes([
+  slide12.setNotes([
     {
       runs: [
         { text: 'Chart Suite Overview: ', bold: true },
@@ -1633,17 +1869,17 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Horizontal bar orientation for ranked ordinal comparisons.' },
   ]);
 
-  addDisclaimer(slide11, false);
+  addDisclaimer(slide12, false);
 
   // ==================================================================
-  // SLIDE 12: Specialized Analytical Topologies (Area, Pie, Radar)
+  // SLIDE 13: Specialized Analytical Topologies (Area, Pie, Radar)
   // ==================================================================
-  console.log('🎯 Generating Slide 12: Specialized Analytical Topologies (Area, Pie, Radar)...');
-  const slide12 = pres.addSlide();
-  slide12.setTransition('checker', { direction: 'vert', speed: 'fast' });
-  slide12.setBackground('0F172A'); // Dark Executive Theme
+  console.log('🎯 Generating Slide 13: Specialized Analytical Topologies (Area, Pie, Radar)...');
+  const slide13 = pres.addSlide();
+  slide13.setTransition('checker', { direction: 'vert', speed: 'fast' });
+  slide13.setBackground('0F172A'); // Dark Executive Theme
 
-  slide12.addText('Specialized Analytical Topologies', {
+  slide13.addText('Specialized Analytical Topologies', {
     bold: true,
     color: '38BDF8',
     font: '+mj-lt',
@@ -1654,7 +1890,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide12.addText('Multi-series stacked area trends, radial composition pie distributions, and multi-axis radar scorecards', {
+  slide13.addText('Multi-series stacked area trends, radial composition pie distributions, and multi-axis radar scorecards', {
     color: '94A3B8',
     fontSize: points(14),
     h: inches(0.4),
@@ -1668,7 +1904,7 @@ async function runShowcase() {
   const card12Y = inches(2.0);
 
   // Card 1: Stacked Area Chart (Dark Theme)
-  slide12.addShape('roundRect', {
+  slide13.addShape('roundRect', {
     fill: '1E293B',
     h: card12H,
     line: { color: '334155', width: inches(0.015) },
@@ -1678,7 +1914,7 @@ async function runShowcase() {
     y: card12Y,
   });
 
-  slide12.addText('🌊 Stacked Area: Memory Footprint (MB)', {
+  slide13.addText('🌊 Stacked Area: Memory Footprint (MB)', {
     bold: true,
     color: '38BDF8',
     fontSize: points(12),
@@ -1688,7 +1924,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide12.addChart({
+  slide13.addChart({
     axisColor: '475569',
     categories: ['10K', '50K', '250K', '1M', '5M'],
     chartType: 'area',
@@ -1721,7 +1957,7 @@ async function runShowcase() {
   });
 
   // Card 2: 2D Pie Chart with Data Labels (Dark Theme)
-  slide12.addShape('roundRect', {
+  slide13.addShape('roundRect', {
     fill: '1E293B',
     h: card12H,
     line: { color: '334155', width: inches(0.015) },
@@ -1731,7 +1967,7 @@ async function runShowcase() {
     y: card12Y,
   });
 
-  slide12.addText('🥧 2D Pie: Bundle Contribution', {
+  slide13.addText('🥧 2D Pie: Bundle Contribution', {
     bold: true,
     color: '34D399',
     fontSize: points(12),
@@ -1741,7 +1977,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide12.addChart({
+  slide13.addChart({
     categories: ['@pptx-reader', '@pptx-writer', '@pptx', '@pptx-core'],
     chartType: 'pie',
     colors: ['38BDF8', '818CF8', '34D399', 'FBBF24'],
@@ -1761,7 +1997,7 @@ async function runShowcase() {
   });
 
   // Card 3: Multi-Series Radar / Spider Chart (Dark Theme)
-  slide12.addShape('roundRect', {
+  slide13.addShape('roundRect', {
     fill: '1E293B',
     h: card12H,
     line: { color: '334155', width: inches(0.015) },
@@ -1771,7 +2007,7 @@ async function runShowcase() {
     y: card12Y,
   });
 
-  slide12.addText('🎯 Radar: Performance Scorecard', {
+  slide13.addText('🎯 Radar: Performance Scorecard', {
     bold: true,
     color: '818CF8',
     fontSize: points(12),
@@ -1781,7 +2017,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide12.addChart({
+  slide13.addChart({
     axisColor: '475569',
     categories: ['Throughput', 'Type Safety', 'Zero Deps', 'Spec Fidelity', 'Bundle Size', 'Cold Start'],
     chartType: 'radar',
@@ -1807,7 +2043,7 @@ async function runShowcase() {
     y: inches(2.6),
   });
 
-  slide12.setNotes([
+  slide13.setNotes([
     {
       runs: [
         { text: 'Analytical Topology Keynote: ', bold: true },
@@ -1819,17 +2055,17 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Radar / spider charts for multi-dimensional multi-series competitive scorecards.' },
   ]);
 
-  addDisclaimer(slide12, true);
+  addDisclaimer(slide13, true);
 
   // ==================================================================
-  // SLIDE 13: Native Hyperlinks & Interactive Presentation Navigation
+  // SLIDE 14: Native Hyperlinks & Interactive Presentation Navigation
   // ==================================================================
-  console.log('🔗 Generating Slide 13: Native Hyperlinks & Interactive Navigation System...');
-  const slide13 = pres.addSlide();
-  slide13.setTransition('fade', { durationMs: 400 });
-  slide13.setBackground('F8FAFC');
+  console.log('🔗 Generating Slide 14: Native Hyperlinks & Interactive Navigation System...');
+  const slide14 = pres.addSlide();
+  slide14.setTransition('fade', { durationMs: 400 });
+  slide14.setBackground('F8FAFC');
 
-  slide13.addText('Native Hyperlinks & Interactive Navigation System', {
+  slide14.addText('Native Hyperlinks & Interactive Navigation System', {
     bold: true,
     color: '0F172A',
     font: '+mj-lt',
@@ -1840,7 +2076,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide13.addText('OpenXML DrawingML <a:hlinkClick> external URLs, slide navigation jumps, hover ScreenTips, and presentation controls', {
+  slide14.addText('OpenXML DrawingML <a:hlinkClick> external URLs, slide navigation jumps, hover ScreenTips, and presentation controls', {
     color: '64748B',
     fontSize: points(14),
     h: inches(0.4),
@@ -1850,7 +2086,7 @@ async function runShowcase() {
   });
 
   // Left Card: Interactive Slide Navigation Hub
-  slide13.addShape('roundRect', {
+  slide14.addShape('roundRect', {
     fill: 'FFFFFF',
     h: inches(4.9),
     line: { color: 'E2E8F0', width: inches(0.015) },
@@ -1860,7 +2096,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide13.addText('🧭 Interactive Presentation Jump Hub', {
+  slide14.addText('🧭 Interactive Presentation Jump Hub', {
     bold: true,
     color: '0F172A',
     fontSize: points(13),
@@ -1870,7 +2106,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide13.addText('Click any card below during slide show mode to immediately jump to that section:', {
+  slide14.addText('Click any card below during slide show mode to immediately jump to that section:', {
     color: '64748B',
     fontSize: points(10.5),
     h: inches(0.3),
@@ -1902,24 +2138,24 @@ async function runShowcase() {
       desc: 'Clustered bar & line dual-series analytics',
       fill: 'ECFDF5',
       line: '10B981',
-      slideIdx: 10,
+      slideIdx: 11,
       textColor: '047857',
-      title: '📈 Slide 10: OpenXML Charts & Graphs',
+      title: '📈 Slide 11: OpenXML Charts & Graphs',
       y: 4.85,
     },
     {
       desc: 'Empirical throughput & bundle size matrix',
       fill: 'FFFBEB',
       line: 'F59E0B',
-      slideIdx: 15,
+      slideIdx: 16,
       textColor: 'B45309',
-      title: '⚡ Slide 15: Engine Benchmark Matrix',
+      title: '⚡ Slide 16: Engine Benchmark Matrix',
       y: 5.8,
     },
   ];
 
   for (const tile of jumpTiles) {
-    slide13.addShape('roundRect', {
+    slide14.addShape('roundRect', {
       fill: tile.fill,
       h: inches(0.82),
       hyperlink: { slideIndex: tile.slideIdx, tooltip: `Jump directly to Slide ${tile.slideIdx}` },
@@ -1935,7 +2171,7 @@ async function runShowcase() {
   }
 
   // Right Top Card: External Endpoints & Rich Text Hyperlinks
-  slide13.addShape('roundRect', {
+  slide14.addShape('roundRect', {
     fill: 'FFFFFF',
     h: inches(2.6),
     line: { color: 'E2E8F0', width: inches(0.015) },
@@ -1945,7 +2181,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide13.addText('🔗 External Web & Ecosystem Endpoints', {
+  slide14.addText('🔗 External Web & Ecosystem Endpoints', {
     bold: true,
     color: '0F172A',
     fontSize: points(13),
@@ -1955,7 +2191,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide13.addText([
+  slide14.addText([
     {
       level: 0,
       runs: [
@@ -2006,7 +2242,7 @@ async function runShowcase() {
   });
 
   // Right Bottom Card: Slide Show Action Controls
-  slide13.addShape('roundRect', {
+  slide14.addShape('roundRect', {
     fill: 'FFFFFF',
     h: inches(2.1),
     line: { color: 'E2E8F0', width: inches(0.015) },
@@ -2016,7 +2252,7 @@ async function runShowcase() {
     y: inches(4.8),
   });
 
-  slide13.addText('🎮 Native Slide Show Action Controls', {
+  slide14.addText('🎮 Native Slide Show Action Controls', {
     bold: true,
     color: '0F172A',
     fontSize: points(13),
@@ -2026,7 +2262,7 @@ async function runShowcase() {
     y: inches(5.0),
   });
 
-  slide13.addText('OpenXML action jump commands executed directly inside PowerPoint Presentation Mode:', {
+  slide14.addText('OpenXML action jump commands executed directly inside PowerPoint Presentation Mode:', {
     color: '64748B',
     fontSize: points(10),
     h: inches(0.3),
@@ -2037,13 +2273,13 @@ async function runShowcase() {
 
   const actionButtons = [
     { action: 'firstSlide', fill: '0F172A', label: '⏮ First', tip: 'Jump to Slide 1', x: 7.0 },
-    { action: 'previousSlide', fill: '475569', label: '◀ Prev', tip: 'Jump to Slide 12', x: 8.35 },
-    { action: 'nextSlide', fill: '0284C7', label: 'Next ▶', tip: 'Jump to Slide 14', x: 9.7 },
+    { action: 'previousSlide', fill: '475569', label: '◀ Prev', tip: 'Jump to Slide 13', x: 8.35 },
+    { action: 'nextSlide', fill: '0284C7', label: 'Next ▶', tip: 'Jump to Slide 15', x: 9.7 },
     { action: 'endShow', fill: 'EF4444', label: '⏹ End', tip: 'End Slide Show', x: 11.05 },
   ];
 
   for (const btn of actionButtons) {
-    slide13.addShape('roundRect', {
+    slide14.addShape('roundRect', {
       fill: btn.fill,
       h: inches(0.65),
       hyperlink: { action: btn.action, tooltip: btn.tip },
@@ -2055,7 +2291,7 @@ async function runShowcase() {
     });
   }
 
-  slide13.setNotes([
+  slide14.setNotes([
     {
       runs: [
         { text: 'Hyperlinks & Slide Navigation Keynote: ', bold: true },
@@ -2067,21 +2303,21 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Built-in slide show control actions: firstSlide, lastSlide, nextSlide, previousSlide, endShow.' },
   ]);
 
-  addDisclaimer(slide13, false);
+  addDisclaimer(slide14, false);
 
   // ==================================================================
-  // SLIDE 14: Native OpenXML DrawingML Gradient Engine
+  // SLIDE 15: Native OpenXML DrawingML Gradient Engine
   // ==================================================================
-  console.log('🎨 Generating Slide 14: Native OpenXML DrawingML Gradient Engine...');
-  const slide14 = pres.addSlide();
-  slide14.setTransition('wipe', { direction: 'right', speed: 'fast' });
-  slide14.setBackground({
+  console.log('🎨 Generating Slide 15: Native OpenXML DrawingML Gradient Engine...');
+  const slide15 = pres.addSlide();
+  slide15.setTransition('wipe', { direction: 'right', speed: 'fast' });
+  slide15.setBackground({
     angle: degrees(135),
     stops: ['090D16', '0F172A', '1E293B'],
     type: 'linear',
   });
 
-  slide14.addText('Native OpenXML DrawingML Gradient Engine', {
+  slide15.addText('Native OpenXML DrawingML Gradient Engine', {
     bold: true,
     color: 'FFFFFF',
     font: '+mj-lt',
@@ -2092,7 +2328,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide14.addText('Linear, radial, multi-stop vector meshes, alpha transparency, and angle rotation', {
+  slide15.addText('Linear, radial, multi-stop vector meshes, alpha transparency, and angle rotation', {
     color: '94A3B8',
     fontSize: points(14),
     h: inches(0.4),
@@ -2102,10 +2338,10 @@ async function runShowcase() {
   });
 
   // Top Nav Buttons
-  slide14.addShape('roundRect', {
+  slide15.addShape('roundRect', {
     fill: '0284C7',
     h: inches(0.45),
-    hyperlink: { slideIndex: 13, tooltip: 'Return to Hyperlinks Hub (Slide 13)' },
+    hyperlink: { slideIndex: 14, tooltip: 'Return to Hyperlinks Hub (Slide 14)' },
     line: { color: '38BDF8', width: inches(0.015) },
     shadow: { blur: inches(0.12), color: '0284C7', opacity: 0.3 },
     text: '⬅ Back to Nav Hub',
@@ -2115,13 +2351,13 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide14.addShape('roundRect', {
+  slide15.addShape('roundRect', {
     fill: {
       angle: degrees(90),
       stops: ['10B981', '059669'],
     },
     h: inches(0.45),
-    hyperlink: { slideIndex: 15, tooltip: 'Advance to Live Benchmarks (Slide 15)' },
+    hyperlink: { slideIndex: 16, tooltip: 'Advance to Live Benchmarks (Slide 16)' },
     line: { color: '34D399', width: inches(0.015) },
     shadow: { blur: inches(0.12), color: '10B981', opacity: 0.3 },
     text: 'Benchmarks ➔',
@@ -2132,7 +2368,7 @@ async function runShowcase() {
   });
 
   // Left Card: Linear Vector Gradients
-  slide14.addShape('roundRect', {
+  slide15.addShape('roundRect', {
     fill: '0F172A',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
@@ -2142,7 +2378,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide14.addText('🌈 Multi-Angle Linear Gradient Topologies', {
+  slide15.addText('🌈 Multi-Angle Linear Gradient Topologies', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -2177,7 +2413,7 @@ async function runShowcase() {
   ];
 
   for (const pill of linearPills) {
-    slide14.addShape('roundRect', {
+    slide15.addShape('roundRect', {
       fill: {
         angle: degrees(pill.angle),
         stops: pill.stops,
@@ -2198,7 +2434,7 @@ async function runShowcase() {
   }
 
   // Right Card: Radial & Alpha Glass Meshes
-  slide14.addShape('roundRect', {
+  slide15.addShape('roundRect', {
     fill: '0F172A',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
@@ -2208,7 +2444,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide14.addText('🔮 Radial Glow & Alpha Opacity Transparency', {
+  slide15.addText('🔮 Radial Glow & Alpha Opacity Transparency', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -2219,7 +2455,7 @@ async function runShowcase() {
   });
 
   // Radial Circle Card
-  slide14.addShape('ellipse', {
+  slide15.addShape('ellipse', {
     fill: {
       stops: [
         { color: '38BDF8', position: 0 },
@@ -2236,7 +2472,7 @@ async function runShowcase() {
     y: inches(2.65),
   });
 
-  slide14.addText('Radial Orb Focus\n3-Stop Centered Radial Gradient (<a:path path="circle">) with automatic edge falloff', {
+  slide15.addText('Radial Orb Focus\n3-Stop Centered Radial Gradient (<a:path path="circle">) with automatic edge falloff', {
     color: 'E2E8F0',
     fontSize: points(10),
     h: inches(1.4),
@@ -2246,7 +2482,7 @@ async function runShowcase() {
   });
 
   // Alpha Transparency Frosted Glass Card
-  slide14.addShape('roundRect', {
+  slide15.addShape('roundRect', {
     fill: {
       angle: degrees(135),
       stops: [
@@ -2269,7 +2505,7 @@ async function runShowcase() {
   });
 
   // Fluent API Code Snippet
-  slide14.addShape('roundRect', {
+  slide15.addShape('roundRect', {
     fill: '020617',
     h: inches(1.15),
     line: { color: '1E293B', width: inches(0.015) },
@@ -2282,7 +2518,7 @@ async function runShowcase() {
     y: inches(5.55),
   });
 
-  slide14.setNotes([
+  slide15.setNotes([
     {
       runs: [
         { text: 'DrawingML Gradient Engine Keynote: ', bold: true },
@@ -2294,17 +2530,17 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Seamless integration with shapes, cards, outlines, and slide backgrounds.' },
   ]);
 
-  addDisclaimer(slide14, true);
+  addDisclaimer(slide15, true);
 
   // ==================================================================
-  // SLIDE 15: Live Benchmark Matrix (Performance & Bundle Size)
+  // SLIDE 16: Live Benchmark Matrix (Performance & Bundle Size)
   // ==================================================================
-  console.log('⚡ Generating Slide 15: Live Benchmark Matrix (Performance & Bundle Size)...');
-  const slide15 = pres.addSlide();
-  slide15.setTransition('zoom', { direction: 'in', speed: 'med' });
-  slide15.setBackground('0F172A');
+  console.log('⚡ Generating Slide 16: Live Benchmark Matrix (Performance & Bundle Size)...');
+  const slide16 = pres.addSlide();
+  slide16.setTransition('zoom', { direction: 'in', speed: 'med' });
+  slide16.setBackground('0F172A');
 
-  slide15.addText('Engine Performance & Bundle Size Matrix', {
+  slide16.addText('Engine Performance & Bundle Size Matrix', {
     bold: true,
     color: 'FFFFFF',
     font: '+mj-lt',
@@ -2315,7 +2551,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide15.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
+  slide16.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
     color: '94A3B8',
     fontSize: points(14),
     h: inches(0.4),
@@ -2325,7 +2561,7 @@ async function runShowcase() {
   });
 
   // Table Card (Left)
-  slide15.addShape('roundRect', {
+  slide16.addShape('roundRect', {
     fill: '1E293B',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
@@ -2335,7 +2571,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide15.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
+  slide16.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -2345,7 +2581,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide15.addTable(
+  slide16.addTable(
     (tbl) => {
       // Header Row
       tbl.addRow({
@@ -2390,7 +2626,7 @@ async function runShowcase() {
   );
 
   // Bundle Size Card (Right)
-  slide15.addShape('roundRect', {
+  slide16.addShape('roundRect', {
     fill: '1E293B',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
@@ -2400,7 +2636,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide15.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
+  slide16.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -2410,7 +2646,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide15.addChart({
+  slide16.addChart({
     axisColor: '94A3B8',
     categories: ['@pptx-core', '@pptx-reader', '@pptx-writer', 'Full SDK'],
     chartType: 'column',
@@ -2435,10 +2671,10 @@ async function runShowcase() {
     y: inches(2.65),
   });
 
-  slide15.addShape('roundRect', {
+  slide16.addShape('roundRect', {
     fill: '0284C7',
     h: inches(0.45),
-    hyperlink: { slideIndex: 13, tooltip: 'Return to Hyperlinks Hub (Slide 13)' },
+    hyperlink: { slideIndex: 14, tooltip: 'Return to Hyperlinks Hub (Slide 14)' },
     line: { color: '38BDF8', width: inches(0.015) },
     shadow: { blur: inches(0.15), color: '0284C7', direction: degrees(90), distance: inches(0.03), opacity: 0.3 },
     text: '⬅ Back to Nav Hub',
@@ -2448,7 +2684,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide15.setNotes([
+  slide16.setNotes([
     {
       runs: [
         { text: 'Empirical Benchmark Keynote: ', bold: true },
@@ -2460,7 +2696,7 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Total bundle size under 49 KB gzipped with full PresentationML & DrawingML engines.' },
   ]);
 
-  addDisclaimer(slide15, true);
+  addDisclaimer(slide16, true);
 
   // 3. Export Presentation to Buffer and Save to Disk
   const outputFile = resolve(process.cwd(), 'hokkyss_showcase_deck.pptx');
