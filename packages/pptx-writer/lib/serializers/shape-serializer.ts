@@ -7,7 +7,7 @@ import type {
   PptxShapeElement,
   PptxShapeLocks,
 } from '@hokkyss/pptx-core';
-import { serializeFill, serializeHyperlink, serializeTextBody } from './text-serializer';
+import { _rawXmlWrapBuilder, serializeFill, serializeHyperlink, serializeTextBody } from './text-serializer';
 
 /**
  * Serializes shape locks `<a:spLocks>`.
@@ -146,7 +146,7 @@ export function serializeShadow(shadow?: import('@hokkyss/pptx-core').PptxShadow
 /**
  * Serializes a shape element into OpenXML `<p:sp>` strictly following DrawingML schema sequence.
  */
-export function serializeShape(shape: PptxShapeElement): Record<string, unknown> {
+export function serializeShape(shape: PptxShapeElement): Record<string, unknown> | string {
   const cNvPr: Record<string, unknown> = {
     '@_id': shape.id || '2',
     '@_name': shape.name || `Shape ${shape.id || '2'}`,
@@ -172,9 +172,10 @@ export function serializeShape(shape: PptxShapeElement): Record<string, unknown>
 
   const nvPr: Record<string, unknown> = {};
   if (shape.placeholder) {
-    const ph: Record<string, unknown> = {
-      '@_type': shape.placeholder.type,
-    };
+    const ph: Record<string, unknown> = {};
+    if (shape.placeholder.type) {
+      ph['@_type'] = shape.placeholder.type;
+    }
     if (shape.placeholder.idx !== undefined) {
       ph['@_idx'] = shape.placeholder.idx;
     }
@@ -253,25 +254,32 @@ export function serializeShape(shape: PptxShapeElement): Record<string, unknown>
     if (effectNode) Object.assign(spPr, effectNode);
   }
 
-  const sp: Record<string, unknown> = {
-    'p:nvSpPr': nvSpPr,
-    'p:spPr': spPr,
-  };
+  const txBody = shape.textBody
+    ? serializeTextBody(shape.textBody)
+    : {
+        'a:bodyPr': {},
+        'a:lstStyle': {},
+        'a:p': { 'a:endParaRPr': {} },
+      };
 
-  // Text Body (Strictly required for p:sp in PresentationML)
-  if (shape.textBody) {
-    sp['p:txBody'] = serializeTextBody(shape.textBody);
-  } else {
-    sp['p:txBody'] = {
-      'a:bodyPr': {},
-      'a:lstStyle': {},
-      'a:p': {
-        'a:endParaRPr': {},
+  if (typeof txBody === 'string') {
+    // Raw-XML path: the text body contains line breaks.
+    // Build the entire shape as a raw XML string using _rawXmlWrapBuilder which won't
+    // double-encode the pre-built XML strings.
+    return _rawXmlWrapBuilder.build({
+      'p:sp': {
+        'p:nvSpPr': nvSpPr,
+        'p:spPr': spPr,
+        'p:txBody': txBody,
       },
-    };
+    });
   }
 
-  return sp;
+  return {
+    'p:nvSpPr': nvSpPr,
+    'p:spPr': spPr,
+    'p:txBody': txBody,
+  };
 }
 
 const POSITION_TO_INDEX_MAP: Record<PptxConnectionPosition, number> = {

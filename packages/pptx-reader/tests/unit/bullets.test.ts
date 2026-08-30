@@ -107,4 +107,27 @@ describe('parseParagraph fields and number text nodes', () => {
     expect(parsed.runs[0].properties?.underline).toBe(true);
     expect(parsed.runs[0].properties?.strikethrough).toBe(true);
   });
+
+  it('parses <a:br> line break elements with optional run properties', () => {
+    const pNode = {
+      'a:pPr': {
+        '@_lvl': '1',
+      },
+      'a:r': [
+        { 'a:t': 'First line' },
+      ],
+      'a:br': [
+        {
+          'a:rPr': { '@_b': '1' },
+        },
+      ],
+    };
+    const parsed = parseParagraph(pNode);
+    expect(parsed.properties.level).toBe(1);
+    expect(parsed.runs).toHaveLength(2);
+    expect(parsed.runs[0].text).toBe('First line');
+    expect(parsed.runs[1].break).toBe(true);
+    expect(parsed.runs[1].properties?.bold).toBe(true);
+  });
 });
+

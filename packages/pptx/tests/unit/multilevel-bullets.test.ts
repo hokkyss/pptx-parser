@@ -190,4 +190,83 @@ describe('Multilevel Text Bullets API', () => {
       expect(p?.[3]?.runs[3]?.properties.subscript).toBe(true);
     }
   });
+
+  it('supports Shift+Enter line breaks ({ break: true }) inside bulleted paragraphs and round-trips cleanly', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addText([
+      {
+        level: 0,
+        runs: [
+          { text: 'A1' },
+          { break: true },
+          { text: 'a1 level, no bullet' },
+        ],
+      },
+      {
+        level: 1,
+        text: 'B1',
+      },
+      {
+        level: 2,
+        runs: [
+          { text: 'C1' },
+          { break: true },
+          { text: 'c1 level, no bullet' },
+        ],
+      },
+    ]);
+
+    const buffer = await pres.toBuffer();
+    const loaded = await Presentation.load(buffer);
+    const shape = loaded.getSlide(1)?.getElements()[0];
+
+    if (shape?.elementType === 'shape') {
+      const paragraphs = shape.textBody?.paragraphs;
+      expect(paragraphs?.length).toBe(3);
+
+      // Paragraph 0 (level 0)
+      expect(paragraphs?.[0]?.properties.level).toBe(0);
+      expect(paragraphs?.[0]?.runs.some((r) => r.text === 'A1')).toBe(true);
+      expect(paragraphs?.[0]?.runs.some((r) => r.break === true)).toBe(true);
+      expect(paragraphs?.[0]?.runs.some((r) => r.text === 'a1 level, no bullet')).toBe(true);
+
+      // Paragraph 1 (level 1 - Tab)
+      expect(paragraphs?.[1]?.properties.level).toBe(1);
+      expect(paragraphs?.[1]?.runs[0]?.text).toBe('B1');
+
+      // Paragraph 2 (level 2 - Tab Tab)
+      expect(paragraphs?.[2]?.properties.level).toBe(2);
+      expect(paragraphs?.[2]?.runs.some((r) => r.text === 'C1')).toBe(true);
+      expect(paragraphs?.[2]?.runs.some((r) => r.break === true)).toBe(true);
+      expect(paragraphs?.[2]?.runs.some((r) => r.text === 'c1 level, no bullet')).toBe(true);
+    }
+  });
+
+  it('loads bullets.pptx correctly with all line breaks and hierarchical levels', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const filePath = path.resolve(__dirname, '../../../../bullets.pptx');
+
+    if (fs.existsSync(filePath)) {
+      const fileBuffer = fs.readFileSync(filePath);
+      const pres = await Presentation.load(fileBuffer);
+      const slide = pres.getSlide(1);
+      const elements = slide?.getElements();
+      expect(elements).toBeDefined();
+
+      const placeholder = elements?.find((el) => el.elementType === 'shape' && el.name.includes('Placeholder'));
+      if (placeholder?.elementType === 'shape') {
+        const paragraphs = placeholder.textBody?.paragraphs;
+        expect(paragraphs?.length).toBeGreaterThanOrEqual(8);
+
+        // First paragraph should have A1, a break, and continuation
+        const firstP = paragraphs?.[0];
+        expect(firstP?.runs.some((r) => r.text === 'A1')).toBe(true);
+        expect(firstP?.runs.some((r) => r.break === true)).toBe(true);
+      }
+    }
+  });
 });
+

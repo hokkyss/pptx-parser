@@ -154,7 +154,8 @@ describe('Paragraph serializer bullets and empty runs', () => {
     });
     expect(autoNumPara['a:pPr']).toBeDefined();
     const pPr = autoNumPara['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_marL']).toBe((2 * 228600) + 203200);
+    expect(pPr['@_marL']).toBe((2 * 457200) + 342900);
+    expect(pPr['@_indent']).toBe(-342900);
 
     const emptyPara = serializeParagraph({ properties: {}, runs: [] });
     expect(emptyPara['a:endParaRPr']).toEqual({});
@@ -414,8 +415,8 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
     });
     const pPr = justifyPara['a:pPr'] as Record<string, unknown>;
     expect(pPr['@_algn']).toBe('justify');
-    expect(pPr['@_marL']).toBe(152400);
-    expect(pPr['@_indent']).toBe(-152400);
+    expect(pPr['@_marL']).toBe(285750);
+    expect(pPr['@_indent']).toBe(-285750);
 
     // Scheme color string
     const schemeNode = serializeColorNode('accent2');

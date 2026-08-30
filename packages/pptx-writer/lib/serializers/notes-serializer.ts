@@ -1,12 +1,12 @@
 import type { PptxTextBody } from '@hokkyss/pptx-core';
 import { createXmlBuilder } from '../xml/xml-builder';
-import { serializeTextBody } from './text-serializer';
+import { _rawXmlWrapBuilder, serializeTextBody } from './text-serializer';
 
 /**
  * Serializes speaker notes (plain string or structured PptxTextBody) into an OpenXML `<p:notes>` document.
  */
 export function serializeNotesSlide(notesInput: PptxTextBody | string): string {
-  let txBodyNode: Record<string, unknown>;
+  let txBodyNode: Record<string, unknown> | string;
 
   if (typeof notesInput === 'string') {
     const paragraphs = notesInput.split('\n').map((line) => ({
@@ -26,7 +26,7 @@ export function serializeNotesSlide(notesInput: PptxTextBody | string): string {
     txBodyNode = serializeTextBody(notesInput);
   }
 
-  const builder = createXmlBuilder();
+  const builder = typeof txBodyNode === 'string' ? _rawXmlWrapBuilder : createXmlBuilder();
   const txBodyXml = builder.build({ 'p:txBody': txBodyNode });
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

@@ -38,7 +38,7 @@ export function parseParagraph(
 
   const algnRaw = (pPr['@_algn'] as string) || '';
   const alignment = alignMap[algnRaw];
-  const level = pPr['@_lvl'] !== undefined ? Number(pPr['@_lvl']) : undefined;
+  const level = pPr['@_lvl'] !== undefined ? Number(pPr['@_lvl']) : 0;
 
   const leftMargin = pPr['@_marL'] !== undefined ? emu(Number(pPr['@_marL'])) : undefined;
   const rightMargin = pPr['@_marR'] !== undefined ? emu(Number(pPr['@_marR'])) : undefined;
@@ -119,6 +119,25 @@ export function parseParagraph(
     for (const fld of flds as Record<string, unknown>[]) {
       const run = parseRun(fld, fallbackProps, relationshipResolver);
       if (run) runs.push(run);
+    }
+  }
+
+  const brNodes = pNode['a:br'] || pNode['br'];
+  if (brNodes) {
+    const brs = Array.isArray(brNodes) ? brNodes : [brNodes];
+    for (const brNode of brs as Record<string, unknown>[]) {
+      const rPr = (brNode['a:rPr'] || brNode['rPr'] || {}) as Record<string, unknown>;
+      const explicitProps = parseRunProperties(rPr, relationshipResolver);
+      const cleanExplicit = Object.fromEntries(Object.entries(explicitProps).filter(([, v]) => v !== undefined));
+      const properties = {
+        ...fallbackProps,
+        ...cleanExplicit,
+      };
+      runs.push({
+        break: true,
+        properties,
+        text: '',
+      });
     }
   }
 

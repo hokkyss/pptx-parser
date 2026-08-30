@@ -1,11 +1,12 @@
 import type { PptxElement, PptxSlide } from '@hokkyss/pptx-core';
-import { serializeXml } from '../xml/xml-builder';
+import { createXmlBuilder, serializeXml, XML_DECLARATION } from '../xml/xml-builder';
+
 import { serializeAnimations } from './animation-serializer';
 import { serializeGroup } from './group-serializer';
 import { serializePicture } from './picture-serializer';
 import { serializeConnector, serializeShape } from './shape-serializer';
 import { serializeTable } from './table-serializer';
-import { serializeFill } from './text-serializer';
+import { _rawXmlWrapBuilder, serializeFill } from './text-serializer';
 import { serializeTransition } from './transition-serializer';
 
 /**
@@ -102,10 +103,10 @@ export function serializeSlide(
 ): string {
   const elements = (slide.elements && slide.elements.length > 0) ? slide.elements : (slide.shapes || []);
 
-  const shapeList: Record<string, unknown>[] = [];
+  const shapeList: (Record<string, unknown> | string)[] = [];
   const graphicFrameList: Record<string, unknown>[] = [];
   const picList: Record<string, unknown>[] = [];
-  const grpSpList: Record<string, unknown>[] = [];
+  const grpSpList: (Record<string, unknown> | string)[] = [];
   const cxnSpList: Record<string, unknown>[] = [];
 
   const usedIds = new Set<string>(['1']); // 1 is reserved for the root container group
@@ -167,7 +168,76 @@ export function serializeSlide(
     }
   }
 
-  const spTree: Record<string, unknown> = {
+  // Check if any shape or group is a pre-built raw XML string (contains <a:br> line breaks)
+  const hasRawShapes = shapeList.some((s) => typeof s === 'string') || grpSpList.some((g) => typeof g === 'string');
+
+  let spTree: Record<string, unknown>;
+
+  if (hasRawShapes) {
+    const elementBuilder = createXmlBuilder();
+    const grpHdr = elementBuilder.build({
+      'p:nvGrpSpPr': {
+        'p:cNvPr': { '@_id': '1', '@_name': '' },
+        'p:cNvGrpSpPr': {},
+        'p:nvPr': {},
+      },
+    });
+    const grpPrXml = elementBuilder.build({
+      'p:grpSpPr': {
+        'a:xfrm': {
+          'a:off': { '@_x': '0', '@_y': '0' },
+          'a:ext': { '@_cx': '0', '@_cy': '0' },
+          'a:chOff': { '@_x': '0', '@_y': '0' },
+          'a:chExt': { '@_cx': '0', '@_cy': '0' },
+        },
+      },
+    });
+    const shapesXml = shapeList.map((s) =>
+      typeof s === 'string' ? s : (elementBuilder.build({ 'p:sp': s })),
+    ).join('');
+    const tablesXml = graphicFrameList.map((gf) => elementBuilder.build({ 'p:graphicFrame': gf })).join('');
+    const picsXml = picList.map((pic) => elementBuilder.build({ 'p:pic': pic })).join('');
+    const grpSpXml = grpSpList.map((gs) =>
+      typeof gs === 'string' ? gs : (elementBuilder.build({ 'p:grpSp': gs })),
+    ).join('');
+    const cxnSpXml = cxnSpList.map((cs) => elementBuilder.build({ 'p:cxnSp': cs })).join('');
+    const spTreeInner = grpHdr + grpPrXml + shapesXml + tablesXml + picsXml + grpSpXml + cxnSpXml;
+
+    // Inject spTreeInner as raw XML into p:spTree using the wrap builder
+    spTree = { '#text': spTreeInner };
+    const cSld: Record<string, unknown> = {};
+    const bg = serializeSlideBackground(slide);
+    if (bg) {
+      cSld['p:bg'] = bg;
+    }
+    cSld['p:spTree'] = spTreeInner;
+
+    const sldRoot = {
+      'p:sld': {
+        '@_xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+        '@_xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+        '@_xmlns:p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+        'p:cSld': cSld,
+        'p:clrMapOvr': {
+          'a:masterClrMapping': {},
+        },
+      },
+    };
+
+    const transitionNode = serializeTransition(slide.transition);
+    if (transitionNode) {
+      (sldRoot['p:sld'] as Record<string, unknown>)['p:transition'] = transitionNode;
+    }
+
+    const timingNode = serializeAnimations(slide.animations);
+    if (timingNode) {
+      (sldRoot['p:sld'] as Record<string, unknown>)['p:timing'] = timingNode;
+    }
+
+    return XML_DECLARATION + (_rawXmlWrapBuilder.build(sldRoot));
+  }
+
+  spTree = {
     'p:nvGrpSpPr': {
       'p:cNvPr': { '@_id': '1', '@_name': '' },
       'p:cNvGrpSpPr': {},

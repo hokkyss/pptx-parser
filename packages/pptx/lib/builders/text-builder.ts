@@ -4,6 +4,12 @@ import { hundredthsPoint, type Points } from '@hokkyss/pptx-core';
 export interface TextRunConfig {
   baseline?: number;
   bold?: boolean;
+  /**
+   * When `true`, this entry represents a soft line break (Shift+Enter in PowerPoint).
+   * Serialized as `<a:br>`. The `text` field is not required and is ignored.
+   * Optional run properties (bold, italic, etc.) are forwarded to `<a:rPr>` inside `<a:br>`.
+   */
+  break?: true;
   color?: string; // Hex string e.g. '38BDF8'
   font?: string;
   fontSize?: Points;
@@ -12,7 +18,7 @@ export interface TextRunConfig {
   strikethrough?: 'dblStrike' | 'sngStrike' | boolean;
   subscript?: boolean;
   superscript?: boolean;
-  text: string;
+  text?: string;
   underline?: 'dash' | 'dbl' | 'dotted' | 'heavy' | 'sng' | 'wave' | boolean;
 }
 
@@ -93,6 +99,8 @@ export function normalizeBullet(bullet?: BulletInput): PptxBullet | undefined {
 
 /**
  * Normalizes string or TextRunConfig into a typed PptxRun.
+ * When `input` is a `TextRunConfig` with `break: true`, returns a line-break sentinel
+ * (`PptxRun` with `break: true`) that serializes as `<a:br>` instead of `<a:r>`.
  */
 export function buildTextRun(input: string | TextRunConfig, defaultOptions?: TextOptions): PptxRun {
   if (typeof input === 'string') {
@@ -114,21 +122,31 @@ export function buildTextRun(input: string | TextRunConfig, defaultOptions?: Tex
     };
   }
 
+  const properties = {
+    baseline: input.baseline ?? defaultOptions?.baseline,
+    bold: input.bold ?? defaultOptions?.bold,
+    color: input.color ?? defaultOptions?.color,
+    fontFamily: input.font ?? defaultOptions?.font,
+    fontSize: input.fontSize ? hundredthsPoint(Math.round(input.fontSize * 100)) : (defaultOptions?.fontSize ? hundredthsPoint(Math.round(defaultOptions.fontSize * 100)) : undefined),
+    hyperlink: input.hyperlink ?? defaultOptions?.hyperlink,
+    italic: input.italic ?? defaultOptions?.italic,
+    strikethrough: input.strikethrough ?? defaultOptions?.strikethrough,
+    subscript: input.subscript ?? defaultOptions?.subscript,
+    superscript: input.superscript ?? defaultOptions?.superscript,
+    underline: input.underline ?? defaultOptions?.underline,
+  };
+
+  if (input.break === true) {
+    return {
+      break: true,
+      properties,
+      text: '',
+    };
+  }
+
   return {
-    properties: {
-      baseline: input.baseline ?? defaultOptions?.baseline,
-      bold: input.bold ?? defaultOptions?.bold,
-      color: input.color ?? defaultOptions?.color,
-      fontFamily: input.font ?? defaultOptions?.font,
-      fontSize: input.fontSize ? hundredthsPoint(Math.round(input.fontSize * 100)) : (defaultOptions?.fontSize ? hundredthsPoint(Math.round(defaultOptions.fontSize * 100)) : undefined),
-      hyperlink: input.hyperlink ?? defaultOptions?.hyperlink,
-      italic: input.italic ?? defaultOptions?.italic,
-      strikethrough: input.strikethrough ?? defaultOptions?.strikethrough,
-      subscript: input.subscript ?? defaultOptions?.subscript,
-      superscript: input.superscript ?? defaultOptions?.superscript,
-      underline: input.underline ?? defaultOptions?.underline,
-    },
-    text: input.text,
+    properties,
+    text: input.text ?? '',
   };
 }
 
@@ -241,7 +259,11 @@ export function buildTextBody(
     } else {
       let currentRuns: PptxRun[] = [];
       for (const item of content as (string | TextRunConfig)[]) {
-        const text = typeof item === 'string' ? item : item.text;
+        if (typeof item === 'object' && item !== null && 'break' in item && item.break === true) {
+          currentRuns.push(buildTextRun(item, options));
+          continue;
+        }
+        const text = typeof item === 'string' ? item : (item.text ?? '');
         const lines = text.split(/\r?\n/);
         for (let i = 0; i < lines.length; i++) {
           if (i > 0) {
