@@ -415,8 +415,8 @@ describe('Table Serializer cell fill styling', () => {
     const xml = serializeTable(fallbackTable);
     expect(xml).toBeDefined();
     const nvPr = xml['p:nvGraphicFramePr'] as Record<string, Record<string, string>>;
-    expect(nvPr['p:cNvPr']['@_id']).toBe('3');
-    expect(nvPr['p:cNvPr']['@_name']).toBe('Table 3');
+    expect(nvPr['p:cNvPr']['@_id']).toBe('');
+    expect(nvPr['p:cNvPr']['@_name']).toBe('');
 
     const xfrm = xml['p:xfrm'] as Record<string, Record<string, number>>;
     expect(xfrm['a:off']['@_x']).toBe(0);

@@ -70,8 +70,8 @@ export function serializeChartGraphicFrame(
   return {
     'p:nvGraphicFramePr': {
       'p:cNvPr': {
-        '@_id': elem.id || '2',
-        '@_name': elem.name || `Chart ${elem.id || '2'}`,
+        '@_id': elem.id,
+        '@_name': elem.name || '',
       },
       'p:cNvGraphicFramePr': {},
       'p:nvPr': {},

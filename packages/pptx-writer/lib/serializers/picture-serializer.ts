@@ -47,8 +47,8 @@ export function serializePicture(pictureElement: PptxPictureElement, overrideEmb
   }
 
   const cNvPr: Record<string, unknown> = {
-    '@_id': pictureElement.id || '4',
-    '@_name': pictureElement.name || `Picture ${pictureElement.id || '4'}`,
+    '@_id': pictureElement.id,
+    '@_name': pictureElement.name || '',
   };
   if (pictureElement.hyperlink) {
     const hlinkNode = serializeHyperlink(pictureElement.hyperlink);

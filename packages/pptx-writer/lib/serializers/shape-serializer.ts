@@ -148,8 +148,8 @@ export function serializeShadow(shadow?: import('@hokkyss/pptx-core').PptxShadow
  */
 export function serializeShape(shape: PptxShapeElement): Record<string, unknown> | string {
   const cNvPr: Record<string, unknown> = {
-    '@_id': shape.id || '2',
-    '@_name': shape.name || `Shape ${shape.id || '2'}`,
+    '@_id': shape.id,
+    '@_name': shape.name || '',
   };
   if (shape.isVisible === false) {
     cNvPr['@_hidden'] = '1';
@@ -294,8 +294,8 @@ const POSITION_TO_INDEX_MAP: Record<PptxConnectionPosition, number> = {
  */
 export function serializeConnector(connector: PptxConnectorElement): Record<string, unknown> {
   const cNvPr: Record<string, unknown> = {
-    '@_id': connector.id || '2',
-    '@_name': connector.name || `Connector ${connector.id || '2'}`,
+    '@_id': connector.id,
+    '@_name': connector.name || '',
   };
   if (connector.isVisible === false) {
     cNvPr['@_hidden'] = '1';

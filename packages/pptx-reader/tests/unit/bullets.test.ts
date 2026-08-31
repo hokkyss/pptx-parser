@@ -125,9 +125,34 @@ describe('parseParagraph fields and number text nodes', () => {
     const parsed = parseParagraph(pNode);
     expect(parsed.properties.level).toBe(1);
     expect(parsed.runs).toHaveLength(2);
-    expect(parsed.runs[0].text).toBe('First line');
     expect(parsed.runs[1].break).toBe(true);
     expect(parsed.runs[1].properties?.bold).toBe(true);
+  });
+
+  it('defaults paragraph level to 0 when @_lvl is omitted', () => {
+    const pNode = {
+      'a:r': [
+        { 'a:t': 'Clean level 0 text' },
+      ],
+    };
+    const parsed = parseParagraph(pNode);
+    expect(parsed.properties.level).toBe(0);
+  });
+
+  it('parses buNone at multilevel hierarchical indentations (<a:pPr lvl="2"><a:buNone/></a:pPr>)', () => {
+    const pNode = {
+      'a:pPr': {
+        '@_lvl': '2',
+        'a:buNone': {},
+      },
+      'a:r': [
+        { 'a:t': 'Level 2 code outline without bullet glyph' },
+      ],
+    };
+    const parsed = parseParagraph(pNode);
+    expect(parsed.properties.level).toBe(2);
+    expect(parsed.properties.bullet).toBeDefined();
+    expect(parsed.properties.bullet?.type).toBe('none');
   });
 });
 

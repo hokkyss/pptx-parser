@@ -83,8 +83,8 @@ export function serializeTable(tableElement: PptxTableElement): Record<string, u
   return {
     'p:nvGraphicFramePr': {
       'p:cNvPr': {
-        '@_id': tableElement.id || '3',
-        '@_name': tableElement.name || `Table ${tableElement.id || '3'}`,
+        '@_id': tableElement.id,
+        '@_name': tableElement.name || '',
       },
       'p:cNvGraphicFramePr': {
         'a:graphicFrameLocks': { '@_noGrp': '1' },

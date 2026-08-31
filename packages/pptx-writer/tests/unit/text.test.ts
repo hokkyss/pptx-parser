@@ -430,4 +430,50 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
     const linNode = (angleGrad?.['a:gradFill'] as Record<string, Record<string, number>>)?.['a:lin'];
     expect(linNode?.['@_ang']).toBe(5400000);
   });
+
+  it('serializes non-bulleted hierarchical indentation ({ bullet: { type: "none" }, level: 2 }) in fast-path object mode', () => {
+    const para = serializeParagraph({
+      properties: {
+        bullet: { type: 'none' },
+        level: 2,
+      },
+      runs: [{ properties: {}, text: 'Level 2 code outline without bullet' }],
+    });
+    expect(typeof para).toBe('object');
+    const pPr = (para as Record<string, unknown>)['a:pPr'] as Record<string, unknown>;
+    expect(pPr['@_lvl']).toBe(2);
+    expect(pPr['a:buNone']).toBeDefined();
+  });
+
+  it('serializes non-bulleted hierarchical indentation ({ bullet: { type: "none" }, level: 1 }) in raw-XML mode with line breaks', () => {
+    const xml = serializeParagraph({
+      properties: {
+        bullet: { type: 'none' },
+        level: 1,
+      },
+      runs: [
+        { text: 'First line of block explanation' },
+        { break: true },
+        { text: 'Second line continuing block' },
+      ],
+    });
+    expect(typeof xml).toBe('string');
+    expect(xml).toContain('<a:pPr lvl="1"><a:buNone/></a:pPr>');
+    expect(xml).toContain('<a:r><a:t>First line of block explanation</a:t></a:r>');
+    expect(xml).toContain('<a:br/>');
+    expect(xml).toContain('<a:r><a:t>Second line continuing block</a:t></a:r>');
+  });
+
+  it('omits @_algn="l" and @_lvl="0" on level 0 paragraphs for clean PowerPoint master inheritance', () => {
+    const para = serializeParagraph({
+      properties: {
+        alignment: 'left',
+        level: 0,
+      },
+      runs: [{ properties: {}, text: 'Clean level 0 run' }],
+    });
+    expect(typeof para).toBe('object');
+    // If no overrides other than default left and level 0, a:pPr should be omitted entirely
+    expect((para as Record<string, unknown>)['a:pPr']).toBeUndefined();
+  });
 });

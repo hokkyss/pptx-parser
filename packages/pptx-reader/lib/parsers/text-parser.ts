@@ -78,9 +78,9 @@ export function parseParagraph(
   let bullet: PptxBullet | undefined;
   const buChar = (pPr['a:buChar'] || pPr['buChar']) as Record<string, unknown> | undefined;
   const buAutoNum = (pPr['a:buAutoNum'] || pPr['buAutoNum']) as Record<string, unknown> | undefined;
-  const buNone = pPr['a:buNone'] || pPr['buNone'];
+  const buNone = pPr['a:buNone'] !== undefined ? pPr['a:buNone'] : pPr['buNone'];
 
-  if (buNone) {
+  if (buNone !== undefined) {
     bullet = { type: 'none' };
   } else if (buChar) {
     bullet = {

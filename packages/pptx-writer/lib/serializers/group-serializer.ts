@@ -3,7 +3,6 @@ import { createXmlBuilder } from '../xml/xml-builder';
 import { serializePicture } from './picture-serializer';
 import { serializeConnector, serializeShape } from './shape-serializer';
 import { serializeTable } from './table-serializer';
-import { _rawXmlWrapBuilder } from './text-serializer';
 
 /**
  * Serializes a group shape `<p:grpSp>` containing nested children strictly conforming to ECMA-376 schema.
@@ -36,13 +35,13 @@ export function serializeGroup(group: PptxGroupElement): Record<string, unknown>
     const nvGrpPr = elementBuilder.build({
       'p:nvGrpSpPr': {
         'p:cNvPr': {
-          '@_id': group.id || '5',
-          '@_name': group.name || `Group ${group.id || '5'}`,
+          '@_id': group.id,
+          '@_name': group.name || '',
         },
         'p:cNvGrpSpPr': {},
         'p:nvPr': {},
       },
-    }) as string;
+    });
     const grpPr = elementBuilder.build({
       'p:grpSpPr': {
         'a:xfrm': {
@@ -64,13 +63,13 @@ export function serializeGroup(group: PptxGroupElement): Record<string, unknown>
           },
         },
       },
-    }) as string;
+    });
 
-    const shapesXml = shapeList.map((s) => (typeof s === 'string' ? s : (elementBuilder.build({ 'p:sp': s }) as string))).join('');
-    const tablesXml = graphicFrameList.map((gf) => elementBuilder.build({ 'p:graphicFrame': gf }) as string).join('');
-    const picsXml = picList.map((pic) => elementBuilder.build({ 'p:pic': pic }) as string).join('');
-    const grpSpXml = grpSpList.map((gs) => (typeof gs === 'string' ? gs : (elementBuilder.build({ 'p:grpSp': gs }) as string))).join('');
-    const cxnSpXml = cxnSpList.map((cs) => elementBuilder.build({ 'p:cxnSp': cs }) as string).join('');
+    const shapesXml = shapeList.map((s) => (typeof s === 'string' ? s : (elementBuilder.build({ 'p:sp': s })))).join('');
+    const tablesXml = graphicFrameList.map((gf) => elementBuilder.build({ 'p:graphicFrame': gf })).join('');
+    const picsXml = picList.map((pic) => elementBuilder.build({ 'p:pic': pic })).join('');
+    const grpSpXml = grpSpList.map((gs) => (typeof gs === 'string' ? gs : (elementBuilder.build({ 'p:grpSp': gs })))).join('');
+    const cxnSpXml = cxnSpList.map((cs) => elementBuilder.build({ 'p:cxnSp': cs })).join('');
 
     return `<p:grpSp>${nvGrpPr}${grpPr}${shapesXml}${tablesXml}${picsXml}${grpSpXml}${cxnSpXml}</p:grpSp>`;
   }
@@ -78,8 +77,8 @@ export function serializeGroup(group: PptxGroupElement): Record<string, unknown>
   const grpSp: Record<string, unknown> = {
     'p:nvGrpSpPr': {
       'p:cNvPr': {
-        '@_id': group.id || '5',
-        '@_name': group.name || `Group ${group.id || '5'}`,
+        '@_id': group.id,
+        '@_name': group.name || '',
       },
       'p:cNvGrpSpPr': {},
       'p:nvPr': {},
@@ -106,10 +105,10 @@ export function serializeGroup(group: PptxGroupElement): Record<string, unknown>
     },
   };
 
-  if (shapeList.length > 0) grpSp['p:sp'] = shapeList as Record<string, unknown>[];
+  if (shapeList.length > 0) grpSp['p:sp'] = shapeList;
   if (graphicFrameList.length > 0) grpSp['p:graphicFrame'] = graphicFrameList;
   if (picList.length > 0) grpSp['p:pic'] = picList;
-  if (grpSpList.length > 0) grpSp['p:grpSp'] = grpSpList as Record<string, unknown>[];
+  if (grpSpList.length > 0) grpSp['p:grpSp'] = grpSpList;
   if (cxnSpList.length > 0) grpSp['p:cxnSp'] = cxnSpList;
 
   return grpSp;
