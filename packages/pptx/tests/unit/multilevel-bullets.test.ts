@@ -268,5 +268,85 @@ describe('Multilevel Text Bullets API', () => {
       }
     }
   });
+
+  it('supports non-bulleted hierarchical indentation ({ level: N, bullet: false }) with roundtrip preservation', async () => {
+    const pres = Presentation.create();
+    const slide = pres.addSlide();
+
+    slide.addText([
+      {
+        bullet: true,
+        level: 0,
+        text: 'Root Bullet (Level 0)',
+      },
+      {
+        bullet: false,
+        level: 1,
+        runs: [
+          { text: 'Indented block commentary (Level 1, no bullet glyph)' },
+          { break: true },
+          { text: 'Second line under same block indent' },
+        ],
+      },
+      {
+        bullet: false,
+        level: 2,
+        text: 'Deeply indented technical spec (Level 2, no bullet glyph)',
+      },
+      {
+        bullet: true,
+        level: 1,
+        text: 'Sub-bullet (Level 1)',
+      },
+    ]);
+
+    const buffer = await pres.toBuffer();
+    const loaded = await Presentation.load(buffer);
+    const shape = loaded.getSlide(1)?.getElements()[0];
+
+    if (shape?.elementType === 'shape') {
+      const paragraphs = shape.textBody?.paragraphs;
+      expect(paragraphs?.length).toBe(4);
+
+      // Paragraph 0: Level 0 bullet
+      expect(paragraphs?.[0]?.properties.level).toBe(0);
+      expect(paragraphs?.[0]?.properties.bullet?.type).toBe('char');
+
+      // Paragraph 1: Level 1 non-bulleted with soft break
+      expect(paragraphs?.[1]?.properties.level).toBe(1);
+      expect(paragraphs?.[1]?.properties.bullet?.type).toBe('none');
+      expect(paragraphs?.[1]?.runs.some((r) => r.text === 'Indented block commentary (Level 1, no bullet glyph)')).toBe(true);
+      expect(paragraphs?.[1]?.runs.some((r) => r.break === true)).toBe(true);
+      expect(paragraphs?.[1]?.runs.some((r) => r.text === 'Second line under same block indent')).toBe(true);
+
+      // Paragraph 2: Level 2 non-bulleted
+      expect(paragraphs?.[2]?.properties.level).toBe(2);
+      expect(paragraphs?.[2]?.properties.bullet?.type).toBe('none');
+
+      // Paragraph 3: Level 1 bullet
+      expect(paragraphs?.[3]?.properties.level).toBe(1);
+      expect(paragraphs?.[3]?.properties.bullet?.type).toBe('char');
+    }
+  });
+
+  it('serializes presentation with full 9-level <p:defaultTextStyle> in ppt/presentation.xml for desktop tab parity', async () => {
+    const { createZipReader } = await import('@hokkyss/pptx-reader');
+    const pres = Presentation.create();
+    pres.addSlide();
+
+    const buffer = await pres.toBuffer();
+    const zipReader = await createZipReader(buffer);
+    const presentationXml = zipReader.getFileText('ppt/presentation.xml') ?? '';
+
+    expect(presentationXml).toContain('<p:defaultTextStyle>');
+    for (let i = 1; i <= 9; i++) {
+      expect(presentationXml).toContain(`<a:lvl${i}pPr`);
+    }
+    expect(presentationXml).toContain('defTabSz="914400"');
+    expect(presentationXml).toContain('marL="0"');
+    expect(presentationXml).toContain('marL="457200"');
+    expect(presentationXml).toContain('marL="914400"');
+    expect(presentationXml).toContain('marL="3657600"');
+  });
 });
 
