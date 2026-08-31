@@ -520,4 +520,49 @@ describe('Soft line breaks (<a:br>) and sequential interleaving', () => {
     const brCount = (xml.match(/<a:br>/g) || []).length;
     expect(brCount).toBe(2);
   });
+
+  it('uses custom indentSettings for levelIndent, char bulletGap, and autoNum bulletGap', () => {
+    const customIndentSettings = {
+      levelIndent: 365760, // 0.4"
+      bulletGap: {
+        char: 200000,
+        autoNum: 300000,
+      },
+    };
+
+    // Char bullet at level 2
+    const charPara = serializeParagraph(
+      {
+        properties: {
+          bullet: { type: 'char', char: '•' },
+          level: 2,
+        },
+        runs: [{ text: 'Custom bullet' }],
+      },
+      customIndentSettings,
+    );
+
+    const charPPr = (charPara as Record<string, unknown>)['a:pPr'] as Record<string, unknown>;
+    // marL = (lvl * levelIndent) + bulletGap = (2 * 365760) + 200000 = 731520 + 200000 = 931520
+    expect(charPPr['@_marL']).toBe(931520);
+    expect(charPPr['@_indent']).toBe(-200000);
+
+    // AutoNum bullet at level 1
+    const autoNumPara = serializeParagraph(
+      {
+        properties: {
+          bullet: { type: 'autoNum', autoNumType: 'arabicPeriod' },
+          level: 1,
+        },
+        runs: [{ text: 'Numbered item' }],
+      },
+      customIndentSettings,
+    );
+
+    const numPPr = (autoNumPara as Record<string, unknown>)['a:pPr'] as Record<string, unknown>;
+    // marL = (lvl * levelIndent) + bulletGap = (1 * 365760) + 300000 = 665760
+    expect(numPPr['@_marL']).toBe(665760);
+    expect(numPPr['@_indent']).toBe(-300000);
+  });
 });
+

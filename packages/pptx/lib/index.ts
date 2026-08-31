@@ -1,5 +1,6 @@
 export {
   type AddSlideOptions,
+  type BulletGapOptions,
   type CreatePresentationOptions,
   Presentation,
 } from './presentation';
