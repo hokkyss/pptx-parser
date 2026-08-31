@@ -1,4 +1,4 @@
-import type { PptxGroupElement, PptxIndentSettings } from '@hokkyss/pptx-core';
+import type { PptxGroupElement } from '@hokkyss/pptx-core';
 import { createXmlBuilder } from '../xml/xml-builder';
 import { serializePicture } from './picture-serializer';
 import { serializeConnector, serializeShape } from './shape-serializer';
@@ -7,10 +7,7 @@ import { serializeTable } from './table-serializer';
 /**
  * Serializes a group shape `<p:grpSp>` containing nested children strictly conforming to ECMA-376 schema.
  */
-export function serializeGroup(
-  group: PptxGroupElement,
-  indentSettings?: PptxIndentSettings,
-): Record<string, unknown> | string {
+export function serializeGroup(group: PptxGroupElement): Record<string, unknown> | string {
   const shapeList: (Record<string, unknown> | string)[] = [];
   const graphicFrameList: Record<string, unknown>[] = [];
   const picList: Record<string, unknown>[] = [];
@@ -19,13 +16,13 @@ export function serializeGroup(
 
   for (const child of group.children || []) {
     if (child.elementType === 'shape') {
-      shapeList.push(serializeShape(child, indentSettings));
+      shapeList.push(serializeShape(child));
     } else if (child.elementType === 'table') {
       graphicFrameList.push(serializeTable(child));
     } else if (child.elementType === 'picture') {
       picList.push(serializePicture(child));
     } else if (child.elementType === 'group') {
-      grpSpList.push(serializeGroup(child, indentSettings));
+      grpSpList.push(serializeGroup(child));
     } else if (child.elementType === 'connector') {
       cxnSpList.push(serializeConnector(child));
     }

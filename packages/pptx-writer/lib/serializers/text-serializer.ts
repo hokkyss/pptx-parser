@@ -3,7 +3,6 @@ import type {
   PptxColor,
   PptxFill,
   PptxHyperlink,
-  PptxIndentSettings,
   PptxParagraph,
   PptxParagraphProperties,
   PptxRun,
@@ -468,7 +467,7 @@ function buildRunXml(run: PptxRun): string {
  * Computes the shared `<a:pPr>` attributes and bullet properties for a paragraph,
  * returning a plain pPr object. Used by both the object-path and raw-XML-path.
  */
-function buildPPrObject(paragraph: PptxParagraph, indentSettings?: PptxIndentSettings): Record<string, unknown> {
+function buildPPrObject(paragraph: PptxParagraph): Record<string, unknown> {
   const pPr: Record<string, unknown> = {};
   const props = (paragraph.properties || paragraph) as { margin?: number; indent?: number } & PptxParagraphProperties;
 
@@ -490,17 +489,6 @@ function buildPPrObject(paragraph: PptxParagraph, indentSettings?: PptxIndentSet
   }
 
   if (props.bullet) {
-    if (props.bullet.type !== 'none' && pPr['@_marL'] === undefined && pPr['@_indent'] === undefined) {
-      const lvl = props.level ?? 0;
-      const isNumbering = props.bullet.type === 'autoNum';
-      // Standard PowerPoint desktop indent steps: 0.5" (457200 EMU) per level, -0.3125" (-285750 EMU) hanging indent
-      const bulletGap = isNumbering
-        ? (indentSettings?.bulletGap?.autoNum ?? DEFAULT_AUTONUM_BULLET_GAP)
-        : (indentSettings?.bulletGap?.char ?? DEFAULT_CHAR_BULLET_GAP);
-      const levelIndent = indentSettings?.levelIndent ?? DEFAULT_LEVEL_INDENT;
-      pPr['@_marL'] = (lvl * levelIndent) + bulletGap;
-      pPr['@_indent'] = -bulletGap;
-    }
     const bulletNode = serializeBulletProperties(props.bullet);
     if (bulletNode) {
       Object.assign(pPr, bulletNode);
@@ -517,14 +505,11 @@ function buildPPrObject(paragraph: PptxParagraph, indentSettings?: PptxIndentSet
  * Returns a plain object for pure-text-run paragraphs (fast path), or a raw XML string
  * for paragraphs containing line breaks (`{ break: true }` runs) to preserve exact element order.
  */
-export function serializeParagraph(
-  paragraph: PptxParagraph,
-  indentSettings?: PptxIndentSettings,
-): Record<string, unknown> | string {
+export function serializeParagraph(paragraph: PptxParagraph): Record<string, unknown> | string {
   const runs = paragraph.runs || [];
   const hasBreaks = runs.some((r) => r.break === true);
 
-  const pPr = buildPPrObject(paragraph, indentSettings);
+  const pPr = buildPPrObject(paragraph);
 
   if (!hasBreaks) {
     // Fast path: only text runs — return a plain JS object for fast-xml-parser to handle
@@ -570,12 +555,9 @@ export function serializeParagraph(
  * when building the final shape XML, which `shape-serializer.ts` does automatically via the
  * `serializeShapeWithTextBody` helper.
  */
-export function serializeTextBody(
-  textBody: PptxTextBody,
-  indentSettings?: PptxIndentSettings,
-): Record<string, unknown> | string {
+export function serializeTextBody(textBody: PptxTextBody): Record<string, unknown> | string {
   const bodyPr = serializeBodyProperties(textBody.bodyProperties);
-  const paragraphs = (textBody.paragraphs || []).map((p) => serializeParagraph(p, indentSettings));
+  const paragraphs = (textBody.paragraphs || []).map(serializeParagraph);
 
   const hasRawParagraphs = paragraphs.some((p) => typeof p === 'string');
 

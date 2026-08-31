@@ -144,7 +144,7 @@ describe('Text & Fill Serializer extended coverage', () => {
 });
 
 describe('Paragraph serializer bullets and empty runs', () => {
-  it('computes marL and indent for numbered and char bullets', () => {
+  it('serializes bullet nodes without forcing marL and indent overrides', () => {
     const autoNumPara = serializeParagraph({
       properties: {
         bullet: { autoNumType: 'arabicPeriod', type: 'autoNum' },
@@ -154,8 +154,10 @@ describe('Paragraph serializer bullets and empty runs', () => {
     });
     expect(autoNumPara['a:pPr']).toBeDefined();
     const pPr = autoNumPara['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_marL']).toBe((2 * 457200) + 342900);
-    expect(pPr['@_indent']).toBe(-342900);
+    expect(pPr['@_lvl']).toBe(2);
+    expect(pPr['a:buAutoNum']).toBeDefined();
+    expect(pPr['@_marL']).toBeUndefined();
+    expect(pPr['@_indent']).toBeUndefined();
 
     const emptyPara = serializeParagraph({ properties: {}, runs: [] });
     expect(emptyPara['a:endParaRPr']).toEqual({});
@@ -415,8 +417,9 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
     });
     const pPr = justifyPara['a:pPr'] as Record<string, unknown>;
     expect(pPr['@_algn']).toBe('justify');
-    expect(pPr['@_marL']).toBe(285750);
-    expect(pPr['@_indent']).toBe(-285750);
+    expect(pPr['a:buChar']).toBeDefined();
+    expect(pPr['@_marL']).toBeUndefined();
+    expect(pPr['@_indent']).toBeUndefined();
 
     // Scheme color string
     const schemeNode = serializeColorNode('accent2');
@@ -476,49 +479,6 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
     // If no overrides other than default left and level 0, a:pPr should be omitted entirely
     expect((para as Record<string, unknown>)['a:pPr']).toBeUndefined();
   });
-
-  it('uses custom indentSettings for levelIndent, char bulletGap, and autoNum bulletGap', () => {
-    const customIndentSettings = {
-      levelIndent: 365760, // 0.4"
-      bulletGap: {
-        char: 200000,
-        autoNum: 300000,
-      },
-    };
-
-    // Char bullet at level 2
-    const charPara = serializeParagraph(
-      {
-        properties: {
-          bullet: { type: 'char', char: '•' },
-          level: 2,
-        },
-        runs: [{ text: 'Custom bullet' }],
-      },
-      customIndentSettings,
-    );
-
-    const charPPr = (charPara as Record<string, unknown>)['a:pPr'] as Record<string, unknown>;
-    // marL = (lvl * levelIndent) + bulletGap = (2 * 365760) + 200000 = 731520 + 200000 = 931520
-    expect(charPPr['@_marL']).toBe(931520);
-    expect(charPPr['@_indent']).toBe(-200000);
-
-    // AutoNum bullet at level 1
-    const autoNumPara = serializeParagraph(
-      {
-        properties: {
-          bullet: { type: 'autoNum', autoNumType: 'arabicPeriod' },
-          level: 1,
-        },
-        runs: [{ text: 'Numbered item' }],
-      },
-      customIndentSettings,
-    );
-
-    const numPPr = (autoNumPara as Record<string, unknown>)['a:pPr'] as Record<string, unknown>;
-    // marL = (lvl * levelIndent) + bulletGap = (1 * 365760) + 300000 = 665760
-    expect(numPPr['@_marL']).toBe(665760);
-    expect(numPPr['@_indent']).toBe(-300000);
-  });
 });
+
 

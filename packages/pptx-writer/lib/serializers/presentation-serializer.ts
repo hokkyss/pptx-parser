@@ -105,7 +105,7 @@ export function serializePresentation(
     '@_cx': 6858000,
     '@_cy': 9144000,
   };
-  presObj['p:defaultTextStyle'] = buildDefaultTextStyle(document.indentSettings?.levelIndent);
+  presObj['p:defaultTextStyle'] = buildDefaultTextStyle();
 
   const root = {
     'p:presentation': presObj,
