@@ -13,7 +13,7 @@ export interface PresentationSerializerOptions {
  *
  * @param levelIndent - Step increment per indent level in EMU (default: 457,200 EMU = 0.5" / 36 pt).
  * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
- * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
  */
 function buildDefaultTextStyle(levelIndent = 457200): Record<string, unknown> {
   const levels: Record<string, unknown> = {

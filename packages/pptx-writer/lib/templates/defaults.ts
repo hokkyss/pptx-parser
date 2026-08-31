@@ -103,11 +103,11 @@ export const DEFAULT_SLIDE_LAYOUT_XML = `<?xml version="1.0" encoding="UTF-8" st
  * Default OpenXML Slide Master template adhering to ECMA-376 schema.
  *
  * Indentation and Tab Constants:
- * - defTabSz="914400": 1.0 inch default tab stop interval (ECMA-376 Part 1, Section 21.1.2.2.14)
+ * - defTabSz="914400": 1.0 inch default tab stop interval (ECMA-376 Part 1, Section 21.1.2.2.7)
  * - marL / indent: Standard 0.25" / 0.5" level step and hanging indent geometry
  *
  * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties
- * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
  */
 export const DEFAULT_SLIDE_MASTER_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
