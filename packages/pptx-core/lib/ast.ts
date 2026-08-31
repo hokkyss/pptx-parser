@@ -409,14 +409,13 @@ export interface PptxDocument {
 export interface PptxBulletGapSettings {
   /**
    * Hanging indent distance for character bullets in EMU (default: 285,750 EMU = 0.3125" / 5/16").
-   * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
-   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
    */
   char?: Emu;
   /**
    * Hanging indent distance for auto-numbered lists in EMU (default: 342,900 EMU = 0.375" / 3/8").
-   * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
-   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   * Canonical DrawingML implied schema default when `@_indent` is omitted: "-342900".
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr, page 3219)
    */
   autoNum?: Emu;
 }
@@ -428,7 +427,7 @@ export interface PptxIndentSettings {
   /**
    * Step increment per indentation level in EMU (default: 457,200 EMU = 0.5" / 36 pt).
    * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
-   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
    */
   levelIndent?: Emu;
   /**
@@ -436,4 +435,5 @@ export interface PptxIndentSettings {
    */
   bulletGap?: PptxBulletGapSettings;
 }
+
 

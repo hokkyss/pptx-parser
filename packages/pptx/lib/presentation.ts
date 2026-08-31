@@ -22,13 +22,14 @@ export interface BulletGapOptions {
   /**
    * Hanging indent distance for character bullets (default: 0.3125 inches = 285,750 EMU).
    * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
-   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
    */
   char?: Inches;
   /**
    * Hanging indent distance for auto-numbered lists (default: 0.375 inches = 342,900 EMU).
+   * Canonical DrawingML implied schema default when `@_indent` is omitted: "-342900".
    * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
-   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr, page 3219)
    */
   autoNum?: Inches;
 }
@@ -64,14 +65,13 @@ export interface CreatePresentationOptions {
   /**
    * Default step increment per indentation level (default: 0.5 inches = 457,200 EMU).
    * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
-   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
    */
   levelIndent?: Inches;
 
   /**
    * Hanging indent distance for bullets.
    * Can be provided as a single `Inches` value (applying to both `char` and `autoNum`) or structured by bullet type.
-   *
    * @example
    * ```ts
    * // Set both to 0.25 inches
@@ -86,7 +86,7 @@ export interface CreatePresentationOptions {
    * });
    * ```
    */
-  bulletGap?: Inches | BulletGapOptions;
+  bulletGap?: BulletGapOptions | Inches;
 }
 
 export interface AddSlideOptions {
