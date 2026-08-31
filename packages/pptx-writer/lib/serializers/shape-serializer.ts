@@ -2,6 +2,7 @@ import type {
   PptxConnectionPosition,
   PptxConnectorElement,
   PptxGeometry,
+  PptxIndentSettings,
   PptxLine,
   PptxLineEnd,
   PptxShapeElement,
@@ -146,7 +147,10 @@ export function serializeShadow(shadow?: import('@hokkyss/pptx-core').PptxShadow
 /**
  * Serializes a shape element into OpenXML `<p:sp>` strictly following DrawingML schema sequence.
  */
-export function serializeShape(shape: PptxShapeElement): Record<string, unknown> | string {
+export function serializeShape(
+  shape: PptxShapeElement,
+  indentSettings?: PptxIndentSettings,
+): Record<string, unknown> | string {
   const cNvPr: Record<string, unknown> = {
     '@_id': shape.id,
     '@_name': shape.name || '',
@@ -255,7 +259,7 @@ export function serializeShape(shape: PptxShapeElement): Record<string, unknown>
   }
 
   const txBody = shape.textBody
-    ? serializeTextBody(shape.textBody)
+    ? serializeTextBody(shape.textBody, indentSettings)
     : {
         'a:bodyPr': {},
         'a:lstStyle': {},

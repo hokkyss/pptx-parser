@@ -1,4 +1,4 @@
-import type { PptxElement, PptxSlide } from '@hokkyss/pptx-core';
+import type { PptxElement, PptxIndentSettings, PptxSlide } from '@hokkyss/pptx-core';
 import { createXmlBuilder, serializeXml, XML_DECLARATION } from '../xml/xml-builder';
 
 import { serializeAnimations } from './animation-serializer';
@@ -100,6 +100,7 @@ export function serializeSlide(
   slide: PptxSlide,
   pictureEmbedMap?: Map<string, string>,
   chartRelIds?: string[],
+  indentSettings?: PptxIndentSettings,
 ): string {
   const elements = (slide.elements && slide.elements.length > 0) ? slide.elements : (slide.shapes || []);
 
@@ -136,7 +137,7 @@ export function serializeSlide(
     const elWithId = normalizeElementWithUniqueIds(rawEl, getUniqueId);
 
     if (elWithId.elementType === 'shape') {
-      shapeList.push(serializeShape(elWithId));
+      shapeList.push(serializeShape(elWithId, indentSettings));
     } else if (elWithId.elementType === 'table') {
       graphicFrameList.push(serializeTable(elWithId));
     } else if (elWithId.elementType === 'chart') {
@@ -146,7 +147,7 @@ export function serializeSlide(
       const overrideEmbedId = pictureEmbedMap?.get(elWithId.picture.mediaId) ?? pictureEmbedMap?.get(elWithId.id);
       picList.push(serializePicture(elWithId, overrideEmbedId));
     } else if (elWithId.elementType === 'group') {
-      grpSpList.push(serializeGroup(elWithId));
+      grpSpList.push(serializeGroup(elWithId, indentSettings));
     } else if (elWithId.elementType === 'connector') {
       // Map attached shape IDs to their normalized numeric IDs
       const mappedConnector = {

@@ -397,4 +397,43 @@ export interface PptxDocument {
   slides: PptxSlide[];
   /** Themes. OpenXML: `ppt/theme/theme*.xml` */
   themes: PptxTheme[];
+  /**
+   * Presentation-wide text indentation and margin settings.
+   */
+  indentSettings?: PptxIndentSettings;
 }
+
+/**
+ * Hanging indent distance configuration for bullet types.
+ */
+export interface PptxBulletGapSettings {
+  /**
+   * Hanging indent distance for character bullets in EMU (default: 285,750 EMU = 0.3125" / 5/16").
+   * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   */
+  char?: Emu;
+  /**
+   * Hanging indent distance for auto-numbered lists in EMU (default: 342,900 EMU = 0.375" / 3/8").
+   * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   */
+  autoNum?: Emu;
+}
+
+/**
+ * Presentation-level text indentation and margin settings.
+ */
+export interface PptxIndentSettings {
+  /**
+   * Step increment per indentation level in EMU (default: 457,200 EMU = 0.5" / 36 pt).
+   * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
+   * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+   */
+  levelIndent?: Emu;
+  /**
+   * Hanging indent distance settings for bulleted and numbered lists.
+   */
+  bulletGap?: PptxBulletGapSettings;
+}
+

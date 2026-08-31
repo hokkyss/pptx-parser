@@ -323,3 +323,49 @@ describe('Presentation Class theme guards and rich slide duplication', () => {
     expect(dupSlide.slideNumber).toBe(2);
   });
 });
+
+describe('Customizable Indentation & Bullet Gaps', () => {
+  it('initializes custom levelIndent and uniform bulletGap in Presentation.create', async () => {
+    const pres = Presentation.create({
+      levelIndent: inches(0.4),
+      bulletGap: inches(0.2),
+    });
+
+      expect(pres.ast.indentSettings).toBeDefined();
+      expect(pres.ast.indentSettings?.levelIndent).toBe(365760); // 0.4 * 914400
+      expect(pres.ast.indentSettings?.bulletGap?.char).toBe(182880); // 0.2 * 914400
+      expect(pres.ast.indentSettings?.bulletGap?.autoNum).toBe(182880);
+
+      const slide = pres.addSlide();
+      slide.addText([
+        { text: 'Level 1 Custom Bullet', level: 1, bullet: true },
+      ]);
+
+      const buffer = await pres.toBuffer();
+      expect(buffer.byteLength).toBeGreaterThan(0);
+    });
+
+    it('initializes granular bulletGap per type (char vs autoNum)', async () => {
+      const pres = Presentation.create({
+        levelIndent: inches(0.6),
+        bulletGap: {
+          char: inches(0.25),
+          autoNum: inches(0.5),
+        },
+      });
+
+      expect(pres.ast.indentSettings?.levelIndent).toBe(548640); // 0.6 * 914400
+      expect(pres.ast.indentSettings?.bulletGap?.char).toBe(228600); // 0.25 * 914400
+      expect(pres.ast.indentSettings?.bulletGap?.autoNum).toBe(457200); // 0.5 * 914400
+
+      const slide = pres.addSlide();
+      slide.addText([
+        { text: 'Custom Char Bullet', level: 0, bullet: true },
+        { text: 'Custom Numbered Bullet', level: 1, bullet: { type: 'autoNum' } },
+      ]);
+
+      const buffer = await pres.toBuffer();
+      expect(buffer.byteLength).toBeGreaterThan(0);
+    });
+  });
+

@@ -8,7 +8,14 @@ export interface PresentationSerializerOptions {
   slideRelIds: string[];
 }
 
-function buildDefaultTextStyle(): Record<string, unknown> {
+/**
+ * Builds the 9-level <p:defaultTextStyle> element for ppt/presentation.xml.
+ *
+ * @param levelIndent - Step increment per indent level in EMU (default: 457,200 EMU = 0.5" / 36 pt).
+ * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+ */
+function buildDefaultTextStyle(levelIndent = 457200): Record<string, unknown> {
   const levels: Record<string, unknown> = {
     'a:defPPr': {
       'a:defRPr': { '@_lang': 'en-US' },
@@ -16,7 +23,7 @@ function buildDefaultTextStyle(): Record<string, unknown> {
   };
 
   for (let i = 1; i <= 9; i++) {
-    const marL = (i - 1) * 457200;
+    const marL = (i - 1) * levelIndent;
     levels[`a:lvl${i}pPr`] = {
       '@_algn': 'l',
       '@_defTabSz': 914400,
@@ -98,7 +105,7 @@ export function serializePresentation(
     '@_cx': 6858000,
     '@_cy': 9144000,
   };
-  presObj['p:defaultTextStyle'] = buildDefaultTextStyle();
+  presObj['p:defaultTextStyle'] = buildDefaultTextStyle(document.indentSettings?.levelIndent);
 
   const root = {
     'p:presentation': presObj,

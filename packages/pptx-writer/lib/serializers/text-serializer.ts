@@ -3,6 +3,7 @@ import type {
   PptxColor,
   PptxFill,
   PptxHyperlink,
+  PptxIndentSettings,
   PptxParagraph,
   PptxParagraphProperties,
   PptxRun,
@@ -17,6 +18,38 @@ import {
 } from '@hokkyss/pptx-core';
 import { XMLBuilder } from 'fast-xml-parser';
 import { sanitizeXmlText } from '../xml/xml-builder';
+
+/**
+ * Standard Step increment per indentation level in EMU (0.5" / 36 pt).
+ * In Microsoft Office PowerPoint, each tab/indent level increases the left margin by 0.5 inches.
+ * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+ */
+export const DEFAULT_LEVEL_INDENT = 457200; // 0.5 inches in EMU (0.5 * 914400)
+
+/**
+ * Standard hanging indent distance for character bullets (`•`, `-`, etc.) in EMU (0.3125" / 5/16" / 22.5 pt).
+ * Default hanging indent geometry used in Microsoft PowerPoint default blank templates (`Office Theme.potx`).
+ * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+ */
+export const DEFAULT_CHAR_BULLET_GAP = 285750; // 5/16 (0.3125) inches in EMU (0.3125 * 914400)
+
+/**
+ * Standard hanging indent distance for auto-numbered lists (`1.`, `10.`, etc.) in EMU (0.375" / 3/8" / 27 pt).
+ * Expanded hanging indent clearance used in Microsoft PowerPoint to prevent multi-digit number collisions.
+ * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+ */
+export const DEFAULT_AUTONUM_BULLET_GAP = 342900; // 3/8 (0.375) inches in EMU (0.375 * 914400)
+
+/**
+ * Standard default tab stop interval in EMU (1.0" / 72 pt).
+ * Default tab interval specified by the ECMA-376 DrawingML standard.
+ * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.defaulttabsize
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.14
+ */
+export const DEFAULT_TAB_SIZE = 914400; // 1.0 inches in EMU (1.0 * 914400)
 
 
 const ALIGNMENT_MAP: Record<string, string> = {
@@ -433,7 +466,7 @@ function buildRunXml(run: PptxRun): string {
  * Computes the shared `<a:pPr>` attributes and bullet properties for a paragraph,
  * returning a plain pPr object. Used by both the object-path and raw-XML-path.
  */
-function buildPPrObject(paragraph: PptxParagraph): Record<string, unknown> {
+function buildPPrObject(paragraph: PptxParagraph, indentSettings?: PptxIndentSettings): Record<string, unknown> {
   const pPr: Record<string, unknown> = {};
   const props = (paragraph.properties || paragraph) as { margin?: number; indent?: number } & PptxParagraphProperties;
 
@@ -459,8 +492,10 @@ function buildPPrObject(paragraph: PptxParagraph): Record<string, unknown> {
       const lvl = props.level ?? 0;
       const isNumbering = props.bullet.type === 'autoNum';
       // Standard PowerPoint desktop indent steps: 0.5" (457200 EMU) per level, -0.3125" (-285750 EMU) hanging indent
-      const bulletGap = isNumbering ? 342900 : 285750;
-      const levelIndent = 457200;
+      const bulletGap = isNumbering
+        ? (indentSettings?.bulletGap?.autoNum ?? DEFAULT_AUTONUM_BULLET_GAP)
+        : (indentSettings?.bulletGap?.char ?? DEFAULT_CHAR_BULLET_GAP);
+      const levelIndent = indentSettings?.levelIndent ?? DEFAULT_LEVEL_INDENT;
       pPr['@_marL'] = (lvl * levelIndent) + bulletGap;
       pPr['@_indent'] = -bulletGap;
     }
@@ -480,11 +515,14 @@ function buildPPrObject(paragraph: PptxParagraph): Record<string, unknown> {
  * Returns a plain object for pure-text-run paragraphs (fast path), or a raw XML string
  * for paragraphs containing line breaks (`{ break: true }` runs) to preserve exact element order.
  */
-export function serializeParagraph(paragraph: PptxParagraph): Record<string, unknown> | string {
+export function serializeParagraph(
+  paragraph: PptxParagraph,
+  indentSettings?: PptxIndentSettings,
+): Record<string, unknown> | string {
   const runs = paragraph.runs || [];
   const hasBreaks = runs.some((r) => r.break === true);
 
-  const pPr = buildPPrObject(paragraph);
+  const pPr = buildPPrObject(paragraph, indentSettings);
 
   if (!hasBreaks) {
     // Fast path: only text runs — return a plain JS object for fast-xml-parser to handle
@@ -530,9 +568,12 @@ export function serializeParagraph(paragraph: PptxParagraph): Record<string, unk
  * when building the final shape XML, which `shape-serializer.ts` does automatically via the
  * `serializeShapeWithTextBody` helper.
  */
-export function serializeTextBody(textBody: PptxTextBody): Record<string, unknown> | string {
+export function serializeTextBody(
+  textBody: PptxTextBody,
+  indentSettings?: PptxIndentSettings,
+): Record<string, unknown> | string {
   const bodyPr = serializeBodyProperties(textBody.bodyProperties);
-  const paragraphs = (textBody.paragraphs || []).map(serializeParagraph);
+  const paragraphs = (textBody.paragraphs || []).map((p) => serializeParagraph(p, indentSettings));
 
   const hasRawParagraphs = paragraphs.some((p) => typeof p === 'string');
 

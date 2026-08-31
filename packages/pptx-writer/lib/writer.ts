@@ -457,7 +457,12 @@ export async function writePptx(
     if (slide.rawXml) {
       files[`ppt/slides/slide${slideNum}.xml`] = slide.rawXml;
     } else {
-      files[`ppt/slides/slide${slideNum}.xml`] = serializeSlide(slide, slidePictureEmbedMap, slideChartRelIds);
+      files[`ppt/slides/slide${slideNum}.xml`] = serializeSlide(
+        slide,
+        slidePictureEmbedMap,
+        slideChartRelIds,
+        document.indentSettings,
+      );
     }
   }
 
