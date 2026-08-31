@@ -99,8 +99,8 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     const serialized = serializeParagraph(paragraph) as Record<string, unknown>;
     const pPr = serialized['a:pPr'] as Record<string, unknown>;
     expect(pPr['@_lvl']).toBe(1);
-    expect(pPr['@_marL']).toBeDefined();
-    expect(pPr['@_indent']).toBeDefined();
+    expect(pPr['@_marL']).toBeUndefined(); // Inherited from slide master
+    expect(pPr['@_indent']).toBeUndefined();
     expect(pPr['a:buChar']).toBeDefined();
   });
 

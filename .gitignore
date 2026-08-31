@@ -151,3 +151,4 @@ scratch/
 ~$*.pptx
 .npmrc
 
+*.pdf
