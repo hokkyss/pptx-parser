@@ -18,41 +18,6 @@ import {
 import { XMLBuilder } from 'fast-xml-parser';
 import { sanitizeXmlText } from '../xml/xml-builder';
 
-/**
- * Standard Step increment per indentation level in EMU (0.5" / 36 pt).
- * In Microsoft Office PowerPoint, each tab/indent level increases the left margin by 0.5 inches.
- * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
- * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
- */
-export const DEFAULT_LEVEL_INDENT = 457200; // 0.5 inches in EMU (0.5 * 914400)
-
-/**
- * Standard hanging indent distance for character bullets (`•`, `-`, etc.) in EMU (0.3125" / 5/16" / 22.5 pt).
- * Default hanging indent geometry used in Microsoft PowerPoint default blank templates (`Office Theme.potx`).
- * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
- * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
- */
-export const DEFAULT_CHAR_BULLET_GAP = 285750; // 5/16 (0.3125) inches in EMU (0.3125 * 914400)
-
-/**
- * Standard hanging indent distance for auto-numbered lists (`1.`, `10.`, etc.) in EMU (0.375" / 3/8" / 27 pt).
- * Canonical DrawingML implied schema default when `@_indent` is omitted: "-342900".
- * "If this attribute is omitted, then a value of -342900 is implied." (ECMA-376 Part 1, Section 21.1.2.2.7, p. 3219).
- * Expanded hanging indent clearance prevents multi-digit number collisions.
- * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.indent
- * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr, page 3219)
- */
-export const DEFAULT_AUTONUM_BULLET_GAP = 342900; // 3/8 (0.375) inches in EMU (0.375 * 914400)
-
-/**
- * Standard default tab stop interval in EMU (1.0" / 72 pt).
- * Default tab interval specified by the ECMA-376 DrawingML standard.
- * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.defaulttabsize
- * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
- */
-export const DEFAULT_TAB_SIZE = 914400; // 1.0 inches in EMU (1.0 * 914400)
-
-
 const ALIGNMENT_MAP: Record<string, string> = {
   center: 'ctr',
   distributed: 'dist',
@@ -258,6 +223,10 @@ export function serializeBulletProperties(bullet?: PptxBullet): Record<string, u
   }
 
   if (bullet.type === 'char' && bullet.char) {
+    // Standard round bullets (`•` / U+2022) default to Arial with full PANOSE-1 metadata to match
+    // Microsoft PowerPoint's native template / Slide Master behavior (ECMA-376 Part 1, §21.1.2.2.2).
+    // This avoids rendering defects in custom/serif/monospaced fonts (such as tiny square dots, wide
+    // spacing, or missing glyph tofu `▯`). Non-standard glyphs default to the theme minor font (`+mn-lt`).
     const isStandardBullet = bullet.char === '•' || bullet.char === '&#8226;' || bullet.char === '\u2022';
     const font = bullet.fontFamily || (isStandardBullet ? 'Arial' : '+mn-lt');
     const buFont: Record<string, unknown> = { '@_typeface': font };
