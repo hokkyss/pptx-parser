@@ -6,6 +6,8 @@ export interface PptxBullet {
   autoNumType?: string;
   /** Character for 'char' type. OpenXML: `<a:buChar @_char>` */
   char?: string;
+  /** Bullet font family. OpenXML: `<a:buFont @_typeface>` */
+  fontFamily?: string;
   /** Starting number for 'autoNum' type. OpenXML: `<a:buAutoNum @_startAt>` */
   startAt?: number;
   /** Bullet type. OpenXML: `<a:buChar>`, `<a:buAutoNum>`, `<a:buBlip>`, `<a:buNone>` */
@@ -59,6 +61,13 @@ export interface PptxHyperlink {
 
 /** Represents a run of text with uniform formatting */
 export interface PptxRun {
+  /**
+   * When `true`, this run represents a soft line break (Shift+Enter in PowerPoint).
+   * Serialized as `<a:br>` instead of `<a:r>`. The `text` field is ignored.
+   * `properties` can still carry run-level formatting for the `<a:rPr>` inside `<a:br>`.
+   * OpenXML: `<a:br>`
+   */
+  break?: true;
   /** Text properties. OpenXML: `<a:rPr>` */
   properties: {
     /** Baseline shift in thousandths of a percent (e.g. 30000 for +30% superscript, -25000 for -25% subscript). OpenXML: `<a:rPr @_baseline>` */
@@ -86,7 +95,7 @@ export interface PptxRun {
     /** Underline. OpenXML: `<a:rPr @_u>` */
     underline?: 'dash' | 'dbl' | 'dotted' | 'heavy' | 'sng' | 'wave' | boolean;
   };
-  /** Text content. OpenXML: `<a:t>` */
+  /** Text content. OpenXML: `<a:t>`. Ignored when `break` is `true`. */
   text: string;
 }
 

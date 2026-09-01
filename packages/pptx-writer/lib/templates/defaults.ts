@@ -99,6 +99,16 @@ export const DEFAULT_SLIDE_LAYOUT_XML = `<?xml version="1.0" encoding="UTF-8" st
   <p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
 </p:sldLayout>`;
 
+/**
+ * Default OpenXML Slide Master template adhering to ECMA-376 schema.
+ *
+ * Indentation and Tab Constants:
+ * - defTabSz="914400": 1.0 inch default tab stop interval (ECMA-376 Part 1, Section 21.1.2.2.7)
+ * - marL / indent: Standard 0.25" / 0.5" level step and hanging indent geometry
+ *
+ * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
+ */
 export const DEFAULT_SLIDE_MASTER_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
              xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -129,10 +139,11 @@ export const DEFAULT_SLIDE_MASTER_XML = `<?xml version="1.0" encoding="UTF-8" st
   </p:sldLayoutIdLst>
   <p:txStyles>
     <p:titleStyle>
-      <a:lvl1pPr algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" fontAlgn="ctr" latinLnBrk="0" hangingPunct="1">
+      <a:lvl1pPr algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
         <a:spcBef><a:spcPct val="0"/></a:spcBef>
         <a:buNone/>
-        <a:defRPr sz="3600" b="1" kern="1200">
+        <a:defRPr sz="4400" kern="1200">
           <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
           <a:latin typeface="+mj-lt"/>
           <a:ea typeface="+mj-ea"/>
@@ -141,26 +152,144 @@ export const DEFAULT_SLIDE_MASTER_XML = `<?xml version="1.0" encoding="UTF-8" st
       </a:lvl1pPr>
     </p:titleStyle>
     <p:bodyStyle>
-      <a:lvl1pPr marL="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" fontAlgn="ctr" latinLnBrk="0" hangingPunct="1">
-        <a:spcBef><a:spcPts val="200"/></a:spcBef>
-        <a:buNone/>
-        <a:defRPr sz="1800" kern="1200">
+      <a:lvl1pPr marL="228600" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="1000"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="2800" kern="1200">
           <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
           <a:latin typeface="+mn-lt"/>
           <a:ea typeface="+mn-ea"/>
           <a:cs typeface="+mn-cs"/>
         </a:defRPr>
       </a:lvl1pPr>
-    </p:bodyStyle>
-    <p:otherStyle>
-      <a:defPPr>
-        <a:defRPr sz="1800">
+      <a:lvl2pPr marL="685800" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="2400" kern="1200">
           <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
           <a:latin typeface="+mn-lt"/>
           <a:ea typeface="+mn-ea"/>
           <a:cs typeface="+mn-cs"/>
         </a:defRPr>
-      </a:defPPr>
+      </a:lvl2pPr>
+      <a:lvl3pPr marL="1143000" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="2000" kern="1200">
+          <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
+          <a:latin typeface="+mn-lt"/>
+          <a:ea typeface="+mn-ea"/>
+          <a:cs typeface="+mn-cs"/>
+        </a:defRPr>
+      </a:lvl3pPr>
+      <a:lvl4pPr marL="1600200" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="1800" kern="1200">
+          <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
+          <a:latin typeface="+mn-lt"/>
+          <a:ea typeface="+mn-ea"/>
+          <a:cs typeface="+mn-cs"/>
+        </a:defRPr>
+      </a:lvl4pPr>
+      <a:lvl5pPr marL="2057400" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="1800" kern="1200">
+          <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
+          <a:latin typeface="+mn-lt"/>
+          <a:ea typeface="+mn-ea"/>
+          <a:cs typeface="+mn-cs"/>
+        </a:defRPr>
+      </a:lvl5pPr>
+      <a:lvl6pPr marL="2514600" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="1800" kern="1200">
+          <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
+          <a:latin typeface="+mn-lt"/>
+          <a:ea typeface="+mn-ea"/>
+          <a:cs typeface="+mn-cs"/>
+        </a:defRPr>
+      </a:lvl6pPr>
+      <a:lvl7pPr marL="2971800" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="1800" kern="1200">
+          <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
+          <a:latin typeface="+mn-lt"/>
+          <a:ea typeface="+mn-ea"/>
+          <a:cs typeface="+mn-cs"/>
+        </a:defRPr>
+      </a:lvl7pPr>
+      <a:lvl8pPr marL="3429000" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="1800" kern="1200">
+          <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
+          <a:latin typeface="+mn-lt"/>
+          <a:ea typeface="+mn-ea"/>
+          <a:cs typeface="+mn-cs"/>
+        </a:defRPr>
+      </a:lvl8pPr>
+      <a:lvl9pPr marL="3886200" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc><a:spcPct val="90000"/></a:lnSpc>
+        <a:spcBef><a:spcPts val="500"/></a:spcBef>
+        <a:buFont typeface="Arial" panose="020B0604020202020204" pitchFamily="34" charset="0"/>
+        <a:buChar char="•"/>
+        <a:defRPr sz="1800" kern="1200">
+          <a:solidFill><a:schemeClr val="tx1"/></a:solidFill>
+          <a:latin typeface="+mn-lt"/>
+          <a:ea typeface="+mn-ea"/>
+          <a:cs typeface="+mn-cs"/>
+        </a:defRPr>
+      </a:lvl9pPr>
+    </p:bodyStyle>
+    <p:otherStyle>
+      <a:defPPr><a:defRPr lang="en-US"/></a:defPPr>
+      <a:lvl1pPr marL="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl1pPr>
+      <a:lvl2pPr marL="457200" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl2pPr>
+      <a:lvl3pPr marL="914400" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl3pPr>
+      <a:lvl4pPr marL="1371600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl4pPr>
+      <a:lvl5pPr marL="1828800" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl5pPr>
+      <a:lvl6pPr marL="2286000" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl6pPr>
+      <a:lvl7pPr marL="2743200" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl7pPr>
+      <a:lvl8pPr marL="3200400" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl8pPr>
+      <a:lvl9pPr marL="3657600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:defRPr sz="1800" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr>
+      </a:lvl9pPr>
     </p:otherStyle>
   </p:txStyles>
 </p:sldMaster>`;

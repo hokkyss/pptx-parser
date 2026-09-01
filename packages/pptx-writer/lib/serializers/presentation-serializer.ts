@@ -9,6 +9,46 @@ export interface PresentationSerializerOptions {
 }
 
 /**
+ * Builds the 9-level <p:defaultTextStyle> element for ppt/presentation.xml.
+ *
+ * @param levelIndent - Step increment per indent level in EMU (default: 457,200 EMU = 0.5" / 36 pt).
+ * @see https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.paragraphproperties.leftmargin
+ * @see https://ecma-international.org/publications-and-standards/standards/ecma-376/ ECMA-376 Part 1, Section 21.1.2.2.7 (pPr)
+ */
+function buildDefaultTextStyle(levelIndent = 457200): Record<string, unknown> {
+  const levels: Record<string, unknown> = {
+    'a:defPPr': {
+      'a:defRPr': { '@_lang': 'en-US' },
+    },
+  };
+
+  for (let i = 1; i <= 9; i++) {
+    const marL = (i - 1) * levelIndent;
+    levels[`a:lvl${i}pPr`] = {
+      '@_algn': 'l',
+      '@_defTabSz': 914400,
+      '@_eaLnBrk': '1',
+      '@_hangingPunct': '1',
+      '@_latinLnBrk': '0',
+      '@_marL': marL,
+      '@_rtl': '0',
+      'a:defRPr': {
+        '@_kern': 1200,
+        '@_sz': 1800,
+        'a:cs': { '@_typeface': '+mn-cs' },
+        'a:ea': { '@_typeface': '+mn-ea' },
+        'a:latin': { '@_typeface': '+mn-lt' },
+        'a:solidFill': {
+          'a:schemeClr': { '@_val': 'tx1' },
+        },
+      },
+    };
+  }
+
+  return levels;
+}
+
+/**
  * Serializes `ppt/presentation.xml` adhering strictly to ECMA-376 sequence.
  * Sequence: p:sldMasterIdLst -> p:notesMasterIdLst -> p:handoutMasterIdLst -> p:sldIdLst -> p:sldSz -> p:notesSz -> p:defaultTextStyle
  */
@@ -65,7 +105,7 @@ export function serializePresentation(
     '@_cx': 6858000,
     '@_cy': 9144000,
   };
-  presObj['p:defaultTextStyle'] = {};
+  presObj['p:defaultTextStyle'] = buildDefaultTextStyle();
 
   const root = {
     'p:presentation': presObj,

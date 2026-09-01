@@ -83,6 +83,7 @@ export interface AddTextOptions extends TextOptions {
    * - Used for connector endpoint attachment (`slide.addConnector({ from: { shapeId } })`).
    */
   id?: string;
+  isTextBox?: boolean;
   name?: string;
   placeholder?: number | string;
   rotation?: Degrees;
@@ -415,6 +416,7 @@ export class Slide {
       fill,
       hyperlink: options.hyperlink,
       id,
+      isTextBox: options.isTextBox ?? true,
       isVisible: true,
       name,
       position: {

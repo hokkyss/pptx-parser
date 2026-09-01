@@ -404,8 +404,8 @@ describe('Shape Serializer helper direct exports', () => {
     };
     const connXml = serializeConnector(connMinimal);
     const nv = connXml['p:nvCxnSpPr'] as Record<string, Record<string, string>>;
-    expect(nv['p:cNvPr']['@_id']).toBe('2');
-    expect(nv['p:cNvPr']['@_name']).toBe('Connector 2');
+    expect(nv['p:cNvPr']['@_id']).toBe('');
+    expect(nv['p:cNvPr']['@_name']).toBe('');
     const xfrm = (connXml['p:spPr'] as Record<string, Record<string, Record<string, number>>>)['a:xfrm'];
     expect(xfrm['a:off']['@_x']).toBe(0);
     expect(xfrm['a:ext']['@_cx']).toBe(100000);

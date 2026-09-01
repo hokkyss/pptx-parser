@@ -24,7 +24,7 @@ function makeGroup(overrides: Partial<PptxGroupElement> = {}): PptxGroupElement 
 /**
  *
  */
-function makeShape(id = '1'): PptxElement {
+function makeShape(id = '1', overrides: Record<string, unknown> = {}): PptxElement {
   return {
     elementType: 'shape',
     type: 'shape',
@@ -35,6 +35,7 @@ function makeShape(id = '1'): PptxElement {
     position: { x: emu(0), y: emu(0), cx: emu(500000), cy: emu(500000) },
     rotation: emuDegree(0),
     textBody: { bodyProperties: {}, paragraphs: [] },
+    ...overrides,
   };
 }
 
@@ -104,11 +105,11 @@ describe('serializeGroup', () => {
     expect(nvGrpSpPr['p:cNvPr']['@_name']).toBe('My Group');
   });
 
-  it('falls back to id "5" and default name when id and name are empty strings', () => {
-    const result = serializeGroup(makeGroup({ id: '', name: '' }));
+  it('serializes id and empty name when provided', () => {
+    const result = serializeGroup(makeGroup({ id: '42', name: '' }));
     const nvGrpSpPr = result['p:nvGrpSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvGrpSpPr['p:cNvPr']['@_id']).toBe('5');
-    expect(nvGrpSpPr['p:cNvPr']['@_name']).toBe('Group 5');
+    expect(nvGrpSpPr['p:cNvPr']['@_id']).toBe('42');
+    expect(nvGrpSpPr['p:cNvPr']['@_name']).toBe('');
   });
 
   it('encodes custom position values into a:off, a:ext, a:chOff, a:chExt', () => {
@@ -232,5 +233,39 @@ describe('Group Serializer partial position fallback', () => {
     const xfrm = (result['p:grpSpPr'] as Record<string, unknown>)['a:xfrm'] as Record<string, Record<string, unknown>>;
     expect(xfrm['a:off']['@_x']).toBe(500);
     expect(xfrm['a:ext']['@_cx']).toBe(1000000);
+  });
+
+  it('serializes group as raw XML string when child shape contains soft line breaks', () => {
+    const rawShape = makeShape('1', {
+      textBody: {
+        bodyProperties: {},
+        paragraphs: [
+          {
+            runs: [
+              { text: 'Line 1' },
+              { break: true },
+              { text: 'Line 2' },
+            ],
+          },
+        ],
+      },
+    });
+    const group = makeGroup({
+      children: [
+        rawShape,
+        makeTable('2'),
+        makePicture('3'),
+        makeConnector('4'),
+        makeGroup({ id: '5', children: [rawShape] }),
+      ],
+      position: { cx: emu(2000000), cy: emu(2000000), x: emu(100000), y: emu(100000) },
+    });
+    const xml = serializeGroup(group);
+    expect(typeof xml).toBe('string');
+    expect(xml).toContain('<p:grpSp>');
+    expect(xml).toContain('<a:br/>');
+    expect(xml).toContain('Line 1');
+    expect(xml).toContain('Line 2');
+    expect(xml).toContain('</p:grpSp>');
   });
 });

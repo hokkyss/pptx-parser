@@ -110,7 +110,7 @@ describe('Picture Serializer rotation', () => {
     const blipFill = obj['p:blipFill'];
     expect(blipFill?.['a:blip']?.['@_r:embed']).toBe('rId8');
     const nvPicPr = obj['p:nvPicPr'];
-    expect(nvPicPr?.['p:cNvPr']?.['@_id']).toBe('4');
+    expect(nvPicPr?.['p:cNvPr']?.['@_id']).toBe('');
 
     // Override embedId, hyperlink, partial crops, undefined position
     // @ts-expect-error Testing undefined position

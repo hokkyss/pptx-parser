@@ -15,6 +15,7 @@ import {
   sanitizeHyperlinkTooltip,
   sanitizeSlideIndex,
 } from '@hokkyss/pptx-core';
+import { XMLBuilder } from 'fast-xml-parser';
 import { sanitizeXmlText } from '../xml/xml-builder';
 
 const ALIGNMENT_MAP: Record<string, string> = {
@@ -197,7 +198,7 @@ export function serializeBodyProperties(props?: PptxTextBodyProperties): Record<
 
   const bodyPr: Record<string, unknown> = {};
 
-  if (props.verticalAlignment) {
+  if (props.verticalAlignment && props.verticalAlignment !== 'top') {
     bodyPr['@_anchor'] = VERTICAL_ALIGNMENT_MAP[props.verticalAlignment] ?? props.verticalAlignment;
   }
   if (props.wrap) {
@@ -222,7 +223,22 @@ export function serializeBulletProperties(bullet?: PptxBullet): Record<string, u
   }
 
   if (bullet.type === 'char' && bullet.char) {
-    return { 'a:buChar': { '@_char': bullet.char } };
+    // Standard round bullets (`•` / U+2022) default to Arial with full PANOSE-1 metadata to match
+    // Microsoft PowerPoint's native template / Slide Master behavior (ECMA-376 Part 1, §21.1.2.2.2).
+    // This avoids rendering defects in custom/serif/monospaced fonts (such as tiny square dots, wide
+    // spacing, or missing glyph tofu `▯`). Non-standard glyphs default to the theme minor font (`+mn-lt`).
+    const isStandardBullet = bullet.char === '•' || bullet.char === '&#8226;' || bullet.char === '\u2022';
+    const font = bullet.fontFamily || (isStandardBullet ? 'Arial' : '+mn-lt');
+    const buFont: Record<string, unknown> = { '@_typeface': font };
+    if (font === 'Arial') {
+      buFont['@_panose'] = '020B0604020202020204';
+      buFont['@_pitchFamily'] = '34';
+      buFont['@_charset'] = '0';
+    }
+    return {
+      'a:buFont': buFont,
+      'a:buChar': { '@_char': bullet.char },
+    };
   }
 
   if (bullet.type === 'autoNum') {
@@ -348,24 +364,92 @@ export function serializeRunProperties(props?: PptxRun['properties']): Record<st
   return rPr;
 }
 
+
 /**
- * Serializes paragraph `<a:p>`.
- * Follows schema order: a:pPr -> a:r (with a:rPr then a:t) -> a:endParaRPr
+ * Content builder: entity-aware XML builder used for building individual element nodes
+ * (`<a:r>`, `<a:br>`, `<a:pPr>`, etc.) where text content and attribute values must have
+ * `&`, `<`, `>` properly escaped. Used for the raw-XML paragraph path.
  */
-export function serializeParagraph(paragraph: PptxParagraph): Record<string, unknown> {
+const _contentBuilder = new XMLBuilder({
+  attributeNamePrefix: '@_',
+  format: false,
+  ignoreAttributes: false,
+  suppressBooleanAttributes: false,
+  suppressEmptyNode: true,
+  textNodeName: '#text',
+});
+
+/**
+ * Wrap builder: used ONLY to inject a pre-built XML string as raw content into a parent
+ * tag (e.g. injecting the pre-built txBody content into `<p:txBody>...</p:txBody>`).
+ * processEntities: false prevents double-encoding of already-escaped XML strings.
+ */
+const _wrapBuilder = new XMLBuilder({
+  attributeNamePrefix: '@_',
+  format: false,
+  ignoreAttributes: false,
+  processEntities: false,
+  suppressBooleanAttributes: false,
+  suppressEmptyNode: true,
+  textNodeName: '#text',
+});
+
+/**
+ * Builds the `<a:pPr>` XML string for a paragraph's properties object.
+ * Used internally by the raw-XML paragraph path.
+ */
+function buildPPrXml(pPr: Record<string, unknown>): string {
+  if (Object.keys(pPr).length === 0) return '';
+  return _contentBuilder.build({ 'a:pPr': pPr }) as string;
+}
+
+/**
+ * Builds the XML for a single run node — either `<a:r>` or `<a:br>`.
+ * Uses `_contentBuilder` (entity-aware) so text content like `&` and `<` is correctly escaped.
+ * Used internally by the raw-XML paragraph path.
+ */
+function buildRunXml(run: PptxRun): string {
+  if (run.break === true) {
+    const brNode: Record<string, unknown> = {};
+    if (run.properties && Object.keys(run.properties).length > 0) {
+      const rPr = serializeRunProperties(run.properties);
+      if (Object.keys(rPr).length > 0) {
+        brNode['a:rPr'] = rPr;
+      }
+    }
+    return _contentBuilder.build({ 'a:br': brNode }) as string;
+  }
+
+  const rNode: Record<string, unknown> = {};
+  if (run.properties) {
+    const rPr = serializeRunProperties(run.properties);
+    if (Object.keys(rPr).length > 0) {
+      rNode['a:rPr'] = rPr;
+    }
+  }
+  rNode['a:t'] = sanitizeXmlText((run.text ?? '').replace(/[\r\n]+/g, ' '));
+  return _contentBuilder.build({ 'a:r': rNode }) as string;
+}
+
+
+/**
+ * Computes the shared `<a:pPr>` attributes and bullet properties for a paragraph,
+ * returning a plain pPr object. Used by both the object-path and raw-XML-path.
+ */
+function buildPPrObject(paragraph: PptxParagraph): Record<string, unknown> {
   const pPr: Record<string, unknown> = {};
   const props = (paragraph.properties || paragraph) as { margin?: number; indent?: number } & PptxParagraphProperties;
 
-  if (props.alignment) {
+  if (props.alignment && props.alignment !== 'left') {
     pPr['@_algn'] = ALIGNMENT_MAP[props.alignment] ?? props.alignment;
-  }
-  if (props.level !== undefined) {
-    pPr['@_lvl'] = props.level;
   }
   if (props.leftMargin !== undefined) {
     pPr['@_marL'] = Math.round(Number(props.leftMargin));
   } else if (props.margin !== undefined) {
     pPr['@_marL'] = Math.round(Number(props.margin));
+  }
+  if (props.level !== undefined && props.level > 0) {
+    pPr['@_lvl'] = props.level;
   }
   if (props.firstLineIndent !== undefined) {
     pPr['@_indent'] = Math.round(Number(props.firstLineIndent));
@@ -378,54 +462,103 @@ export function serializeParagraph(paragraph: PptxParagraph): Record<string, unk
     if (bulletNode) {
       Object.assign(pPr, bulletNode);
     }
-    if (props.bullet.type !== 'none' && pPr['@_marL'] === undefined && pPr['@_indent'] === undefined) {
-      const lvl = props.level ?? 0;
-      const isNumbering = props.bullet.type === 'autoNum';
-      // Numbered lists ("1.") use ~16pt (203200 EMU); single char bullets ("•") use ~12pt (152400 EMU)
-      const bulletGap = isNumbering ? 203200 : 152400;
-      const levelIndent = 228600; // 0.25 in per nested indentation level
-      pPr['@_marL'] = (lvl * levelIndent) + bulletGap;
-      pPr['@_indent'] = -bulletGap;
-    }
   }
 
-  const runs = (paragraph.runs || []).map((run: PptxRun) => {
-    const rNode: Record<string, unknown> = {};
-    if (run.properties) {
-      const rPr = serializeRunProperties(run.properties);
-      if (Object.keys(rPr).length > 0) {
-        rNode['a:rPr'] = rPr;
+  return pPr;
+}
+
+/**
+ * Serializes paragraph `<a:p>`.
+ * Follows schema order: a:pPr -> a:r / a:br (with a:rPr then a:t) -> a:endParaRPr
+ *
+ * Returns a plain object for pure-text-run paragraphs (fast path), or a raw XML string
+ * for paragraphs containing line breaks (`{ break: true }` runs) to preserve exact element order.
+ */
+export function serializeParagraph(paragraph: PptxParagraph): Record<string, unknown> | string {
+  const runs = paragraph.runs || [];
+  const hasBreaks = runs.some((r) => r.break === true);
+
+  const pPr = buildPPrObject(paragraph);
+
+  if (!hasBreaks) {
+    // Fast path: only text runs — return a plain JS object for fast-xml-parser to handle
+    const textRuns = runs.map((run: PptxRun) => {
+      const rNode: Record<string, unknown> = {};
+      if (run.properties) {
+        const rPr = serializeRunProperties(run.properties);
+        if (Object.keys(rPr).length > 0) {
+          rNode['a:rPr'] = rPr;
+        }
       }
+      // Strict OpenXML compliance: <a:t> must not have raw newlines or invalid XML 1.0 control characters
+      rNode['a:t'] = sanitizeXmlText((run.text ?? '').replace(/[\r\n]+/g, ' '));
+      return rNode;
+    });
+
+    const pNode: Record<string, unknown> = {};
+    if (Object.keys(pPr).length > 0) {
+      pNode['a:pPr'] = pPr;
     }
-    // Strict OpenXML compliance: <a:t> must not have raw newlines or invalid XML 1.0 control characters
-    rNode['a:t'] = sanitizeXmlText((run.text ?? '').replace(/[\r\n]+/g, ' '));
-    return rNode;
-  });
-
-  const pNode: Record<string, unknown> = {};
-  if (Object.keys(pPr).length > 0) {
-    pNode['a:pPr'] = pPr;
+    if (textRuns.length > 0) {
+      pNode['a:r'] = textRuns;
+    } else {
+      pNode['a:endParaRPr'] = {};
+    }
+    return pNode;
   }
 
-  if (runs.length > 0) {
-    pNode['a:r'] = runs;
-  } else {
-    pNode['a:endParaRPr'] = {};
-  }
-
-  return pNode;
+  // Raw-XML path: paragraph has line breaks — build raw XML to preserve interleaved element order
+  const pPrXml = buildPPrXml(pPr);
+  const runsXml = runs.map(buildRunXml).join('');
+  return `<a:p>${pPrXml}${runsXml}</a:p>`;
 }
 
 /**
  * Serializes complete `<p:txBody>` or `<a:txBody>`.
+ *
+ * When all paragraphs are plain objects, returns a structured JS object (default fast path).
+ * When any paragraph contains line breaks, falls back to a raw XML string approach to
+ * correctly preserve the interleaved `<a:r>` / `<a:br>` element order in the output.
+ * In this case, the returned string contains only the INNER content (without `<p:txBody>` wrapper).
+ * Callers that assign this to an object key must use `_wrapBuilder` (processEntities: false)
+ * when building the final shape XML, which `shape-serializer.ts` does automatically via the
+ * `serializeShapeWithTextBody` helper.
  */
-export function serializeTextBody(textBody: PptxTextBody): Record<string, unknown> {
+export function serializeTextBody(textBody: PptxTextBody): Record<string, unknown> | string {
   const bodyPr = serializeBodyProperties(textBody.bodyProperties);
   const paragraphs = (textBody.paragraphs || []).map(serializeParagraph);
 
-  return {
-    'a:bodyPr': Object.keys(bodyPr).length > 0 ? bodyPr : {},
-    'a:lstStyle': {},
-    'a:p': paragraphs.length > 0 ? paragraphs : [{ 'a:pPr': {}, 'a:endParaRPr': {} }],
-  };
+  const hasRawParagraphs = paragraphs.some((p) => typeof p === 'string');
+
+  if (!hasRawParagraphs) {
+    // Fast path: return a plain JS object
+    return {
+      'a:bodyPr': Object.keys(bodyPr).length > 0 ? bodyPr : {},
+      'a:lstStyle': {},
+      'a:p': (paragraphs as Record<string, unknown>[]).length > 0
+        ? paragraphs as Record<string, unknown>[]
+        : [{ 'a:pPr': {}, 'a:endParaRPr': {} }],
+    };
+  }
+
+  // Raw-XML path: at least one paragraph has a line break — build the entire txBody inner content as raw XML.
+  // Use _contentBuilder (entity-aware) for bodyPr and plain paragraphs, since their content may have
+  // text values that need entity encoding. The pre-built paragraph strings (returned by serializeParagraph)
+  // are already correctly encoded, so they are concatenated as-is.
+  const bodyPrXml = _contentBuilder.build({ 'a:bodyPr': Object.keys(bodyPr).length > 0 ? bodyPr : {} }) as string;
+  const lstStyleXml = '<a:lstStyle/>';
+
+  const paragraphsXml = paragraphs.length > 0
+    ? paragraphs.map((p) => (typeof p === 'string' ? p : (_contentBuilder.build({ 'a:p': p }) as string))).join('')
+    : '<a:p><a:pPr/><a:endParaRPr/></a:p>';
+
+  return `${bodyPrXml}${lstStyleXml}${paragraphsXml}`;
 }
+
+/**
+ * Re-exported `_wrapBuilder` for use by callers that need to inject `serializeTextBody`'s
+ * raw XML string result into a parent object (e.g. `shape-serializer.ts`).
+ * This builder has `processEntities: false` so it does not double-encode pre-built XML strings.
+ * @internal
+ */
+export { _wrapBuilder as _rawXmlWrapBuilder };

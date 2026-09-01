@@ -25,7 +25,7 @@ export function createXmlParser(): XmlParser {
       const arrayElements = [
         'p:sp', 'p:pic', 'p:graphicFrame', 'p:grpSp', 'p:cxnSp',
         'p:sldId', 'p:sldMasterId', 'p:notesMasterId', 'p:handoutMasterId',
-        'a:p', 'a:r', 'a:tr', 'a:tc', 'c:ser', 'c:pt', 'Relationship',
+        'a:p', 'a:r', 'a:br', 'a:tr', 'a:tc', 'c:ser', 'c:pt', 'Relationship',
         'Override', 'Default', 'a:gs', 'p15:guide', 'a:custClr', 'a:extraClrScheme',
       ];
       return arrayElements.includes(name);
