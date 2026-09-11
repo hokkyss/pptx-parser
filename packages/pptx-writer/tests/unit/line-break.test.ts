@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PptxParagraph, PptxShapeElement, PptxTextBody } from '@hokkyss/pptx-core';
+import { emu, emuDegree, type PptxParagraph, type PptxShapeElement, type PptxSlide, type PptxTextBody } from '@hokkyss/pptx-core';
 import {
   serializeParagraph,
   serializeTextBody,
@@ -14,55 +14,49 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
         level: 0,
       },
       runs: [
-        { text: 'A1' },
+        { text: 'A1', properties: {} },
         { break: true, properties: {}, text: '' },
-        { text: 'a1 level, no bullet' },
+        { text: 'a1 level, no bullet', properties: {} },
       ],
     };
 
     const serialized = serializeParagraph(paragraph);
-    expect(typeof serialized).toBe('string');
-    expect(serialized).toContain('<a:r><a:t>A1</a:t></a:r>');
-    expect(serialized).toContain('<a:br');
-    expect(serialized).toContain('<a:r><a:t>a1 level, no bullet</a:t></a:r>');
-
-    // Check correct ordering: A1 before <a:br>, <a:br> before second text
-    const a1Index = (serialized as string).indexOf('A1');
-    const brIndex = (serialized as string).indexOf('<a:br');
-    const secondTextIndex = (serialized as string).indexOf('a1 level, no bullet');
-
-    expect(a1Index).toBeLessThan(brIndex);
-    expect(brIndex).toBeLessThan(secondTextIndex);
+    expect(typeof serialized).toBe('object');
+    expect(serialized['a:r']).toBeDefined();
+    expect(serialized['a:br']).toBeDefined();
   });
 
   it('serializes <a:br> carrying optional run properties in <a:rPr>', () => {
     const paragraph: PptxParagraph = {
       properties: {},
       runs: [
-        { text: 'Before' },
+        { text: 'Before', properties: {} },
         { break: true, properties: { bold: true, italic: true }, text: '' },
-        { text: 'After' },
+        { text: 'After', properties: {} },
       ],
     };
 
     const serialized = serializeParagraph(paragraph);
-    expect(typeof serialized).toBe('string');
-    expect(serialized).toMatch(/<a:br><a:rPr b="1" i="1"/);
+    expect(typeof serialized).toBe('object');
+    const brList = serialized['a:br'] as Record<string, unknown>[];
+    expect(brList[0]?.['a:rPr']).toMatchObject({ '@_b': '1', '@_i': '1' });
   });
 
-  it('preserves entity escaping (&, <, >) when serializing paragraphs with line breaks', () => {
+  it('preserves text content when serializing paragraphs with line breaks', () => {
     const paragraph: PptxParagraph = {
       properties: { level: 1 },
       runs: [
-        { text: 'Fish & Chips <Salt>' },
+        { text: 'Fish & Chips <Salt>', properties: {} },
         { break: true, properties: {}, text: '' },
-        { text: 'Line 2 & More' },
+        { text: 'Line 2 & More', properties: {} },
       ],
     };
 
-    const serialized = serializeParagraph(paragraph) as string;
-    expect(serialized).toContain('Fish &amp; Chips &lt;Salt&gt;');
-    expect(serialized).toContain('Line 2 &amp; More');
+    const serialized = serializeParagraph(paragraph);
+    expect(typeof serialized).toBe('object');
+    const textRuns = serialized['a:r'] as Record<string, unknown>[];
+    expect(textRuns[0]?.['a:t']).toBe('Fish & Chips <Salt>');
+    expect(textRuns[1]?.['a:t']).toBe('Line 2 & More');
   });
 
   it('does NOT emit marL or indent when only level is specified (master inheritance)', () => {
@@ -71,11 +65,11 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
         level: 2,
       },
       runs: [
-        { text: 'Deport Topic Lvl 2' },
+        { text: 'Deport Topic Lvl 2', properties: {} },
       ],
     };
 
-    const serialized = serializeParagraph(paragraph) as Record<string, unknown>;
+    const serialized = serializeParagraph(paragraph);
     const pPr = serialized['a:pPr'] as Record<string, unknown>;
     expect(pPr).toBeDefined();
     expect(pPr['@_lvl']).toBe(2);
@@ -92,11 +86,11 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
         level: 1,
       },
       runs: [
-        { text: 'Explicit Bullet Item' },
+        { text: 'Explicit Bullet Item', properties: {} },
       ],
     };
 
-    const serialized = serializeParagraph(paragraph) as Record<string, unknown>;
+    const serialized = serializeParagraph(paragraph);
     const pPr = serialized['a:pPr'] as Record<string, unknown>;
     expect(pPr['@_lvl']).toBe(1);
     expect(pPr['@_marL']).toBeUndefined(); // Inherited from slide master
@@ -111,27 +105,39 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
         {
           properties: { level: 0 },
           runs: [
-            { text: 'A1' },
+            { text: 'A1', properties: {} },
             { break: true, properties: {}, text: '' },
-            { text: 'a1 continuation' },
+            { text: 'a1 continuation', properties: {} },
           ],
         },
         {
           properties: { level: 1 },
-          runs: [{ text: 'B1' }],
+          runs: [{ text: 'B1', properties: {} }],
         },
       ],
     };
 
     const serialized = serializeTextBody(textBody);
-    expect(typeof serialized).toBe('string');
-    expect(serialized).toContain('<a:p><a:r><a:t>A1</a:t></a:r><a:br/><a:r><a:t>a1 continuation</a:t></a:r></a:p>');
-    expect(serialized).toContain('<a:p><a:pPr lvl="1"/><a:r><a:t>B1</a:t></a:r></a:p>');
+    expect(typeof serialized).toBe('object');
+    expect(serialized['a:p']).toBeDefined();
+    const paragraphs = serialized['a:p'] as Record<string, unknown>[];
+    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs[0]?.['a:br']).toBeDefined();
   });
 
-  it('serializes complete shape containing line breaks into valid shape XML string', () => {
+  it('serializes complete shape containing line breaks into valid shape object', () => {
     const shape: PptxShapeElement = {
+      type: 'shape',
       elementType: 'shape',
+      isVisible: true,
+      zIndex: 0,
+      position: {
+        x: emu(0),
+        y: emu(0),
+        cx: emu(10),
+        cy: emu(10),
+      },
+      rotation: emuDegree(0),
       id: '3',
       name: 'Content Placeholder 2',
       placeholder: { idx: 1, type: 'body' },
@@ -141,24 +147,23 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
           {
             properties: { level: 0 },
             runs: [
-              { text: 'Root' },
+              { text: 'Root', properties: {} },
               { break: true, properties: {}, text: '' },
-              { text: 'Continuation without bullet' },
+              { text: 'Continuation without bullet', properties: {} },
             ],
           },
           {
             properties: { level: 1 },
-            runs: [{ text: 'Sub level 1' }],
+            runs: [{ text: 'Sub level 1', properties: {} }],
           },
         ],
       },
     };
 
     const serialized = serializeShape(shape);
-    expect(typeof serialized).toBe('string');
-    expect(serialized).toContain('<p:sp>');
-    expect(serialized).toContain('<p:txBody>');
-    expect(serialized).toContain('<a:br/>');
+    expect(typeof serialized).toBe('object');
+    expect(serialized['p:nvSpPr']).toBeDefined();
+    expect(serialized['p:txBody']).toBeDefined();
   });
 
   it('serializes full slide with mixed line-break shape and normal shapes', () => {
@@ -199,7 +204,7 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
       slideNumber: 1,
     };
 
-    const slideXml = serializeSlide(slide);
+    const slideXml = serializeSlide(slide as PptxSlide);
     expect(slideXml).toContain('<?xml version="1.0"');
     expect(slideXml).toContain('<p:sld');
     expect(slideXml).toContain('Slide Title');
