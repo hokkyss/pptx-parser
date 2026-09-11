@@ -398,5 +398,3 @@ export interface PptxDocument {
   /** Themes. OpenXML: `ppt/theme/theme*.xml` */
   themes: PptxTheme[];
 }
-
-
