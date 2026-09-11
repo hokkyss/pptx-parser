@@ -165,4 +165,3 @@ describe('parseParagraph fields and number text nodes', () => {
     expect(parsed.runs[1].properties?.bold).toBe(true);
   });
 });
-
