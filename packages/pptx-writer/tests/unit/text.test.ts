@@ -565,4 +565,3 @@ describe('Soft line breaks (<a:br>) and sequential interleaving', () => {
     expect(numXml).toContain('indent="-300000"');
   });
 });
-

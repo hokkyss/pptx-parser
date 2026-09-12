@@ -349,4 +349,3 @@ describe('Multilevel Text Bullets API', () => {
     expect(presentationXml).toContain('marL="3657600"');
   });
 });
-

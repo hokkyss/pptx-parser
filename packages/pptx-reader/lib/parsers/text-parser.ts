@@ -161,8 +161,6 @@ export function parseParagraph(
     }
   }
 
-
-
   const properties: PptxParagraphProperties = {
     alignment,
     bullet,

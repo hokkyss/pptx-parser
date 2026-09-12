@@ -8,6 +8,10 @@ export interface PresentationSerializerOptions {
   slideRelIds: string[];
 }
 
+/**
+ * Builds the default text style element with level 1 through 9 paragraph properties.
+ * @returns XmlElement for defaultTextStyle.
+ */
 function buildDefaultTextStyle(): XmlElement {
   const children: XmlElement[] = [
     el('a:defPPr', [
