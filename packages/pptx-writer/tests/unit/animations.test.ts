@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PptxAnimation } from '@hokkyss/pptx-core';
+import type { XmlElement } from '../../lib/xml/xml-element';
 import { serializeAnimations } from '../../lib/serializers/animation-serializer';
 
 /**
@@ -15,73 +16,38 @@ function makeAnim(overrides: Partial<PptxAnimation> = {}): PptxAnimation {
   };
 }
 
-interface AnimationInnerBehavior {
-  'p:cBhvr'?: {
-    'p:cTn'?: {
-      '@_id'?: number;
-    };
-    'p:tgtEl'?: {
-      'p:spTgt'?: {
-        '@_spid'?: string;
-      };
-    };
-  };
-}
-
-interface AnimationCTnNode {
-  '@_dur'?: number | string;
-  '@_id'?: number | string;
-  '@_nodeType'?: string;
-  '@_restart'?: string;
-  'p:childTnLst'?: {
-    'p:set'?: AnimationInnerBehavior;
-  };
-  'p:stCondLst'?: {
-    'p:cond'?: {
-      '@_delay'?: number | string;
-      '@_evt'?: string;
-    };
-  };
-}
-
-interface AnimationNodeItem {
-  'p:cMediaNode'?: {
-    'p:cTn'?: AnimationCTnNode;
-  };
-}
-
-interface AnimationTimingTree {
-  'p:tnLst'?: {
-    'p:par'?: {
-      'p:cTn'?: {
-        '@_dur'?: string;
-        '@_id'?: string;
-        '@_nodeType'?: string;
-        '@_restart'?: string;
-        'p:childTnLst'?: {
-          'p:seq'?: {
-            'p:cTn'?: {
-              'p:childTnLst'?: AnimationNodeItem[];
-            };
-          };
-        };
-      };
-    };
-  };
+/**
+ *
+ */
+function findElement(root: undefined | XmlElement, tag: string): undefined | XmlElement {
+  if (!root) return undefined;
+  if (root.tag === tag) return root;
+  if (root.children) {
+    for (const child of root.children) {
+      if (typeof child === 'object' && 'tag' in child) {
+        const found = findElement(child, tag);
+        if (found) return found;
+      }
+    }
+  }
+  return undefined;
 }
 
 /**
- * Extracts animation node array from serialized timing tree.
+ *
  */
-function getAnimNodes(result: AnimationTimingTree | undefined): AnimationNodeItem[] {
-  return result?.['p:tnLst']?.['p:par']?.['p:cTn']?.['p:childTnLst']?.['p:seq']?.['p:cTn']?.['p:childTnLst'] || [];
-}
-
-/**
- * Retrieves the first cTn node from an animation node list.
- */
-function getFirstCTn(nodes: AnimationNodeItem[]): AnimationCTnNode {
-  return nodes[0]?.['p:cMediaNode']?.['p:cTn'] || {};
+function findElements(root: undefined | XmlElement, tag: string): XmlElement[] {
+  const result: XmlElement[] = [];
+  if (!root) return result;
+  if (root.tag === tag) result.push(root);
+  if (root.children) {
+    for (const child of root.children) {
+      if (typeof child === 'object' && 'tag' in child) {
+        result.push(...findElements(child, tag));
+      }
+    }
+  }
+  return result;
 }
 
 describe('serializeAnimations', () => {
@@ -96,70 +62,79 @@ describe('serializeAnimations', () => {
   it('returns a timing tree object for a non-empty array', () => {
     const result = serializeAnimations([makeAnim()]);
     expect(result).toBeDefined();
-    expect(result).toHaveProperty('p:tnLst');
+    expect(result?.tag).toBe('p:timing');
+    expect(findElement(result, 'p:tnLst')).toBeDefined();
   });
 
   it('produces the standard tnLst > par > cTn wrapper structure', () => {
-    const result = serializeAnimations([makeAnim()]) as AnimationTimingTree;
-    const tnLst = result['p:tnLst'];
-    expect(tnLst).toHaveProperty('p:par');
-    const cTn = tnLst?.['p:par']?.['p:cTn'];
-    expect(cTn?.['@_dur']).toBe('indefinite');
-    expect(cTn?.['@_id']).toBe('1');
-    expect(cTn?.['@_nodeType']).toBe('tmRoot');
-    expect(cTn?.['@_restart']).toBe('never');
+    const result = serializeAnimations([makeAnim()]);
+    const par = findElement(result, 'p:par');
+    expect(par).toBeDefined();
+    const cTn = findElement(par, 'p:cTn');
+    expect(cTn?.attrs?.dur).toBe('indefinite');
+    expect(cTn?.attrs?.id).toBe('1');
+    expect(cTn?.attrs?.nodeType).toBe('tmRoot');
+    expect(cTn?.attrs?.restart).toBe('never');
   });
 
   it('maps onClick trigger to clickEffect nodeType', () => {
-    const result = serializeAnimations([makeAnim({ trigger: 'onClick' })]) as AnimationTimingTree;
-    expect(getFirstCTn(getAnimNodes(result))['@_nodeType']).toBe('clickEffect');
+    const result = serializeAnimations([makeAnim({ trigger: 'onClick' })]);
+    const mediaNode = findElement(result, 'p:cMediaNode');
+    const cTn = findElement(mediaNode, 'p:cTn');
+    expect(cTn?.attrs?.nodeType).toBe('clickEffect');
   });
 
   it('maps withPrevious trigger to withEffect nodeType', () => {
-    const result = serializeAnimations([makeAnim({ trigger: 'withPrevious' })]) as AnimationTimingTree;
-    expect(getFirstCTn(getAnimNodes(result))['@_nodeType']).toBe('withEffect');
+    const result = serializeAnimations([makeAnim({ trigger: 'withPrevious' })]);
+    const mediaNode = findElement(result, 'p:cMediaNode');
+    const cTn = findElement(mediaNode, 'p:cTn');
+    expect(cTn?.attrs?.nodeType).toBe('withEffect');
   });
 
   it('maps afterPrevious trigger to afterEffect nodeType', () => {
-    const result = serializeAnimations([makeAnim({ trigger: 'afterPrevious' })]) as AnimationTimingTree;
-    expect(getFirstCTn(getAnimNodes(result))['@_nodeType']).toBe('afterEffect');
+    const result = serializeAnimations([makeAnim({ trigger: 'afterPrevious' })]);
+    const mediaNode = findElement(result, 'p:cMediaNode');
+    const cTn = findElement(mediaNode, 'p:cTn');
+    expect(cTn?.attrs?.nodeType).toBe('afterEffect');
   });
 
   it('maps any other trigger value to clickEffect', () => {
-    const result = serializeAnimations([makeAnim({ trigger: 'somethingElse' })]) as AnimationTimingTree;
-    expect(getFirstCTn(getAnimNodes(result))['@_nodeType']).toBe('clickEffect');
+    const result = serializeAnimations([makeAnim({ trigger: 'somethingElse' })]);
+    const mediaNode = findElement(result, 'p:cMediaNode');
+    const cTn = findElement(mediaNode, 'p:cTn');
+    expect(cTn?.attrs?.nodeType).toBe('clickEffect');
   });
 
   it('defaults duration to 500 when not specified', () => {
-    const result = serializeAnimations([makeAnim()]) as AnimationTimingTree;
-    expect(getFirstCTn(getAnimNodes(result))['@_dur']).toBe(500);
+    const result = serializeAnimations([makeAnim()]);
+    const mediaNode = findElement(result, 'p:cMediaNode');
+    const cTn = findElement(mediaNode, 'p:cTn');
+    expect(cTn?.attrs?.dur).toBe(500);
   });
 
   it('uses custom duration when specified', () => {
-    const result = serializeAnimations([makeAnim({ duration: 1200 })]) as AnimationTimingTree;
-    expect(getFirstCTn(getAnimNodes(result))['@_dur']).toBe(1200);
+    const result = serializeAnimations([makeAnim({ duration: 1200 })]);
+    const mediaNode = findElement(result, 'p:cMediaNode');
+    const cTn = findElement(mediaNode, 'p:cTn');
+    expect(cTn?.attrs?.dur).toBe(1200);
   });
 
   it('defaults delay to 0 when not specified', () => {
-    const result = serializeAnimations([makeAnim()]) as AnimationTimingTree;
-    const cTn = getFirstCTn(getAnimNodes(result));
-    const stCond = cTn['p:stCondLst']?.['p:cond'];
-    expect(stCond?.['@_delay']).toBe(0);
+    const result = serializeAnimations([makeAnim()]);
+    const cond = findElement(result, 'p:cond');
+    expect(cond?.attrs?.delay).toBe(0);
   });
 
   it('uses custom delay when specified', () => {
-    const result = serializeAnimations([makeAnim({ delay: 750 })]) as AnimationTimingTree;
-    const cTn = getFirstCTn(getAnimNodes(result));
-    const stCond = cTn['p:stCondLst']?.['p:cond'];
-    expect(stCond?.['@_delay']).toBe(750);
+    const result = serializeAnimations([makeAnim({ delay: 750 })]);
+    const cond = findElement(result, 'p:cond');
+    expect(cond?.attrs?.delay).toBe(750);
   });
 
   it('propagates targetShapeId into the spTgt node', () => {
-    const result = serializeAnimations([makeAnim({ targetShapeId: 'sp-42' })]) as AnimationTimingTree;
-    const nodes = getAnimNodes(result);
-    const set = nodes[0]?.['p:cMediaNode']?.['p:cTn']?.['p:childTnLst']?.['p:set'];
-    const spTgt = set?.['p:cBhvr']?.['p:tgtEl']?.['p:spTgt'];
-    expect(spTgt?.['@_spid']).toBe('sp-42');
+    const result = serializeAnimations([makeAnim({ targetShapeId: 'sp-42' })]);
+    const spTgt = findElement(result, 'p:spTgt');
+    expect(spTgt?.attrs?.spid).toBe('sp-42');
   });
 
   it('assigns sequential @_id (1-based) to each animation node', () => {
@@ -167,22 +142,22 @@ describe('serializeAnimations', () => {
       makeAnim({ targetShapeId: 'a' }),
       makeAnim({ targetShapeId: 'b' }),
       makeAnim({ targetShapeId: 'c' }),
-    ]) as AnimationTimingTree;
-    const nodes = getAnimNodes(result);
-    expect(nodes).toHaveLength(3);
-    nodes.forEach((node, i) => {
-      const cTn = getFirstCTn([node]);
-      expect(cTn['@_id']).toBe(i + 1);
+    ]);
+    const mediaNodes = findElements(result, 'p:cMediaNode');
+    expect(mediaNodes).toHaveLength(3);
+    mediaNodes.forEach((node, i) => {
+      const cTn = findElement(node, 'p:cTn');
+      expect(cTn?.attrs?.id).toBe(i + 1);
     });
   });
 
   it('uses (idx+1)*10 as inner cTn @_id for shape behavior', () => {
-    const result = serializeAnimations([makeAnim(), makeAnim()]) as AnimationTimingTree;
-    const nodes = getAnimNodes(result);
+    const result = serializeAnimations([makeAnim(), makeAnim()]);
+    const mediaNodes = findElements(result, 'p:cMediaNode');
     [10, 20].forEach((expectedId, i) => {
-      const set = nodes[i]?.['p:cMediaNode']?.['p:cTn']?.['p:childTnLst']?.['p:set'];
-      const innerCTn = set?.['p:cBhvr']?.['p:cTn'];
-      expect(innerCTn?.['@_id']).toBe(expectedId);
+      const cBhvr = findElement(mediaNodes[i], 'p:cBhvr');
+      const innerCTn = findElement(cBhvr, 'p:cTn');
+      expect(innerCTn?.attrs?.id).toBe(expectedId);
     });
   });
 });

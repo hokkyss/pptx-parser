@@ -11,6 +11,7 @@ import {
   serializeRunProperties,
   serializeTextBody,
 } from '../../lib/serializers/text-serializer';
+import { renderXml } from '../../lib/xml/xml-element';
 
 describe('Text Body Serializer', () => {
   it('serializes text body with paragraph alignment, line spacing, runs, formatting, and colors', () => {
@@ -54,29 +55,29 @@ describe('Text Body Serializer', () => {
       ],
     };
 
-    const xmlObject = serializeTextBody(textBody);
-    expect(xmlObject).toBeDefined();
+    const xmlNode = serializeTextBody(textBody);
+    expect(xmlNode).toBeDefined();
+    const xml = renderXml(xmlNode);
 
-    const bodyPr = xmlObject['a:bodyPr'] as Record<string, unknown>;
-    expect(bodyPr['@_anchor']).toBe('ctr');
-    expect(bodyPr['@_wrap']).toBe('square');
+    // bodyPr
+    expect(xml).toContain('anchor="ctr"');
+    expect(xml).toContain('wrap="square"');
 
-    const paragraphs = xmlObject['a:p'] as Record<string, unknown>[];
-    const p = paragraphs[0];
-    const pPr = p['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_algn']).toBe('ctr');
-    expect(pPr['a:buNone']).toBeDefined();
+    // paragraph alignment
+    expect(xml).toContain('algn="ctr"');
+    // buNone for bullet: none
+    expect(xml).toContain('<a:buNone/>');
 
-    const runs = p['a:r'] as Record<string, Record<string, unknown>>[];
-    expect(runs[0]['a:t']).toBe('Hello ');
-    expect(runs[0]['a:rPr']['@_b']).toBe('1');
-    expect(runs[0]['a:rPr']['@_sz']).toBe(2400);
-    expect((runs[0]['a:rPr']['a:solidFill'] as Record<string, Record<string, unknown>>)['a:srgbClr']['@_val']).toBe('FF0000');
+    // runs
+    expect(xml).toContain('>Hello <');
+    expect(xml).toContain('b="1"');
+    expect(xml).toContain('sz="2400"');
+    expect(xml).toContain('val="FF0000"');
 
-    expect(runs[1]['a:t']).toBe('World!');
-    expect(runs[1]['a:rPr']['@_i']).toBe('1');
-    expect(runs[1]['a:rPr']['@_u']).toBe('sng');
-    expect((runs[1]['a:rPr']['a:solidFill'] as Record<string, Record<string, unknown>>)['a:srgbClr']['@_val']).toBe('0000FF');
+    expect(xml).toContain('>World!</');
+    expect(xml).toContain('i="1"');
+    expect(xml).toContain('u="sng"');
+    expect(xml).toContain('val="0000FF"');
   });
 
   it('sanitizes invalid XML 1.0 control characters in text runs preventing PowerPoint corruption', () => {
@@ -95,10 +96,9 @@ describe('Text Body Serializer', () => {
       ],
     };
 
-    const xmlObject = serializeTextBody(textBody);
-    const p = (xmlObject['a:p'] as Record<string, unknown>[])[0];
-    const runs = p['a:r'] as Record<string, Record<string, unknown>>[];
-    expect(runs[0]['a:t']).toBe('CleanTextWithControlChars!');
+    const xml = renderXml(serializeTextBody(textBody));
+    expect(xml).toContain('CleanTextWithControlChars!');
+    expect(xml).not.toContain('\x00');
   });
 });
 
@@ -116,9 +116,10 @@ describe('Text & Fill Serializer extended coverage', () => {
       },
       type: 'gradient',
     });
-    expect(radialFill?.['a:gradFill']).toBeDefined();
-    const gradFillNode = radialFill?.['a:gradFill'] as Record<string, string> | undefined;
-    expect(gradFillNode?.['@_flip']).toBe('xy');
+    expect(radialFill).toBeDefined();
+    const radialXml = renderXml(radialFill);
+    expect(radialXml).toContain('flip="xy"');
+    expect(radialXml).toContain('<a:gradFill');
 
     const pathFill = serializeFill({
       gradient: {
@@ -128,8 +129,8 @@ describe('Text & Fill Serializer extended coverage', () => {
       },
       type: 'gradient',
     });
-    const pathGradNode = pathFill?.['a:gradFill'] as Record<string, Record<string, string>> | undefined;
-    expect(pathGradNode?.['a:path']?.['@_path']).toBe('rect');
+    const pathXml = renderXml(pathFill);
+    expect(pathXml).toContain('path="rect"');
   });
 
   it('serializes subscript, superscript, strikethrough, and baseline', () => {
@@ -138,8 +139,10 @@ describe('Text & Fill Serializer extended coverage', () => {
       strikethrough: true,
       subscript: true,
     });
-    expect(rPr['@_strike']).toBe('sngStrike');
-    expect(rPr['@_baseline']).toBe(-25000);
+    expect(rPr).toBeDefined();
+    const xml = renderXml(rPr);
+    expect(xml).toContain('strike="sngStrike"');
+    expect(xml).toContain('baseline="-25000"');
   });
 });
 
@@ -152,12 +155,13 @@ describe('Paragraph serializer bullets and empty runs', () => {
       },
       runs: [{ properties: {}, text: 'Item' }],
     });
-    expect(autoNumPara['a:pPr']).toBeDefined();
-    const pPr = autoNumPara['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_marL']).toBe((2 * 228600) + 203200);
+    const xml = renderXml(autoNumPara);
+    const expectedMarL = (2 * 228600) + 203200;
+    expect(xml).toContain(`marL="${expectedMarL}"`);
 
     const emptyPara = serializeParagraph({ properties: {}, runs: [] });
-    expect(emptyPara['a:endParaRPr']).toEqual({});
+    const emptyXml = renderXml(emptyPara);
+    expect(emptyXml).toContain('<a:endParaRPr/>');
   });
 });
 
@@ -165,9 +169,9 @@ describe('Paragraph serializer margin and indent legacy fallbacks', () => {
   it('serializes margin and indent from legacy paragraph properties', () => {
     // @ts-expect-error Testing legacy margin/indent property fallbacks
     const p = serializeParagraph({ indent: -50000, margin: 150000, runs: [{ properties: {}, text: 'Legacy' }] });
-    const pPr = p['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_marL']).toBe(150000);
-    expect(pPr['@_indent']).toBe(-50000);
+    const xml = renderXml(p);
+    expect(xml).toContain('marL="150000"');
+    expect(xml).toContain('indent="-50000"');
   });
 });
 
@@ -177,8 +181,10 @@ describe('Text Serializer color objects and paragraph insets', () => {
       color: 'accent1',
       superscript: true,
     });
-    expect(rPr['@_baseline']).toBe('30000');
-    expect(rPr['a:solidFill']).toBeDefined();
+    expect(rPr).toBeDefined();
+    const rPrXml = renderXml(rPr);
+    expect(rPrXml).toContain('baseline="30000"');
+    expect(rPrXml).toContain('<a:solidFill>');
 
     const p = serializeParagraph({
       properties: {
@@ -187,25 +193,34 @@ describe('Text Serializer color objects and paragraph insets', () => {
       },
       runs: [{ properties: {}, text: 'Indented' }],
     });
-    const pPr = p['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_marL']).toBe(300000);
-    expect(pPr['@_indent']).toBe(-150000);
+    const pXml = renderXml(p);
+    expect(pXml).toContain('marL="300000"');
+    expect(pXml).toContain('indent="-150000"');
   });
 });
 
 describe('Text Serializer subscript baseline', () => {
   it('sets baseline to -25000 when subscript is true without explicit baseline', () => {
     const rPr = serializeRunProperties({ subscript: true });
-    expect(rPr['@_baseline']).toBe('-25000');
+    expect(rPr).toBeDefined();
+    const xml = renderXml(rPr);
+    expect(xml).toContain('baseline="-25000"');
   });
 });
 
 describe('Text Serializer char bullet and fill fallbacks', () => {
   it('serializes char bullet with explicit character and handles empty bodyProperties/fill fallbacks', () => {
     const charBullet = serializeBulletProperties({ char: '•', type: 'char' });
-    expect(charBullet?.['a:buChar']).toEqual({ '@_char': '•' });
+    expect(charBullet).toBeDefined();
+    const xml = renderXml(charBullet);
+    expect(xml).toContain('char="•"');
+    expect(xml).toContain('<a:buChar');
 
-    expect(serializeBodyProperties(undefined)).toEqual({});
+    // serializeBodyProperties(undefined) returns an empty <a:bodyPr/> element
+    const emptyBodyPr = serializeBodyProperties(undefined);
+    const emptyXml = renderXml(emptyBodyPr);
+    expect(emptyXml).toBe('<a:bodyPr/>');
+
     // @ts-expect-error Testing unsupported fill type
     expect(serializeFill({ type: 'unsupported' })).toBeUndefined();
     expect(serializeFill(undefined)).toBeUndefined();
@@ -214,29 +229,32 @@ describe('Text Serializer char bullet and fill fallbacks', () => {
 
 describe('Text Serializer noFill and large angle gradients', () => {
   it('serializes noFill and raw angle values in gradient fills', () => {
-    expect(serializeFill({ type: 'none' })).toEqual({ 'a:noFill': {} });
+    const noFill = serializeFill({ type: 'none' });
+    expect(noFill).toBeDefined();
+    expect(renderXml(noFill)).toBe('<a:noFill/>');
 
     const largeAngleFill = serializeFill({
       gradient: { angle: 5400000, stops: [] },
       type: 'gradient',
     });
-    const lin = (largeAngleFill?.['a:gradFill'] as Record<string, Record<string, unknown>>)?.['a:lin'];
-    expect(lin?.['@_ang']).toBe(5400000);
+    const linXml = renderXml(largeAngleFill);
+    expect(linXml).toContain('ang="5400000"');
   });
 });
 
 describe('Text Serializer color node alpha and string fallbacks', () => {
   it('serializes color object with alpha and unrecognized color string fallbacks', () => {
     const clrWithAlpha = serializeColorNode({ alpha: thousandthsPercent(50000), type: 'srgb', value: 'FF0000' });
-    expect(clrWithAlpha['a:srgbClr']).toBeDefined();
-    expect((clrWithAlpha['a:srgbClr'] as Record<string, Record<string, unknown>>)['a:alpha']?.['@_val']).toBe(50000);
+    const xml = renderXml(clrWithAlpha);
+    expect(xml).toContain('<a:srgbClr');
+    expect(xml).toContain('val="50000"');
 
     const fallbackClr = serializeColorNode('custom-named-color');
-    expect(fallbackClr['a:srgbClr']).toBeDefined();
+    expect(renderXml(fallbackClr)).toContain('<a:srgbClr');
   });
 
   it('covers rich text runs, line spacing in points and percentage', () => {
-    const tBodyObj = serializeTextBody({
+    const tBodyNode = serializeTextBody({
       bodyProperties: { verticalAlignment: 'middle' },
       paragraphs: [
         {
@@ -267,7 +285,8 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
         },
       ],
     });
-    expect(tBodyObj).toBeDefined();
+    expect(tBodyNode).toBeDefined();
+    expect(renderXml(tBodyNode)).toContain('Styled Run');
   });
 
   it('covers gradient stop auto-interpolation, radial fillToRect fallbacks, and opacity overrides', () => {
@@ -287,11 +306,13 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       },
       type: 'gradient',
     });
-    expect(autoStops?.['a:gradFill']).toBeDefined();
-    const gs = (autoStops?.['a:gradFill'] as Record<string, Record<string, Record<string, number>[]>>)?.['a:gsLst']?.['a:gs'];
-    expect(gs[0]['@_pos']).toBe(0);
-    expect(gs[1]['@_pos']).toBe(50000);
-    expect(gs[2]['@_pos']).toBe(100000);
+    expect(autoStops).toBeDefined();
+    const autoXml = renderXml(autoStops);
+    expect(autoXml).toContain('<a:gradFill');
+    // The 3 stops should have pos="0", pos="50000", pos="100000"
+    expect(autoXml).toContain('pos="0"');
+    expect(autoXml).toContain('pos="50000"');
+    expect(autoXml).toContain('pos="100000"');
 
     // Single stop without position
     const singleStop = serializeFill({
@@ -303,8 +324,8 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       },
       type: 'gradient',
     });
-    const singleGs = (singleStop?.['a:gradFill'] as Record<string, Record<string, Record<string, number>[]>>)?.['a:gsLst']?.['a:gs'];
-    expect(singleGs[0]['@_pos']).toBe(0);
+    const singleXml = renderXml(singleStop);
+    expect(singleXml).toContain('pos="0"');
 
     // Radial gradient with default fillToRect (no pathBounds)
     const radialDefault = serializeFill({
@@ -314,8 +335,8 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       },
       type: 'gradient',
     });
-    const fillToRect = (radialDefault?.['a:gradFill'] as Record<string, Record<string, Record<string, number>>>)?.['a:path']?.['a:fillToRect'];
-    expect(fillToRect?.['@_l']).toBe(50000);
+    const radialXml = renderXml(radialDefault);
+    expect(radialXml).toContain('l="50000"');
 
     // Radial gradient with pathBounds <= 1 scaling
     const radialBounded = serializeFill({
@@ -326,22 +347,26 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       },
       type: 'gradient',
     });
-    const scaledBounds = (radialBounded?.['a:gradFill'] as Record<string, Record<string, Record<string, number>>>)?.['a:path']?.['a:fillToRect'];
-    expect(scaledBounds?.['@_l']).toBe(10000);
+    const boundedXml = renderXml(radialBounded);
+    expect(boundedXml).toContain('l="10000"');
 
-    // Solid fill with opacity override
+    // Solid fill with opacity override (< 1 → percentage)
     const colorWithOpacity = serializeColorNode('#ABCDEF', 0.75);
-    expect((colorWithOpacity['a:srgbClr'] as Record<string, Record<string, number>>)['a:alpha']?.['@_val']).toBe(75000);
+    const opacXml = renderXml(colorWithOpacity);
+    expect(opacXml).toContain('val="75000"');
 
     const colorWithAlphaVal = serializeColorNode('#ABCDEF', 80000);
-    expect((colorWithAlphaVal['a:srgbClr'] as Record<string, Record<string, number>>)['a:alpha']?.['@_val']).toBe(80000);
+    const alphaXml = renderXml(colorWithAlphaVal);
+    expect(alphaXml).toContain('val="80000"');
   });
 
   it('covers run color object, underline/strikethrough styles, and hyperlink actions', () => {
     // Run with color object
     // @ts-expect-error Testing object color on text run
     const rPrWithColorObj = serializeRunProperties({ color: { type: 'srgb', value: '10B981' } });
-    expect(rPrWithColorObj['a:solidFill']).toBeDefined();
+    expect(rPrWithColorObj).toBeDefined();
+    const colorXml = renderXml(rPrWithColorObj);
+    expect(colorXml).toContain('<a:solidFill>');
 
     // Run with explicit underline and strikethrough styles
     const styledRPr = serializeRunProperties({
@@ -350,40 +375,59 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       strikethrough: 'dblStrike',
       underline: 'dbl',
     });
-    expect(styledRPr['@_u']).toBe('dbl');
-    expect(styledRPr['@_strike']).toBe('dblStrike');
+    const styledXml = renderXml(styledRPr);
+    expect(styledXml).toContain('u="dbl"');
+    expect(styledXml).toContain('strike="dblStrike"');
 
     // Run with string hyperlink with and without override
-    expect(serializeHyperlink('https://example.com', 'rId99')).toEqual({ '@_r:id': 'rId99' });
+    const hlinkWithOverride = serializeHyperlink('https://example.com', 'rId99');
+    expect(hlinkWithOverride).toBeDefined();
+    expect(renderXml(hlinkWithOverride)).toContain('r:id="rId99"');
     expect(serializeHyperlink('https://example.com')).toBeUndefined();
     expect(serializeHyperlink(undefined)).toBeUndefined();
 
     // Hyperlink with standard actions
-    expect(serializeHyperlink({ action: 'firstSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=firstslide' });
-    expect(serializeHyperlink({ action: 'nextSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=nextslide' });
-    expect(serializeHyperlink({ action: 'endShow' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=endshow' });
-    expect(serializeHyperlink({ action: 'lastSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=lastslide' });
-    expect(serializeHyperlink({ action: 'previousSlide' })).toEqual({ '@_action': 'ppaction://hlinkshowjump?jump=previousslide' });
-    expect(serializeHyperlink({ slideIndex: 3 })).toEqual({ '@_action': 'ppaction://hlinksldjump' });
+    const actions = [
+      ['firstSlide', 'firstslide'],
+      ['nextSlide', 'nextslide'],
+      ['endShow', 'endshow'],
+      ['lastSlide', 'lastslide'],
+      ['previousSlide', 'previousslide'],
+    ] as const;
+    for (const [action, jumpName] of actions) {
+      const node = serializeHyperlink({ action });
+      expect(node).toBeDefined();
+      expect(renderXml(node)).toContain(`jump=${jumpName}`);
+    }
+    const slideJumpNode = serializeHyperlink({ slideIndex: 3 });
+    expect(slideJumpNode).toBeDefined();
+    expect(renderXml(slideJumpNode)).toContain('hlinksldjump');
 
     // Hyperlink with rId and tooltip
-    expect(serializeHyperlink({ rId: 'rId5', tooltip: 'My Tooltip' })).toEqual({
-      '@_r:id': 'rId5',
-      '@_tooltip': 'My Tooltip',
-    });
+    const hlinkWithTooltip = serializeHyperlink({ rId: 'rId5', tooltip: 'My Tooltip' });
+    expect(hlinkWithTooltip).toBeDefined();
+    const ttXml = renderXml(hlinkWithTooltip);
+    expect(ttXml).toContain('r:id="rId5"');
+    expect(ttXml).toContain('tooltip="My Tooltip"');
 
     // Run properties with hyperlink
     const rPrWithHlink = serializeRunProperties({ hyperlink: { action: 'nextSlide', tooltip: 'Next' } });
-    expect(rPrWithHlink['a:hlinkClick']).toBeDefined();
+    expect(rPrWithHlink).toBeDefined();
+    const hlinkRPrXml = renderXml(rPrWithHlink);
+    expect(hlinkRPrXml).toContain('<a:hlinkClick');
 
     // Empty run properties
-    expect(serializeRunProperties(undefined)).toEqual({});
+    const emptyRPr = serializeRunProperties(undefined);
+    expect(emptyRPr).toBeUndefined();
   });
 
   it('covers bullet startAt, text body padding insets, and empty text body', () => {
     // Bullet autoNum with startAt
     const numberedBullet = serializeBulletProperties({ autoNumType: 'romanUcPeriod', startAt: 5, type: 'autoNum' });
-    expect(numberedBullet?.['a:buAutoNum']).toEqual({ '@_startAt': 5, '@_type': 'romanUcPeriod' });
+    expect(numberedBullet).toBeDefined();
+    const bulletXml = renderXml(numberedBullet);
+    expect(bulletXml).toContain('startAt="5"');
+    expect(bulletXml).toContain('type="romanUcPeriod"');
     // @ts-expect-error Testing unsupported bullet type fallback
     expect(serializeBulletProperties({ type: 'other' })).toBeUndefined();
 
@@ -395,14 +439,16 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       topInset: emu(40000),
       wrap: 'square',
     });
-    expect(bodyPr['@_lIns']).toBe(10000);
-    expect(bodyPr['@_tIns']).toBe(40000);
-    expect(bodyPr['@_rIns']).toBe(30000);
-    expect(bodyPr['@_bIns']).toBe(20000);
+    const bodyPrXml = renderXml(bodyPr);
+    expect(bodyPrXml).toContain('lIns="10000"');
+    expect(bodyPrXml).toContain('tIns="40000"');
+    expect(bodyPrXml).toContain('rIns="30000"');
+    expect(bodyPrXml).toContain('bIns="20000"');
 
-    // Empty text body fallback
+    // Empty text body fallback — should produce one empty paragraph
     const emptyBody = serializeTextBody({ bodyProperties: {}, paragraphs: [] });
-    expect(emptyBody['a:p']).toHaveLength(1);
+    const emptyBodyXml = renderXml(emptyBody);
+    expect(emptyBodyXml).toContain('<a:p>');
 
     // Paragraph with justify alignment and single char bullet margin
     const justifyPara = serializeParagraph({
@@ -412,21 +458,66 @@ describe('Text Serializer color node alpha and string fallbacks', () => {
       },
       runs: [{ properties: {}, text: 'Justified item' }],
     });
-    const pPr = justifyPara['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_algn']).toBe('justify');
-    expect(pPr['@_marL']).toBe(152400);
-    expect(pPr['@_indent']).toBe(-152400);
+    const justifyXml = renderXml(justifyPara);
+    expect(justifyXml).toContain('algn="justify"');
+    expect(justifyXml).toContain('marL="152400"');
+    expect(justifyXml).toContain('indent="-152400"');
 
     // Scheme color string
     const schemeNode = serializeColorNode('accent2');
-    expect(schemeNode['a:schemeClr']).toBeDefined();
+    expect(renderXml(schemeNode)).toContain('<a:schemeClr');
 
     // Degree angle <= 360 gradient
     const angleGrad = serializeFill({
       gradient: { angle: 90, stops: [] },
       type: 'gradient',
     });
-    const linNode = (angleGrad?.['a:gradFill'] as Record<string, Record<string, number>>)?.['a:lin'];
-    expect(linNode?.['@_ang']).toBe(5400000);
+    const angleXml = renderXml(angleGrad);
+    expect(angleXml).toContain('ang="5400000"');
+  });
+});
+
+describe('Soft line breaks (<a:br>) and sequential interleaving', () => {
+  it('serializes explicit break runs interleaved sequentially between text runs', () => {
+    const p = serializeParagraph({
+      properties: {},
+      runs: [
+        { properties: { bold: true }, text: 'Before break' },
+        { break: true, properties: { fontSize: hundredthsPoint(1400) } },
+        { properties: { italic: true }, text: 'After break' },
+      ],
+    });
+
+    const xml = renderXml(p);
+    // Strict sequential check
+    const r1Idx = xml.indexOf('Before break');
+    const brIdx = xml.indexOf('<a:br>');
+    const r2Idx = xml.indexOf('After break');
+
+    expect(r1Idx).toBeGreaterThan(-1);
+    expect(brIdx).toBeGreaterThan(r1Idx);
+    expect(r2Idx).toBeGreaterThan(brIdx);
+
+    // Verify <a:br> contains the run properties
+    expect(xml).toContain('<a:br><a:rPr sz="1400"');
+  });
+
+  it('splits newline in text runs into interleaved <a:r> and <a:br>', () => {
+    const p = serializeParagraph({
+      properties: {},
+      runs: [
+        { properties: { color: 'FF0000' }, text: 'Line 1\nLine 2\nLine 3' },
+      ],
+    });
+
+    const xml = renderXml(p);
+    expect(xml).toContain('Line 1');
+    expect(xml).toContain('<a:br');
+    expect(xml).toContain('Line 2');
+    expect(xml).toContain('Line 3');
+
+    // Count <a:br> nodes
+    const brCount = (xml.match(/<a:br>/g) || []).length;
+    expect(brCount).toBe(2);
   });
 });

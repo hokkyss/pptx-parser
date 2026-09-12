@@ -296,4 +296,50 @@ describe('Shape Parser connector arrowheads and attachment parsing', () => {
     expect((gfShapes[1] as { _chartRelId?: string } & PptxElement)._chartRelId).toBe('rIdChart');
     expect(gfShapes[2].type).toBe('group');
   });
+
+  it('preserves exact visual z-order of interleaved shapes (sp, pic, cxnSp, graphicFrame)', () => {
+    const xml = `<?xml version="1.0"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="101" name="Bottom Shape"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+        <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/></a:xfrm></p:spPr>
+      </p:sp>
+      <p:pic>
+        <p:nvPicPr><p:cNvPr id="102" name="Middle Picture"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
+        <p:blipFill><a:blip r:embed="rId1"/></p:blipFill>
+        <p:spPr><a:xfrm><a:off x="10" y="10"/><a:ext cx="200" cy="200"/></a:xfrm></p:spPr>
+      </p:pic>
+      <p:sp>
+        <p:nvSpPr><p:cNvPr id="103" name="Shape Over Picture"/><p:cNvSpPr/><p:nvPr/></p:nvPr>
+        <p:spPr><a:xfrm><a:off x="20" y="20"/><a:ext cx="100" cy="100"/></a:xfrm></p:spPr>
+      </p:sp>
+      <p:cxnSp>
+        <p:nvCxnSpPr><p:cNvPr id="104" name="Connector Over Shape"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr>
+        <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="50" cy="50"/></a:xfrm></p:spPr>
+      </p:cxnSp>
+      <p:graphicFrame>
+        <p:nvGraphicFramePr><p:cNvPr id="105" name="Topmost Table"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr>
+        <p:xfrm><a:off x="0" y="0"/><a:ext cx="1000" cy="1000"/></p:xfrm>
+        <a:graphic>
+          <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/table">
+            <a:tbl><a:tblGrid/><a:tr/></a:tbl>
+          </a:graphicData>
+        </a:graphic>
+      </p:graphicFrame>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+
+    const shapes = parseShapes(xml, dummyResolver);
+    expect(shapes.map((s) => s.id)).toEqual(['101', '102', '103', '104', '105']);
+    expect(shapes.map((s) => s.name)).toEqual([
+      'Bottom Shape',
+      'Middle Picture',
+      'Shape Over Picture',
+      'Connector Over Shape',
+      'Topmost Table',
+    ]);
+  });
 });

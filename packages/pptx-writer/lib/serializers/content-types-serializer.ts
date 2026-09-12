@@ -1,4 +1,4 @@
-import { serializeXml } from '../xml/xml-builder';
+import { el, serializeXml, type XmlElement } from '../xml/xml-element';
 
 export interface ContentTypesOptions {
   customPartOverrides?: Array<{ contentType: string; partName: string }>;
@@ -32,9 +32,9 @@ const MIME_EXTENSION_MAP: Record<string, string> = {
  * @param options
  */
 export function serializeContentTypes(options: ContentTypesOptions = {}): string {
-  const defaults: Array<{ '@_ContentType': string; '@_Extension': string }> = [
-    { '@_ContentType': MIME_EXTENSION_MAP.rels, '@_Extension': 'rels' },
-    { '@_ContentType': MIME_EXTENSION_MAP.xml, '@_Extension': 'xml' },
+  const defaultList: Array<{ ContentType: string; Extension: string }> = [
+    { ContentType: MIME_EXTENSION_MAP.rels, Extension: 'rels' },
+    { ContentType: MIME_EXTENSION_MAP.xml, Extension: 'xml' },
   ];
 
   // Add media extensions to defaults if present
@@ -42,47 +42,47 @@ export function serializeContentTypes(options: ContentTypesOptions = {}): string
   for (const ext of extensions) {
     const cleanExt = ext.toLowerCase().replace(/^\./, '');
     const mime = MIME_EXTENSION_MAP[cleanExt] ?? `image/${cleanExt}`;
-    if (!defaults.some((d) => d['@_Extension'] === cleanExt)) {
-      defaults.push({
-        '@_ContentType': mime,
-        '@_Extension': cleanExt,
+    if (!defaultList.some((d) => d.Extension === cleanExt)) {
+      defaultList.push({
+        ContentType: mime,
+        Extension: cleanExt,
       });
     }
   }
 
-  const overrides: Array<{ '@_ContentType': string; '@_PartName': string }> = [
+  const overridesList: Array<{ ContentType: string; PartName: string }> = [
     {
-      '@_ContentType': 'application/vnd.openxmlformats-package.core-properties+xml',
-      '@_PartName': '/docProps/core.xml',
+      ContentType: 'application/vnd.openxmlformats-package.core-properties+xml',
+      PartName: '/docProps/core.xml',
     },
     {
-      '@_ContentType': 'application/vnd.openxmlformats-officedocument.extended-properties+xml',
-      '@_PartName': '/docProps/app.xml',
+      ContentType: 'application/vnd.openxmlformats-officedocument.extended-properties+xml',
+      PartName: '/docProps/app.xml',
     },
     {
-      '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml',
-      '@_PartName': '/ppt/presentation.xml',
+      ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml',
+      PartName: '/ppt/presentation.xml',
     },
     {
-      '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.presProps+xml',
-      '@_PartName': '/ppt/presProps.xml',
+      ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.presProps+xml',
+      PartName: '/ppt/presProps.xml',
     },
     {
-      '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml',
-      '@_PartName': '/ppt/tableStyles.xml',
+      ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml',
+      PartName: '/ppt/tableStyles.xml',
     },
     {
-      '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml',
-      '@_PartName': '/ppt/viewProps.xml',
+      ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml',
+      PartName: '/ppt/viewProps.xml',
     },
   ];
 
   // Slide overrides
   const slideCount = options.slideCount ?? 1;
   for (let i = 1; i <= slideCount; i++) {
-    overrides.push({
-      '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml',
-      '@_PartName': `/ppt/slides/slide${i}.xml`,
+    overridesList.push({
+      ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml',
+      PartName: `/ppt/slides/slide${i}.xml`,
     });
   }
 
@@ -90,17 +90,17 @@ export function serializeContentTypes(options: ContentTypesOptions = {}): string
   if (options.layoutNames && options.layoutNames.length > 0) {
     for (const name of options.layoutNames) {
       const fileName = name.endsWith('.xml') ? name : `${name}.xml`;
-      overrides.push({
-        '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml',
-        '@_PartName': `/ppt/slideLayouts/${fileName}`,
+      overridesList.push({
+        ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml',
+        PartName: `/ppt/slideLayouts/${fileName}`,
       });
     }
   } else {
     const layoutCount = options.layoutCount ?? 1;
     for (let i = 1; i <= layoutCount; i++) {
-      overrides.push({
-        '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml',
-        '@_PartName': `/ppt/slideLayouts/slideLayout${i}.xml`,
+      overridesList.push({
+        ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml',
+        PartName: `/ppt/slideLayouts/slideLayout${i}.xml`,
       });
     }
   }
@@ -109,17 +109,17 @@ export function serializeContentTypes(options: ContentTypesOptions = {}): string
   if (options.masterNames && options.masterNames.length > 0) {
     for (const name of options.masterNames) {
       const fileName = name.endsWith('.xml') ? name : `${name}.xml`;
-      overrides.push({
-        '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml',
-        '@_PartName': `/ppt/slideMasters/${fileName}`,
+      overridesList.push({
+        ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml',
+        PartName: `/ppt/slideMasters/${fileName}`,
       });
     }
   } else {
     const masterCount = options.masterCount ?? 1;
     for (let i = 1; i <= masterCount; i++) {
-      overrides.push({
-        '@_ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml',
-        '@_PartName': `/ppt/slideMasters/slideMaster${i}.xml`,
+      overridesList.push({
+        ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml',
+        PartName: `/ppt/slideMasters/slideMaster${i}.xml`,
       });
     }
   }
@@ -128,17 +128,17 @@ export function serializeContentTypes(options: ContentTypesOptions = {}): string
   if (options.themeNames && options.themeNames.length > 0) {
     for (const name of options.themeNames) {
       const fileName = name.endsWith('.xml') ? name : `${name}.xml`;
-      overrides.push({
-        '@_ContentType': 'application/vnd.openxmlformats-officedocument.theme+xml',
-        '@_PartName': `/ppt/theme/${fileName}`,
+      overridesList.push({
+        ContentType: 'application/vnd.openxmlformats-officedocument.theme+xml',
+        PartName: `/ppt/theme/${fileName}`,
       });
     }
   } else {
     const themeCount = options.themeCount ?? 1;
     for (let i = 1; i <= themeCount; i++) {
-      overrides.push({
-        '@_ContentType': 'application/vnd.openxmlformats-officedocument.theme+xml',
-        '@_PartName': `/ppt/theme/theme${i}.xml`,
+      overridesList.push({
+        ContentType: 'application/vnd.openxmlformats-officedocument.theme+xml',
+        PartName: `/ppt/theme/theme${i}.xml`,
       });
     }
   }
@@ -146,20 +146,30 @@ export function serializeContentTypes(options: ContentTypesOptions = {}): string
   // Custom part overrides
   if (options.customPartOverrides) {
     for (const part of options.customPartOverrides) {
-      overrides.push({
-        '@_ContentType': part.contentType,
-        '@_PartName': part.partName.startsWith('/') ? part.partName : `/${part.partName}`,
+      overridesList.push({
+        ContentType: part.contentType,
+        PartName: part.partName.startsWith('/') ? part.partName : `/${part.partName}`,
       });
     }
   }
 
-  const root = {
-    Types: {
-      '@_xmlns': 'http://schemas.openxmlformats.org/package/2006/content-types',
-      Default: defaults,
-      Override: overrides,
-    },
-  };
+  const defaultNodes: XmlElement[] = defaultList.map((d) =>
+    el('Default', {
+      ContentType: d.ContentType,
+      Extension: d.Extension,
+    }),
+  );
+
+  const overrideNodes: XmlElement[] = overridesList.map((o) =>
+    el('Override', {
+      ContentType: o.ContentType,
+      PartName: o.PartName,
+    }),
+  );
+
+  const root = el('Types', {
+    xmlns: 'http://schemas.openxmlformats.org/package/2006/content-types',
+  }, [...defaultNodes, ...overrideNodes]);
 
   return serializeXml(root);
 }

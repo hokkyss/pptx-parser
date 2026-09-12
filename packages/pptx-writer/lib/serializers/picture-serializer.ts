@@ -1,77 +1,79 @@
 import type { PptxPictureElement } from '@hokkyss/pptx-core';
+import { el, type XmlElement } from '../xml/xml-element';
 import { serializeHyperlink } from './text-serializer';
 
 /**
  * Serializes a picture element into OpenXML `<p:pic>`.
  * Follows schema order: p:nvPicPr -> p:blipFill -> p:spPr
  */
-export function serializePicture(pictureElement: PptxPictureElement, overrideEmbedId?: string): Record<string, unknown> {
+export function serializePicture(pictureElement: PptxPictureElement, overrideEmbedId?: string): XmlElement {
   const pic = pictureElement.picture;
   const embedId = overrideEmbedId ?? (pic?.mediaId || undefined) ?? pictureElement.blipEmbedId ?? 'rId2';
 
-  const blip: Record<string, unknown> = {
-    '@_r:embed': embedId,
+  const blipAttrs: Record<string, string> = {
+    'r:embed': embedId,
   };
 
+  const blipChildren: XmlElement[] = [];
   if (pic?.alpha !== undefined) {
-    blip['a:alphaModFix'] = { '@_amt': Math.round(Number(pic.alpha)) };
+    blipChildren.push(el('a:alphaModFix', { amt: Math.round(Number(pic.alpha)) }));
   }
 
-  const blipFill: Record<string, unknown> = {
-    'a:blip': blip,
-  };
+  const blip = el('a:blip', blipAttrs, blipChildren);
+
+  const blipFillChildren: XmlElement[] = [blip];
 
   if (pic?.crop) {
-    const srcRect: Record<string, unknown> = {};
-    if (pic.crop.left !== undefined) srcRect['@_l'] = Math.round(Number(pic.crop.left));
-    if (pic.crop.right !== undefined) srcRect['@_r'] = Math.round(Number(pic.crop.right));
-    if (pic.crop.top !== undefined) srcRect['@_t'] = Math.round(Number(pic.crop.top));
-    if (pic.crop.bottom !== undefined) srcRect['@_b'] = Math.round(Number(pic.crop.bottom));
-    blipFill['a:srcRect'] = srcRect;
+    const srcRectAttrs: Record<string, number> = {};
+    if (pic.crop.left !== undefined) srcRectAttrs.l = Math.round(Number(pic.crop.left));
+    if (pic.crop.right !== undefined) srcRectAttrs.r = Math.round(Number(pic.crop.right));
+    if (pic.crop.top !== undefined) srcRectAttrs.t = Math.round(Number(pic.crop.top));
+    if (pic.crop.bottom !== undefined) srcRectAttrs.b = Math.round(Number(pic.crop.bottom));
+    blipFillChildren.push(el('a:srcRect', srcRectAttrs));
   }
 
-  blipFill['a:stretch'] = { 'a:fillRect': {} };
+  blipFillChildren.push(el('a:stretch', [el('a:fillRect')]));
+  const blipFill = el('p:blipFill', blipFillChildren);
 
-  const xfrm: Record<string, unknown> = {
-    'a:off': {
-      '@_x': Math.round(Number(pictureElement.position?.x ?? 0)),
-      '@_y': Math.round(Number(pictureElement.position?.y ?? 0)),
-    },
-    'a:ext': {
-      '@_cx': Math.round(Number(pictureElement.position?.cx ?? 2000000)),
-      '@_cy': Math.round(Number(pictureElement.position?.cy ?? 2000000)),
-    },
-  };
+  const xfrmAttrs: Record<string, number | undefined> = {};
   if (pictureElement.rotation) {
-    xfrm['@_rot'] = Math.round(Number(pictureElement.rotation));
+    xfrmAttrs.rot = Math.round(Number(pictureElement.rotation));
   }
+  const xfrm = el('a:xfrm', xfrmAttrs, [
+    el('a:off', {
+      x: Math.round(Number(pictureElement.position?.x ?? 0)),
+      y: Math.round(Number(pictureElement.position?.y ?? 0)),
+    }),
+    el('a:ext', {
+      cx: Math.round(Number(pictureElement.position?.cx ?? 2000000)),
+      cy: Math.round(Number(pictureElement.position?.cy ?? 2000000)),
+    }),
+  ]);
 
-  const cNvPr: Record<string, unknown> = {
-    '@_id': pictureElement.id || '4',
-    '@_name': pictureElement.name || `Picture ${pictureElement.id || '4'}`,
+  const cNvPrAttrs: Record<string, string> = {
+    id: pictureElement.id || '4',
+    name: pictureElement.name || `Picture ${pictureElement.id || '4'}`,
   };
+  const cNvPrChildren: XmlElement[] = [];
   if (pictureElement.hyperlink) {
     const hlinkNode = serializeHyperlink(pictureElement.hyperlink);
     if (hlinkNode) {
-      cNvPr['a:hlinkClick'] = hlinkNode;
+      cNvPrChildren.push(hlinkNode);
     }
   }
 
-  return {
-    'p:nvPicPr': {
-      'p:cNvPr': cNvPr,
-      'p:cNvPicPr': {
-        'a:picLocks': { '@_noChangeAspect': '1' },
-      },
-      'p:nvPr': {},
-    },
-    'p:blipFill': blipFill,
-    'p:spPr': {
-      'a:xfrm': xfrm,
-      'a:prstGeom': {
-        '@_prst': 'rect',
-        'a:avLst': {},
-      },
-    },
-  };
+  const nvPicPr = el('p:nvPicPr', [
+    el('p:cNvPr', cNvPrAttrs, cNvPrChildren),
+    el('p:cNvPicPr', [
+      el('a:picLocks', { noChangeAspect: '1' }),
+    ]),
+    el('p:nvPr'),
+  ]);
+
+  const spPr = el('p:spPr', [
+    xfrm,
+    el('a:prstGeom', { prst: 'rect' }, [el('a:avLst')]),
+  ]);
+
+  return el('p:pic', [nvPicPr, blipFill, spPr]);
 }

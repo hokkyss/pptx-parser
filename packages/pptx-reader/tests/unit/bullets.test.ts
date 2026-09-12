@@ -107,4 +107,39 @@ describe('parseParagraph fields and number text nodes', () => {
     expect(parsed.runs[0].properties?.underline).toBe(true);
     expect(parsed.runs[0].properties?.strikethrough).toBe(true);
   });
+
+  it('correctly parses soft line breaks (<a:br>) interleaved between runs', () => {
+    const pNode = {
+      children: [
+        {
+          tag: 'a:r',
+          attrs: {},
+          children: [{ tag: 'a:t', attrs: {}, children: ['First line'], '#text': 'First line' }],
+          'a:t': 'First line',
+        },
+        {
+          tag: 'a:br',
+          attrs: {},
+          children: [],
+        },
+        {
+          tag: 'a:r',
+          attrs: {},
+          children: [{ tag: 'a:t', attrs: {}, children: ['Second line'], '#text': 'Second line' }],
+          'a:t': 'Second line',
+        },
+      ],
+      'a:r': [
+        { 'a:t': 'First line' },
+        { 'a:t': 'Second line' },
+      ],
+      'a:br': {},
+    };
+
+    const parsed = parseParagraph(pNode);
+    expect(parsed.runs).toHaveLength(3);
+    expect(parsed.runs[0].text).toBe('First line');
+    expect(parsed.runs[1].break).toBe(true);
+    expect(parsed.runs[2].text).toBe('Second line');
+  });
 });

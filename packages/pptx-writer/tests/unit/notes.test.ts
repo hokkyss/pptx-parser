@@ -34,7 +34,7 @@ describe('serializeNotesSlide', () => {
   it('includes notes body placeholder shape', () => {
     const result = serializeNotesSlide('test');
     expect(result).toContain('Notes Placeholder 2');
-    expect(result).toContain('<p:ph type="body"');
+    expect(result).toContain('type="body"');
   });
 
   it('includes clrMapOvr > masterClrMapping element', () => {

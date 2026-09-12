@@ -2,57 +2,18 @@ import { describe, expect, it } from 'vitest';
 import type { PptxTableElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, hundredthsPoint } from '@hokkyss/pptx-core';
 import { serializeTable } from '../../lib/serializers/table-serializer';
+import { renderXml, type XmlElement } from '../../lib/xml/xml-element';
 
-interface TableXmlCellProperties {
-  '@_marB'?: number;
-  '@_marL'?: number;
-  '@_marR'?: number;
-  '@_marT'?: number;
-  'a:solidFill'?: {
-    'a:srgbClr'?: {
-      '@_val'?: string;
-    };
-  };
-}
-
-interface TableXmlCell {
-  '@_gridSpan'?: number;
-  '@_rowSpan'?: number;
-  'a:tcPr'?: TableXmlCellProperties;
-  'a:txBody'?: {
-    'a:bodyPr'?: Record<string, boolean | number | string>;
-    'a:lstStyle'?: Record<string, boolean | number | string>;
-    'a:p'?: Array<Record<string, boolean | number | string>>;
-  };
-}
-
-interface TableXmlRow {
-  'a:tc'?: TableXmlCell[];
-}
-
-interface TableXmlGridCol {
-  '@_w'?: number;
-}
-
-interface TableXml {
-  'a:tblGrid'?: {
-    'a:gridCol'?: TableXmlGridCol[];
-  };
-  'a:tr'?: TableXmlRow[];
-}
-
-interface SerializedTableGraphicFrame {
-  'a:graphic'?: {
-    'a:graphicData'?: {
-      'a:tbl'?: TableXml;
-    };
-  };
-  'p:nvGraphicFramePr'?: {
-    'p:cNvPr'?: {
-      '@_id'?: string;
-      '@_name'?: string;
-    };
-  };
+/** Finds all descendants (and self) matching the given tag. */
+function findAllEl(node: XmlElement, tag: string): XmlElement[] {
+  const results: XmlElement[] = [];
+  if (node.tag === tag) results.push(node);
+  for (const child of node.children ?? []) {
+    if (typeof child === 'object' && child !== null && 'tag' in child) {
+      results.push(...findAllEl(child, tag));
+    }
+  }
+  return results;
 }
 
 describe('Table Serializer', () => {
@@ -132,26 +93,26 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
-    expect(xmlObject).toBeDefined();
+    const xmlNode = serializeTable(tableElement);
+    expect(xmlNode).toBeDefined();
+    const xml = renderXml(xmlNode);
 
-    const nvGFPr = xmlObject['p:nvGraphicFramePr'];
-    expect(nvGFPr?.['p:cNvPr']?.['@_id']).toBe('3');
-
-    const graphic = xmlObject['a:graphic'];
-    const graphicData = graphic?.['a:graphicData'];
-    const tbl = graphicData?.['a:tbl'];
-    expect(tbl).toBeDefined();
-
-    const tblGrid = tbl?.['a:tblGrid'];
-    expect(tblGrid?.['a:gridCol']).toHaveLength(2);
-    expect(tbl?.['a:tr']).toHaveLength(2);
-
-    const firstRow = tbl?.['a:tr']?.[0];
-    expect(firstRow?.['a:tc']).toHaveLength(2);
+    // nvGraphicFramePr
+    expect(xml).toContain('id="3"');
+    // graphic structure
+    expect(xml).toContain('<a:tbl>');
+    // 2 gridCol columns
+    const gridCols = findAllEl(xmlNode, 'a:gridCol');
+    expect(gridCols).toHaveLength(2);
+    // 2 rows
+    const rows = findAllEl(xmlNode, 'a:tr');
+    expect(rows).toHaveLength(2);
+    // First row has 2 cells
+    const firstRowCells = findAllEl(rows[0], 'a:tc');
+    expect(firstRowCells).toHaveLength(2);
   });
 
-  it('serializes table cell with colSpan > 1 adding @_gridSpan', () => {
+  it('serializes table cell with colSpan > 1 adding gridSpan', () => {
     const tableElement: PptxTableElement = {
       elementType: 'table',
       type: 'graphicFrame',
@@ -172,16 +133,11 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
-    const graphic = xmlObject['a:graphic'];
-    const graphicData = graphic?.['a:graphicData'];
-    const tbl = graphicData?.['a:tbl'];
-    const firstRow = tbl?.['a:tr']?.[0];
-    const cell = firstRow?.['a:tc']?.[0];
-    expect(cell?.['@_gridSpan']).toBe(2);
+    const xml = renderXml(serializeTable(tableElement));
+    expect(xml).toContain('gridSpan="2"');
   });
 
-  it('serializes table cell with rowSpan > 1 adding @_rowSpan', () => {
+  it('serializes table cell with rowSpan > 1 adding rowSpan', () => {
     const tableElement: PptxTableElement = {
       elementType: 'table',
       type: 'graphicFrame',
@@ -202,13 +158,8 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
-    const graphic = xmlObject['a:graphic'];
-    const graphicData = graphic?.['a:graphicData'];
-    const tbl = graphicData?.['a:tbl'];
-    const firstRow = tbl?.['a:tr']?.[0];
-    const cell = firstRow?.['a:tc']?.[0];
-    expect(cell?.['@_rowSpan']).toBe(2);
+    const xml = renderXml(serializeTable(tableElement));
+    expect(xml).toContain('rowSpan="2"');
   });
 
   it('serializes a cell without textBody using the empty paragraph fallback', () => {
@@ -227,14 +178,10 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
-    const graphic = xmlObject['a:graphic'];
-    const graphicData = graphic?.['a:graphicData'];
-    const tbl = graphicData?.['a:tbl'];
-    const cell = tbl?.['a:tr']?.[0]?.['a:tc']?.[0];
-    const txBody = cell?.['a:txBody'];
-    expect(txBody).toHaveProperty('a:bodyPr');
-    expect(txBody).toHaveProperty('a:lstStyle');
+    const xml = renderXml(serializeTable(tableElement));
+    // txBody should contain bodyPr and lstStyle
+    expect(xml).toContain('<a:bodyPr/>');
+    expect(xml).toContain('<a:lstStyle/>');
   });
 
   it('serializes cell properties: insets are added to a:tcPr', () => {
@@ -267,16 +214,11 @@ describe('Table Serializer', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
-    const graphic = xmlObject['a:graphic'];
-    const graphicData = graphic?.['a:graphicData'];
-    const tbl = graphicData?.['a:tbl'];
-    const cell = tbl?.['a:tr']?.[0]?.['a:tc']?.[0];
-    const tcPr = cell?.['a:tcPr'];
-    expect(tcPr?.['@_marL']).toBe(91440);
-    expect(tcPr?.['@_marR']).toBe(91440);
-    expect(tcPr?.['@_marT']).toBe(45720);
-    expect(tcPr?.['@_marB']).toBe(45720);
+    const xml = renderXml(serializeTable(tableElement));
+    expect(xml).toContain('marL="91440"');
+    expect(xml).toContain('marR="91440"');
+    expect(xml).toContain('marT="45720"');
+    expect(xml).toContain('marB="45720"');
   });
 
   it('falls back to default gridCol when columnWidths is empty', () => {
@@ -292,13 +234,10 @@ describe('Table Serializer', () => {
       table: { columnWidths: [], rows: [] },
     };
 
-    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
-    const graphic = xmlObject['a:graphic'];
-    const graphicData = graphic?.['a:graphicData'];
-    const tbl = graphicData?.['a:tbl'];
-    const tblGrid = tbl?.['a:tblGrid'];
-    expect(tblGrid?.['a:gridCol']).toHaveLength(1);
-    expect(tblGrid?.['a:gridCol']?.[0]?.['@_w']).toBe(2000000);
+    const xmlNode = serializeTable(tableElement);
+    const gridCols = findAllEl(xmlNode, 'a:gridCol');
+    expect(gridCols).toHaveLength(1);
+    expect(gridCols[0].attrs?.w).toBe(2000000);
   });
 });
 
@@ -330,13 +269,9 @@ describe('Table Serializer cell fill styling', () => {
       },
     };
 
-    const xmlObject = serializeTable(tableElement) as SerializedTableGraphicFrame;
-    const graphic = xmlObject['a:graphic'];
-    const graphicData = graphic?.['a:graphicData'];
-    const tbl = graphicData?.['a:tbl'];
-    const cell = tbl?.['a:tr']?.[0]?.['a:tc']?.[0];
-    const tcPr = cell?.['a:tcPr'];
-    expect(tcPr).toHaveProperty('a:solidFill');
+    const xml = renderXml(serializeTable(tableElement));
+    expect(xml).toContain('<a:solidFill>');
+    expect(xml).toContain('val="E2E8F0"');
   });
 
   it('covers table cell alignment, borders and vertical alignment', () => {
@@ -367,6 +302,8 @@ describe('Table Serializer cell fill styling', () => {
     };
     const tblXml = serializeTable(tblEl);
     expect(tblXml).toBeDefined();
+    const xml = renderXml(tblXml);
+    expect(xml).toContain('anchor="ctr"');
   });
 
   it('covers table spanning, empty textBody, insets, fill, empty columns, and position fallbacks', () => {
@@ -412,15 +349,12 @@ describe('Table Serializer cell fill styling', () => {
       zIndex: 0,
     };
 
-    const xml = serializeTable(fallbackTable);
+    const xml = renderXml(serializeTable(fallbackTable));
     expect(xml).toBeDefined();
-    const nvPr = xml['p:nvGraphicFramePr'] as Record<string, Record<string, string>>;
-    expect(nvPr['p:cNvPr']['@_id']).toBe('3');
-    expect(nvPr['p:cNvPr']['@_name']).toBe('Table 3');
-
-    const xfrm = xml['p:xfrm'] as Record<string, Record<string, number>>;
-    expect(xfrm['a:off']['@_x']).toBe(0);
-    expect(xfrm['a:ext']['@_cx']).toBe(4000000);
+    expect(xml).toContain('id="3"');
+    expect(xml).toContain('name="Table 3"');
+    expect(xml).toContain('x="0"');
+    expect(xml).toContain('cx="4000000"');
 
     // Empty gridCols fallback
     const emptyGridTable: PptxTableElement = {
@@ -434,8 +368,8 @@ describe('Table Serializer cell fill styling', () => {
       type: 'graphicFrame',
       zIndex: 0,
     };
-    const emptyGridXml = serializeTable(emptyGridTable);
-    const tbl = (emptyGridXml['a:graphic'] as Record<string, Record<string, Record<string, { 'a:gridCol': Record<string, number>[] }>>>)['a:graphicData']['a:tbl'];
-    expect(tbl['a:tblGrid']['a:gridCol']).toHaveLength(1);
+    const emptyGridNode = serializeTable(emptyGridTable);
+    const gridCols = findAllEl(emptyGridNode, 'a:gridCol');
+    expect(gridCols).toHaveLength(1);
   });
 });

@@ -2,6 +2,31 @@ import { describe, expect, it } from 'vitest';
 import type { PptxGroupElement, PptxElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree } from '@hokkyss/pptx-core';
 import { serializeGroup } from '../../lib/serializers/group-serializer';
+import { renderXml, type XmlElement } from '../../lib/xml/xml-element';
+
+/** Finds the first descendant (or self) matching the given tag. */
+function findEl(node: XmlElement, tag: string): undefined | XmlElement {
+  if (node.tag === tag) return node;
+  for (const child of node.children ?? []) {
+    if (typeof child === 'object' && child !== null && 'tag' in child) {
+      const found = findEl(child, tag);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+/** Returns direct (non-recursive) children of a node. */
+function directChildren(node: XmlElement): XmlElement[] {
+  return (node.children ?? []).filter(
+    (c): c is XmlElement => typeof c === 'object' && c !== null && 'tag' in c,
+  );
+}
+
+/** Returns direct children with a specific tag. */
+function directChildrenByTag(node: XmlElement, tag: string): XmlElement[] {
+  return directChildren(node).filter((c) => c.tag === tag);
+}
 
 /**
  *
@@ -93,100 +118,100 @@ describe('serializeGroup', () => {
 
   it('produces a node with p:nvGrpSpPr and p:grpSpPr', () => {
     const result = serializeGroup(makeGroup());
-    expect(result).toHaveProperty('p:nvGrpSpPr');
-    expect(result).toHaveProperty('p:grpSpPr');
+    // The result is a p:grpSp node; its direct children include nvGrpSpPr and grpSpPr
+    expect(findEl(result, 'p:nvGrpSpPr')).toBeDefined();
+    expect(findEl(result, 'p:grpSpPr')).toBeDefined();
   });
 
   it('uses group id and name in p:cNvPr', () => {
     const result = serializeGroup(makeGroup({ id: '42', name: 'My Group' }));
-    const nvGrpSpPr = result['p:nvGrpSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvGrpSpPr['p:cNvPr']['@_id']).toBe('42');
-    expect(nvGrpSpPr['p:cNvPr']['@_name']).toBe('My Group');
+    const xml = renderXml(result);
+    expect(xml).toContain('id="42"');
+    expect(xml).toContain('name="My Group"');
   });
 
   it('falls back to id "5" and default name when id and name are empty strings', () => {
     const result = serializeGroup(makeGroup({ id: '', name: '' }));
-    const nvGrpSpPr = result['p:nvGrpSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvGrpSpPr['p:cNvPr']['@_id']).toBe('5');
-    expect(nvGrpSpPr['p:cNvPr']['@_name']).toBe('Group 5');
+    const xml = renderXml(result);
+    expect(xml).toContain('id="5"');
+    expect(xml).toContain('name="Group 5"');
   });
 
   it('encodes custom position values into a:off, a:ext, a:chOff, a:chExt', () => {
     const group = makeGroup({ position: { x: emu(100), y: emu(200), cx: emu(3000000), cy: emu(2000000) } });
     const result = serializeGroup(group);
-    const xfrm = (result['p:grpSpPr'] as Record<string, unknown>)['a:xfrm'] as Record<string, Record<string, unknown>>;
-    expect(xfrm['a:off']['@_x']).toBe(100);
-    expect(xfrm['a:off']['@_y']).toBe(200);
-    expect(xfrm['a:ext']['@_cx']).toBe(3000000);
-    expect(xfrm['a:ext']['@_cy']).toBe(2000000);
-    expect(xfrm['a:chOff']['@_x']).toBe(100);
-    expect(xfrm['a:chExt']['@_cx']).toBe(3000000);
+    const xml = renderXml(result);
+    // a:off
+    expect(xml).toContain('<a:off');
+    expect(xml).toContain('x="100"');
+    expect(xml).toContain('y="200"');
+    // a:ext
+    expect(xml).toContain('<a:ext');
+    expect(xml).toContain('cx="3000000"');
+    expect(xml).toContain('cy="2000000"');
+    // a:chOff and a:chExt
+    expect(xml).toContain('<a:chOff');
+    expect(xml).toContain('<a:chExt');
   });
 
   it('defaults position values to 0/1000000 when position is undefined', () => {
     const group = makeGroup({ position: undefined });
     const result = serializeGroup(group);
-    const xfrm = (result['p:grpSpPr'] as Record<string, unknown>)['a:xfrm'] as Record<string, Record<string, unknown>>;
-    expect(xfrm['a:off']['@_x']).toBe(0);
-    expect(xfrm['a:off']['@_y']).toBe(0);
-    expect(xfrm['a:ext']['@_cx']).toBe(1000000);
-    expect(xfrm['a:ext']['@_cy']).toBe(1000000);
+    const xml = renderXml(result);
+    expect(xml).toContain('x="0"');
+    expect(xml).toContain('y="0"');
+    expect(xml).toContain('cx="1000000"');
+    expect(xml).toContain('cy="1000000"');
   });
 
   // ── Empty / no children ───────────────────────────────────────────────────────
 
-  it('does not emit any child list keys when group has no children', () => {
+  it('does not emit any child element tags when group has no children', () => {
     const result = serializeGroup(makeGroup({ children: [] }));
-    expect(result['p:sp']).toBeUndefined();
-    expect(result['p:graphicFrame']).toBeUndefined();
-    expect(result['p:pic']).toBeUndefined();
-    expect(result['p:grpSp']).toBeUndefined();
-    expect(result['p:cxnSp']).toBeUndefined();
+    const xml = renderXml(result);
+    // Only nvGrpSpPr and grpSpPr should be direct children — no p:sp, p:pic, etc.
+    expect(xml).not.toContain('<p:sp>');
+    expect(xml).not.toContain('<p:graphicFrame>');
+    expect(xml).not.toContain('<p:pic>');
+    expect(xml).not.toContain('<p:cxnSp>');
+    // Also should not contain nested grpSp beyond the root
+    const topChildren = directChildren(result);
+    // Should only have nvGrpSpPr and grpSpPr (2 children, no extra)
+    expect(topChildren).toHaveLength(2);
   });
 
   it('handles undefined children gracefully', () => {
     const group = makeGroup({ children: undefined });
     expect(() => serializeGroup(group)).not.toThrow();
     const result = serializeGroup(group);
-    expect(result['p:sp']).toBeUndefined();
+    // No shape elements emitted
+    expect(renderXml(result)).not.toContain('<p:sp>');
   });
 
   // ── Individual child types ────────────────────────────────────────────────────
 
-  it('emits p:sp array for shape children', () => {
+  it('emits p:sp for shape children', () => {
     const result = serializeGroup(makeGroup({ children: [makeShape('1'), makeShape('2')] }));
-    const list = result['p:sp'];
-    expect(Array.isArray(list)).toBe(true);
-    if (Array.isArray(list)) {
-      expect(list).toHaveLength(2);
-    }
+    const shapes = directChildrenByTag(result, 'p:sp');
+    expect(shapes).toHaveLength(2);
   });
 
-  it('emits p:graphicFrame array for table children', () => {
+  it('emits p:graphicFrame for table children', () => {
     const result = serializeGroup(makeGroup({ children: [makeTable('10')] }));
-    const list = result['p:graphicFrame'];
-    expect(Array.isArray(list)).toBe(true);
-    if (Array.isArray(list)) {
-      expect(list).toHaveLength(1);
-    }
+    const frames = directChildrenByTag(result, 'p:graphicFrame');
+    expect(frames).toHaveLength(1);
   });
 
-  it('emits p:pic array for picture children', () => {
+  it('emits p:pic for picture children', () => {
     const result = serializeGroup(makeGroup({ children: [makePicture('20')] }));
-    const list = result['p:pic'];
-    expect(Array.isArray(list)).toBe(true);
-    if (Array.isArray(list)) {
-      expect(list).toHaveLength(1);
-    }
+    const pics = directChildrenByTag(result, 'p:pic');
+    expect(pics).toHaveLength(1);
   });
 
-  it('emits p:cxnSp array for connector children', () => {
+  it('emits p:cxnSp for connector children', () => {
     const result = serializeGroup(makeGroup({ children: [makeConnector('30')] }));
-    const list = result['p:cxnSp'];
-    expect(Array.isArray(list)).toBe(true);
-    if (Array.isArray(list)) {
-      expect(list).toHaveLength(1);
-    }
+    const cxns = directChildrenByTag(result, 'p:cxnSp');
+    expect(cxns).toHaveLength(1);
   });
 
   // ── Nested groups (recursive) ─────────────────────────────────────────────────
@@ -195,14 +220,14 @@ describe('serializeGroup', () => {
     const innerGroup = makeGroup({ id: '99', name: 'Inner', children: [makeShape('1')] });
     const outerGroup = makeGroup({ id: '100', children: [innerGroup] });
     const result = serializeGroup(outerGroup);
-    const nestedGrpSp = result['p:grpSp'];
-    expect(Array.isArray(nestedGrpSp)).toBe(true);
-    if (Array.isArray(nestedGrpSp)) {
-      expect(nestedGrpSp).toHaveLength(1);
-      // Inner result should itself have a p:sp from its shape child
-      const innerResult = nestedGrpSp[0] as Record<string, unknown>;
-      expect(innerResult['p:sp']).toBeDefined();
-    }
+
+    // The outer grpSp should have exactly 1 p:grpSp as a direct child
+    const nestedGrpSp = directChildrenByTag(result, 'p:grpSp');
+    expect(nestedGrpSp).toHaveLength(1);
+    // The inner grpSp should contain a p:sp (from its shape child)
+    const innerResult = nestedGrpSp[0];
+    const innerShapes = directChildrenByTag(innerResult, 'p:sp');
+    expect(innerShapes).toHaveLength(1);
   });
 
   // ── Mixed children ────────────────────────────────────────────────────────────
@@ -212,15 +237,11 @@ describe('serializeGroup', () => {
       children: [makeShape('1'), makeConnector('2'), makePicture('3'), makeTable('4')],
     });
     const result = serializeGroup(group);
-    const sp = result['p:sp'];
-    const cxnSp = result['p:cxnSp'];
-    const pic = result['p:pic'];
-    const gf = result['p:graphicFrame'];
-    expect(Array.isArray(sp) && sp.length).toBe(1);
-    expect(Array.isArray(cxnSp) && cxnSp.length).toBe(1);
-    expect(Array.isArray(pic) && pic.length).toBe(1);
-    expect(Array.isArray(gf) && gf.length).toBe(1);
-    expect(result['p:grpSp']).toBeUndefined();
+    expect(directChildrenByTag(result, 'p:sp')).toHaveLength(1);
+    expect(directChildrenByTag(result, 'p:cxnSp')).toHaveLength(1);
+    expect(directChildrenByTag(result, 'p:pic')).toHaveLength(1);
+    expect(directChildrenByTag(result, 'p:graphicFrame')).toHaveLength(1);
+    expect(directChildrenByTag(result, 'p:grpSp')).toHaveLength(0);
   });
 });
 
@@ -229,8 +250,8 @@ describe('Group Serializer partial position fallback', () => {
     // @ts-expect-error Testing partial position resilience
     const group = makeGroup({ position: { x: emu(500), y: emu(600) } });
     const result = serializeGroup(group);
-    const xfrm = (result['p:grpSpPr'] as Record<string, unknown>)['a:xfrm'] as Record<string, Record<string, unknown>>;
-    expect(xfrm['a:off']['@_x']).toBe(500);
-    expect(xfrm['a:ext']['@_cx']).toBe(1000000);
+    const xml = renderXml(result);
+    expect(xml).toContain('x="500"');
+    expect(xml).toContain('cx="1000000"');
   });
 });
