@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createXmlParser, getXmlChild, getXmlChildren } from '../../lib/xml/xml-parser';
+import { createXmlParser, getXmlChild, getXmlChildren, type XmlElement } from '../../lib/xml/xml-parser';
 
 describe('XML Parser Helper Functions', () => {
   it('handles empty XML and returns empty object', () => {
@@ -50,24 +50,24 @@ describe('XML Parser Helper Functions', () => {
       <standalone flag="true"/>
     </root>`;
 
-    const parsed = parser.parse<{ root: any }>(xml);
+    const parsed = parser.parse<{ root: XmlElement }>(xml);
     expect(parsed.root).toBeDefined();
-    expect(parsed.root.attrs.attr1).toBe('val1');
-    expect(parsed.root.attrs.attr2).toBe('val2 & more');
+    expect(parsed.root.attrs?.attr1).toBe('val1');
+    expect(parsed.root.attrs?.attr2).toBe('val2 & more');
     expect(parsed.root['@_attr1']).toBe('val1');
 
     // Children order preserved
-    const children = parsed.root.children;
+    const children = (parsed.root.children ?? []) as XmlElement[];
     expect(children).toHaveLength(3);
-    expect(children[0].tag).toBe('child');
-    expect(children[0].attrs.id).toBe('1');
-    expect(children[0]['#text']).toBe('First <child>');
+    expect(children[0]?.tag).toBe('child');
+    expect(children[0]?.attrs?.id).toBe('1');
+    expect(children[0]?.['#text']).toBe('First <child>');
 
-    expect(children[1].tag).toBe('child');
-    expect(children[1].attrs.id).toBe('2');
-    expect(children[1]['#text']).toBe('Special <cdata> & chars');
+    expect(children[1]?.tag).toBe('child');
+    expect(children[1]?.attrs?.id).toBe('2');
+    expect(children[1]?.['#text']).toBe('Special <cdata> & chars');
 
-    expect(children[2].tag).toBe('standalone');
-    expect(children[2].attrs.flag).toBe('true');
+    expect(children[2]?.tag).toBe('standalone');
+    expect(children[2]?.attrs?.flag).toBe('true');
   });
 });
