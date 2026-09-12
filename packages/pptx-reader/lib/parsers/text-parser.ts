@@ -161,24 +161,7 @@ export function parseParagraph(
     }
   }
 
-  const brNodes = pNode['a:br'] || pNode['br'];
-  if (brNodes) {
-    const brs = Array.isArray(brNodes) ? brNodes : [brNodes];
-    for (const brNode of brs as Record<string, unknown>[]) {
-      const rPr = (brNode['a:rPr'] || brNode['rPr'] || {}) as Record<string, unknown>;
-      const explicitProps = parseRunProperties(rPr, relationshipResolver);
-      const cleanExplicit = Object.fromEntries(Object.entries(explicitProps).filter(([, v]) => v !== undefined));
-      const properties = {
-        ...fallbackProps,
-        ...cleanExplicit,
-      };
-      runs.push({
-        break: true,
-        properties,
-        text: '',
-      });
-    }
-  }
+
 
   const properties: PptxParagraphProperties = {
     alignment,

@@ -542,10 +542,10 @@ describe('Soft line breaks (<a:br>) and sequential interleaving', () => {
       customIndentSettings,
     );
 
-    const charPPr = (charPara as Record<string, unknown>)['a:pPr'] as Record<string, unknown>;
+    const xml = renderXml(charPara);
     // marL = (lvl * levelIndent) + bulletGap = (2 * 365760) + 200000 = 731520 + 200000 = 931520
-    expect(charPPr['@_marL']).toBe(931520);
-    expect(charPPr['@_indent']).toBe(-200000);
+    expect(xml).toContain('marL="931520"');
+    expect(xml).toContain('indent="-200000"');
 
     // AutoNum bullet at level 1
     const autoNumPara = serializeParagraph(
@@ -559,10 +559,10 @@ describe('Soft line breaks (<a:br>) and sequential interleaving', () => {
       customIndentSettings,
     );
 
-    const numPPr = (autoNumPara as Record<string, unknown>)['a:pPr'] as Record<string, unknown>;
+    const numXml = renderXml(autoNumPara);
     // marL = (lvl * levelIndent) + bulletGap = (1 * 365760) + 300000 = 665760
-    expect(numPPr['@_marL']).toBe(665760);
-    expect(numPPr['@_indent']).toBe(-300000);
+    expect(numXml).toContain('marL="665760"');
+    expect(numXml).toContain('indent="-300000"');
   });
 });
 

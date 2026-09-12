@@ -4,17 +4,12 @@ import { hundredthsPoint, type Points } from '@hokkyss/pptx-core';
 export interface TextRunConfig {
   baseline?: number;
   bold?: boolean;
-<<<<<<< HEAD
-  /** Whether this run represents a soft line break (<a:br>) */
-  break?: boolean;
-=======
   /**
    * When `true`, this entry represents a soft line break (Shift+Enter in PowerPoint).
    * Serialized as `<a:br>`. The `text` field is not required and is ignored.
    * Optional run properties (bold, italic, etc.) are forwarded to `<a:rPr>` inside `<a:br>`.
    */
-  break?: true;
->>>>>>> 4612990 (feat: bullet for shift + enter behavior)
+  break?: boolean;
   color?: string; // Hex string e.g. '38BDF8'
   font?: string;
   fontSize?: Points;
@@ -265,11 +260,7 @@ export function buildTextBody(
     } else {
       let currentRuns: PptxRun[] = [];
       for (const item of content as (string | TextRunConfig)[]) {
-<<<<<<< HEAD
-        if (typeof item === 'object' && item.break) {
-=======
         if (typeof item === 'object' && item !== null && 'break' in item && item.break === true) {
->>>>>>> 4612990 (feat: bullet for shift + enter behavior)
           currentRuns.push(buildTextRun(item, options));
           continue;
         }

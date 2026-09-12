@@ -6,6 +6,7 @@ import {
 } from '../../lib/serializers/text-serializer';
 import { serializeShape } from '../../lib/serializers/shape-serializer';
 import { serializeSlide } from '../../lib/serializers/slide-serializer';
+import { renderXml } from '../../lib/xml/xml-element';
 
 describe('Line Break and Granular Bullet Level Serializer', () => {
   it('serializes Shift+Enter line break sentinel { break: true } as <a:br>', () => {
@@ -21,9 +22,10 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     };
 
     const serialized = serializeParagraph(paragraph);
-    expect(typeof serialized).toBe('object');
-    expect(serialized['a:r']).toBeDefined();
-    expect(serialized['a:br']).toBeDefined();
+    expect(serialized.tag).toBe('a:p');
+    const xml = renderXml(serialized);
+    expect(xml).toContain('<a:r>');
+    expect(xml).toContain('<a:br');
   });
 
   it('serializes <a:br> carrying optional run properties in <a:rPr>', () => {
@@ -37,9 +39,10 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     };
 
     const serialized = serializeParagraph(paragraph);
-    expect(typeof serialized).toBe('object');
-    const brList = serialized['a:br'] as Record<string, unknown>[];
-    expect(brList[0]?.['a:rPr']).toMatchObject({ '@_b': '1', '@_i': '1' });
+    const xml = renderXml(serialized);
+    expect(xml).toContain('<a:br');
+    expect(xml).toContain('b="1"');
+    expect(xml).toContain('i="1"');
   });
 
   it('preserves text content when serializing paragraphs with line breaks', () => {
@@ -53,10 +56,9 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     };
 
     const serialized = serializeParagraph(paragraph);
-    expect(typeof serialized).toBe('object');
-    const textRuns = serialized['a:r'] as Record<string, unknown>[];
-    expect(textRuns[0]?.['a:t']).toBe('Fish & Chips <Salt>');
-    expect(textRuns[1]?.['a:t']).toBe('Line 2 & More');
+    const xml = renderXml(serialized);
+    expect(xml).toContain('Fish &amp; Chips &lt;Salt&gt;');
+    expect(xml).toContain('Line 2 &amp; More');
   });
 
   it('does NOT emit marL or indent when only level is specified (master inheritance)', () => {
@@ -70,13 +72,12 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     };
 
     const serialized = serializeParagraph(paragraph);
-    const pPr = serialized['a:pPr'] as Record<string, unknown>;
-    expect(pPr).toBeDefined();
-    expect(pPr['@_lvl']).toBe(2);
-    expect(pPr['@_marL']).toBeUndefined();
-    expect(pPr['@_indent']).toBeUndefined();
-    expect(pPr['a:buChar']).toBeUndefined();
-    expect(pPr['a:buNone']).toBeUndefined();
+    const xml = renderXml(serialized);
+    expect(xml).toContain('lvl="2"');
+    expect(xml).not.toContain('marL=');
+    expect(xml).not.toContain('indent=');
+    expect(xml).not.toContain('<a:buChar');
+    expect(xml).not.toContain('<a:buNone');
   });
 
   it('emits marL and indent only when explicit bullet is provided', () => {
@@ -91,11 +92,11 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     };
 
     const serialized = serializeParagraph(paragraph);
-    const pPr = serialized['a:pPr'] as Record<string, unknown>;
-    expect(pPr['@_lvl']).toBe(1);
-    expect(pPr['@_marL']).toBeUndefined(); // Inherited from slide master
-    expect(pPr['@_indent']).toBeUndefined();
-    expect(pPr['a:buChar']).toBeDefined();
+    const xml = renderXml(serialized);
+    expect(xml).toContain('lvl="1"');
+    expect(xml).toContain('marL=');
+    expect(xml).toContain('indent=');
+    expect(xml).toContain('<a:buChar');
   });
 
   it('serializes text body containing line breaks and plain paragraphs together', () => {
@@ -118,11 +119,12 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     };
 
     const serialized = serializeTextBody(textBody);
-    expect(typeof serialized).toBe('object');
-    expect(serialized['a:p']).toBeDefined();
-    const paragraphs = serialized['a:p'] as Record<string, unknown>[];
-    expect(paragraphs).toHaveLength(2);
-    expect(paragraphs[0]?.['a:br']).toBeDefined();
+    expect(serialized.tag).toBe('p:txBody');
+    const xml = renderXml(serialized);
+    expect(xml).toContain('A1');
+    expect(xml).toContain('a1 continuation');
+    expect(xml).toContain('B1');
+    expect(xml).toContain('<a:br');
   });
 
   it('serializes complete shape containing line breaks into valid shape object', () => {
@@ -161,9 +163,11 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     };
 
     const serialized = serializeShape(shape);
-    expect(typeof serialized).toBe('object');
-    expect(serialized['p:nvSpPr']).toBeDefined();
-    expect(serialized['p:txBody']).toBeDefined();
+    expect(serialized.tag).toBe('p:sp');
+    const xml = renderXml(serialized);
+    expect(xml).toContain('<p:nvSpPr>');
+    expect(xml).toContain('<p:txBody>');
+    expect(xml).toContain('<a:br');
   });
 
   it('serializes full slide with mixed line-break shape and normal shapes', () => {
@@ -209,7 +213,7 @@ describe('Line Break and Granular Bullet Level Serializer', () => {
     expect(slideXml).toContain('<p:sld');
     expect(slideXml).toContain('Slide Title');
     expect(slideXml).toContain('A1');
-    expect(slideXml).toContain('<a:br/>');
+    expect(slideXml).toContain('<a:br');
     expect(slideXml).toContain('a1 detail');
     expect(slideXml).toContain('B1');
   });
