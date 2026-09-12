@@ -1,3 +1,7 @@
+import type { XmlChild, XmlElement, XmlRaw } from '@hokkyss/pptx-core';
+
+export type { XmlChild, XmlElement, XmlRaw };
+
 export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
 
 /**
@@ -50,13 +54,6 @@ export function sanitizeXmlText<T>(val: T): T {
 }
 
 /**
- * Raw XML wrapper node used when pre-formatted XML strings must be injected verbatim.
- */
-export interface XmlRaw {
-  raw: string;
-}
-
-/**
  * Creates a raw XML node that will be output verbatim without escaping.
  */
 export function rawXml(xml: string): XmlRaw {
@@ -69,17 +66,6 @@ export function rawXml(xml: string): XmlRaw {
 export function isXmlRaw(val: unknown): val is XmlRaw {
   return typeof val === 'object' && val !== null && 'raw' in val && typeof (val as XmlRaw).raw === 'string';
 }
-
-/**
- * Strongly-typed representation of an XML element in an ordered AST.
- */
-export interface XmlElement {
-  tag: string;
-  attrs?: Record<string, boolean | number | string | undefined>;
-  children?: (number | string | XmlElement | XmlRaw)[];
-}
-
-export type XmlChild = false | null | number | string | undefined | XmlChild[] | XmlElement | XmlRaw;
 
 /**
  *

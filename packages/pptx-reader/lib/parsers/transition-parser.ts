@@ -1,4 +1,4 @@
-import type { PptxTransition, PptxTransitionDirection, PptxTransitionSpeed } from '@hokkyss/pptx-core';
+import type { PptxTransition, PptxTransitionDirection, PptxTransitionSpeed, XmlElement } from '@hokkyss/pptx-core';
 import { defaultXmlParser, XmlParser } from '../xml/xml-parser';
 
 const REVERSE_DIRECTION_MAP: Record<string, PptxTransitionDirection> = {
@@ -63,10 +63,19 @@ export function parseTransition(
   const advanceAfterMs = transitionNode['@_advTm'] !== undefined ? Number(transitionNode['@_advTm']) : undefined;
 
   // Identify transition type tag (e.g. p:fade, p:push, p:wipe, p:split, p:wheel, p:cut, etc.)
-  const typeKey = Object.keys(transitionNode).find((k) => k.startsWith('p:') || (!k.startsWith('@_') && k !== '#text'));
+  const childElement = ('children' in transitionNode && Array.isArray(transitionNode.children))
+    ? transitionNode.children.find((c): c is XmlElement => typeof c === 'object' && c !== null && 'tag' in c)
+    : undefined;
+  const typeKey = childElement
+    ? childElement.tag
+    : Object.keys(transitionNode).find(
+        (k) =>
+          !['#text', 'attrs', 'children', 'tag'].includes(k)
+          && (k.startsWith('p:') || !k.startsWith('@_')),
+      );
   const type = typeKey ? typeKey.replace('p:', '') : 'none';
 
-  const childNode = (typeKey ? transitionNode[typeKey] : undefined) as Record<string, unknown> | undefined;
+  const childNode = (childElement ?? (typeKey ? transitionNode[typeKey] : undefined)) as Record<string, unknown> | undefined;
 
   let direction: PptxTransitionDirection | undefined;
   let throughBlack: boolean | undefined;

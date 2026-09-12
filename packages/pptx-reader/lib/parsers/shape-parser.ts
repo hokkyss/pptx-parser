@@ -91,32 +91,44 @@ export function parseShapeTree(
 ): PptxShape[] {
   const shapes: PptxShape[] = [];
 
-  // Parse Auto Shapes (<p:sp>)
-  for (const spNode of getXmlChildren(spTree, 'sp')) {
-    shapes.push(parseSingleShape(spNode, 'shape', relationshipResolver));
+  // 1. Sequential document order traversal if ordered children array exists
+  if ('children' in spTree && Array.isArray(spTree.children) && spTree.children.length > 0) {
+    for (const child of spTree.children) {
+      if (typeof child !== 'object' || child === null || !('tag' in child)) continue;
+      const tag = (child as { tag: string }).tag;
+      const local = tag.includes(':') ? tag.split(':')[1] : tag;
+      if (local === 'sp') {
+        shapes.push(parseSingleShape(child as Record<string, unknown>, 'shape', relationshipResolver));
+      } else if (local === 'pic') {
+        shapes.push(parseSingleShape(child as Record<string, unknown>, 'picture', relationshipResolver));
+      } else if (local === 'graphicFrame') {
+        shapes.push(parseSingleShape(child as Record<string, unknown>, 'graphicFrame', relationshipResolver));
+      } else if (local === 'grpSp') {
+        shapes.push(parseSingleShape(child as Record<string, unknown>, 'group', relationshipResolver));
+      } else if (local === 'cxnSp') {
+        shapes.push(parseSingleShape(child as Record<string, unknown>, 'connector', relationshipResolver));
+      }
+    }
+  } else {
+    // 2. Legacy fallback for raw un-ordered mock objects without children
+    for (const spNode of getXmlChildren(spTree, 'sp')) {
+      shapes.push(parseSingleShape(spNode, 'shape', relationshipResolver));
+    }
+    for (const picNode of getXmlChildren(spTree, 'pic')) {
+      shapes.push(parseSingleShape(picNode, 'picture', relationshipResolver));
+    }
+    for (const gfNode of getXmlChildren(spTree, 'graphicFrame')) {
+      shapes.push(parseSingleShape(gfNode, 'graphicFrame', relationshipResolver));
+    }
+    for (const grpNode of getXmlChildren(spTree, 'grpSp')) {
+      shapes.push(parseSingleShape(grpNode, 'group', relationshipResolver));
+    }
+    for (const cxnNode of getXmlChildren(spTree, 'cxnSp')) {
+      shapes.push(parseSingleShape(cxnNode, 'connector', relationshipResolver));
+    }
   }
 
-  // Parse Pictures (<p:pic>)
-  for (const picNode of getXmlChildren(spTree, 'pic')) {
-    shapes.push(parseSingleShape(picNode, 'picture', relationshipResolver));
-  }
-
-  // Parse Graphic Frames (<p:graphicFrame>)
-  for (const gfNode of getXmlChildren(spTree, 'graphicFrame')) {
-    shapes.push(parseSingleShape(gfNode, 'graphicFrame', relationshipResolver));
-  }
-
-  // Parse Group Shapes (<p:grpSp>)
-  for (const grpNode of getXmlChildren(spTree, 'grpSp')) {
-    shapes.push(parseSingleShape(grpNode, 'group', relationshipResolver));
-  }
-
-  // Parse Connection Shapes (<p:cxnSp>)
-  for (const cxnNode of getXmlChildren(spTree, 'cxnSp')) {
-    shapes.push(parseSingleShape(cxnNode, 'connector', relationshipResolver));
-  }
-
-  // Assign 0-based zIndex to reflect rendering layer order
+  // Assign 0-based zIndex to reflect true rendering layer order
   for (let i = 0; i < shapes.length; i++) {
     shapes[i].zIndex = i;
   }

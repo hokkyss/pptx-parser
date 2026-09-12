@@ -22,7 +22,7 @@ import { extractMedia } from './resolvers/media-resolver';
 import { createRelationshipResolver } from './resolvers/relationship-resolver';
 import { createThemeResolver } from './resolvers/theme-resolver';
 import { PptxParseOptions } from './types/options';
-import { defaultXmlParser } from './xml/xml-parser';
+import { defaultXmlParser, getXmlText } from './xml/xml-parser';
 import { createZipReader } from './zip/zip-reader';
 
 /**
@@ -51,10 +51,11 @@ function parseMetadata(
   const parsed = xmlParser.parse<Record<string, unknown>>(coreXml);
   const coreNode = (parsed['cp:coreProperties'] || parsed['coreProperties'] || {}) as Record<string, unknown>;
 
-  const title = coreNode['dc:title'] ? String(coreNode['dc:title']) : undefined;
-  const creator = coreNode['dc:creator'] ? String(coreNode['dc:creator']) : undefined;
-  const lastModifiedBy = coreNode['cp:lastModifiedBy'] ? String(coreNode['cp:lastModifiedBy']) : undefined;
-  const revision = coreNode['cp:revision'] !== undefined ? Number(coreNode['cp:revision']) : undefined;
+  const title = getXmlText(coreNode['dc:title']);
+  const creator = getXmlText(coreNode['dc:creator']);
+  const lastModifiedBy = getXmlText(coreNode['cp:lastModifiedBy']);
+  const revRaw = getXmlText(coreNode['cp:revision']);
+  const revision = revRaw !== undefined && !Number.isNaN(Number(revRaw)) ? Number(revRaw) : undefined;
 
   return {
     creator,

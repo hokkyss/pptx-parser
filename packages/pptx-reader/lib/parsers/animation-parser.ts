@@ -58,16 +58,25 @@ function traverseTimingTree(node: Record<string, unknown>, results: PptxAnimatio
     }
   }
 
-  // Recurse into all object keys / array children
-  for (const value of Object.values(node)) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        if (typeof item === 'object' && item !== null) {
-          traverseTimingTree(item as Record<string, unknown>, results, sequenceIndex);
-        }
+  // Recurse into children
+  if ('children' in node && Array.isArray(node.children)) {
+    for (const item of node.children) {
+      if (typeof item === 'object' && item !== null && 'tag' in item) {
+        traverseTimingTree(item as Record<string, unknown>, results, sequenceIndex);
       }
-    } else if (typeof value === 'object' && value !== null) {
-      traverseTimingTree(value as Record<string, unknown>, results, sequenceIndex);
+    }
+  } else {
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'attrs' || key === 'tag' || key.startsWith('@_')) continue;
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (typeof item === 'object' && item !== null) {
+            traverseTimingTree(item as Record<string, unknown>, results, sequenceIndex);
+          }
+        }
+      } else if (typeof value === 'object' && value !== null) {
+        traverseTimingTree(value as Record<string, unknown>, results, sequenceIndex);
+      }
     }
   }
 }

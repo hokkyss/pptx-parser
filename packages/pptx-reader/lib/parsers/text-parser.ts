@@ -100,26 +100,64 @@ export function parseParagraph(
   const defRPr = (pPr['a:defRPr'] || pPr['defRPr']) as Record<string, unknown> | undefined;
   const fallbackProps = defRPr ? parseRunProperties(defRPr) : undefined;
 
-  // Extract text runs
-  let rNodes = pNode['a:r'] || pNode['r'];
+  // Extract text runs, breaks, and fields in exact document order
   const runs: PptxRun[] = [];
 
-  if (rNodes) {
-    if (!Array.isArray(rNodes)) {
-      rNodes = [rNodes];
+  if ('children' in pNode && Array.isArray(pNode.children) && pNode.children.length > 0) {
+    for (const child of pNode.children) {
+      if (typeof child !== 'object' || child === null || !('tag' in child)) continue;
+      const tag = (child as { tag: string }).tag;
+      const local = tag.includes(':') ? tag.split(':')[1] : tag;
+      if (local === 'r') {
+        const run = parseRun(child as Record<string, unknown>, fallbackProps, relationshipResolver);
+        if (run) runs.push(run);
+      } else if (local === 'br') {
+        const rPrNode = (child as Record<string, unknown>)['a:rPr'] || (child as Record<string, unknown>)['rPr'];
+        const brProps = rPrNode ? parseRunProperties(rPrNode as Record<string, unknown>, relationshipResolver) : undefined;
+        runs.push({
+          break: true,
+          ...(brProps && { properties: brProps }),
+        });
+      } else if (local === 'fld') {
+        const run = parseRun(child as Record<string, unknown>, fallbackProps, relationshipResolver);
+        if (run) runs.push(run);
+      }
     }
-    for (const rNode of rNodes as Record<string, unknown>[]) {
-      const run = parseRun(rNode, fallbackProps, relationshipResolver);
-      if (run) runs.push(run);
+  } else {
+    // Legacy fallback for raw mock objects without children array
+    let rNodes = pNode['a:r'] || pNode['r'];
+    if (rNodes) {
+      if (!Array.isArray(rNodes)) {
+        rNodes = [rNodes];
+      }
+      for (const rNode of rNodes as Record<string, unknown>[]) {
+        const run = parseRun(rNode, fallbackProps, relationshipResolver);
+        if (run) runs.push(run);
+      }
     }
-  }
 
-  const fldNodes = pNode['a:fld'] || pNode['fld'];
-  if (fldNodes) {
-    const flds = Array.isArray(fldNodes) ? fldNodes : [fldNodes];
-    for (const fld of flds as Record<string, unknown>[]) {
-      const run = parseRun(fld, fallbackProps, relationshipResolver);
-      if (run) runs.push(run);
+    let brNodes = pNode['a:br'] || pNode['br'];
+    if (brNodes) {
+      if (!Array.isArray(brNodes)) {
+        brNodes = [brNodes];
+      }
+      for (const brNode of brNodes as Record<string, unknown>[]) {
+        const rPrNode = (brNode)['a:rPr'] || (brNode)['rPr'];
+        const brProps = rPrNode ? parseRunProperties(rPrNode as Record<string, unknown>, relationshipResolver) : undefined;
+        runs.push({
+          break: true,
+          ...(brProps && { properties: brProps }),
+        });
+      }
+    }
+
+    const fldNodes = pNode['a:fld'] || pNode['fld'];
+    if (fldNodes) {
+      const flds = Array.isArray(fldNodes) ? fldNodes : [fldNodes];
+      for (const fld of flds as Record<string, unknown>[]) {
+        const run = parseRun(fld, fallbackProps, relationshipResolver);
+        if (run) runs.push(run);
+      }
     }
   }
 
