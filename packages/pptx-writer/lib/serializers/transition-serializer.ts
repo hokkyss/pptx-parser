@@ -1,4 +1,5 @@
 import type { PptxTransition, PptxTransitionSpeed } from '@hokkyss/pptx-core';
+import { el, type XmlElement } from '../xml/xml-element';
 
 const DIRECTION_MAP: Record<string, string> = {
   down: 'd',
@@ -30,9 +31,9 @@ function resolveSpeed(speed?: PptxTransitionSpeed, durationMs?: number): string 
 /**
  * Serializes slide `<p:transition>` conforming strictly to ECMA-376 PresentationML schema.
  * @param transition Slide transition configuration.
- * @returns Transition XML node object or undefined.
+ * @returns Transition XmlElement node or undefined.
  */
-export function serializeTransition(transition?: PptxTransition): Record<string, unknown> | undefined {
+export function serializeTransition(transition?: PptxTransition): undefined | XmlElement {
   if (!transition) return undefined;
 
   const type = (transition.type || 'fade');
@@ -40,113 +41,98 @@ export function serializeTransition(transition?: PptxTransition): Record<string,
     return undefined;
   }
 
-  const transNode: Record<string, unknown> = {};
+  const transAttrs: Record<string, number | string | undefined> = {};
 
   const speed = resolveSpeed(transition.speed, transition.durationMs ?? transition.duration);
   if (speed) {
-    transNode['@_spd'] = speed;
+    transAttrs.spd = speed;
   }
 
   if (transition.duration !== undefined) {
-    transNode['@_dur'] = transition.duration;
+    transAttrs.dur = transition.duration;
   }
 
   if (transition.advanceOnClick !== undefined) {
-    transNode['@_advClick'] = transition.advanceOnClick ? '1' : '0';
+    transAttrs.advClick = transition.advanceOnClick ? '1' : '0';
   }
 
   if (transition.advanceAfterMs !== undefined) {
-    transNode['@_advTm'] = Math.round(transition.advanceAfterMs);
+    transAttrs.advTm = Math.round(transition.advanceAfterMs);
   }
 
   const dirAttr = transition.direction ? (DIRECTION_MAP[transition.direction] ?? transition.direction) : undefined;
-  const childNode: Record<string, unknown> = {};
+  const childAttrs: Record<string, string | undefined> = {};
 
   switch (type) {
     case 'blinds': {
       if (dirAttr === 'horz' || dirAttr === 'vert') {
-        childNode['@_dir'] = dirAttr;
+        childAttrs.dir = dirAttr;
       }
-      transNode['p:blinds'] = childNode;
       break;
     }
     case 'checker': {
       if (dirAttr === 'horz' || dirAttr === 'vert') {
-        childNode['@_dir'] = dirAttr;
+        childAttrs.dir = dirAttr;
       }
-      transNode['p:checker'] = childNode;
       break;
     }
     case 'comb': {
       if (dirAttr === 'horz' || dirAttr === 'vert') {
-        childNode['@_dir'] = dirAttr;
+        childAttrs.dir = dirAttr;
       }
-      transNode['p:comb'] = childNode;
       break;
     }
     case 'cover': {
-      if (dirAttr) childNode['@_dir'] = dirAttr;
-      transNode['p:cover'] = childNode;
+      if (dirAttr) childAttrs.dir = dirAttr;
       break;
     }
     case 'fade': {
       if (transition.throughBlack) {
-        childNode['@_thruBlk'] = '1';
+        childAttrs.thruBlk = '1';
       }
-      transNode['p:fade'] = childNode;
       break;
     }
     case 'pull': {
-      if (dirAttr) childNode['@_dir'] = dirAttr;
-      transNode['p:pull'] = childNode;
+      if (dirAttr) childAttrs.dir = dirAttr;
       break;
     }
     case 'push': {
-      if (dirAttr) childNode['@_dir'] = dirAttr;
-      transNode['p:push'] = childNode;
+      if (dirAttr) childAttrs.dir = dirAttr;
       break;
     }
     case 'randomBar': {
       if (dirAttr === 'horz' || dirAttr === 'vert') {
-        childNode['@_dir'] = dirAttr;
+        childAttrs.dir = dirAttr;
       }
-      transNode['p:randomBar'] = childNode;
       break;
     }
     case 'split': {
       if (dirAttr === 'in' || dirAttr === 'out') {
-        childNode['@_dir'] = dirAttr;
+        childAttrs.dir = dirAttr;
       }
       if (transition.direction === 'horz' || transition.direction === 'vert') {
-        childNode['@_orient'] = transition.direction;
+        childAttrs.orient = transition.direction;
       }
-      transNode['p:split'] = childNode;
       break;
     }
     case 'wheel': {
       if (transition.spokes !== undefined) {
-        childNode['@_spokes'] = String(transition.spokes);
+        childAttrs.spokes = String(transition.spokes);
       }
-      transNode['p:wheel'] = childNode;
       break;
     }
     case 'wipe': {
-      if (dirAttr) childNode['@_dir'] = dirAttr;
-      transNode['p:wipe'] = childNode;
+      if (dirAttr) childAttrs.dir = dirAttr;
       break;
     }
     case 'zoom': {
       if (dirAttr === 'in' || dirAttr === 'out') {
-        childNode['@_dir'] = dirAttr;
+        childAttrs.dir = dirAttr;
       }
-      transNode['p:zoom'] = childNode;
-      break;
-    }
-    default: {
-      transNode[`p:${type}`] = childNode;
       break;
     }
   }
 
-  return transNode;
+  const childNode = el(`p:${type}`, childAttrs);
+  return el('p:transition', transAttrs, [childNode]);
 }

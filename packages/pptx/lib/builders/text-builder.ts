@@ -4,6 +4,8 @@ import { hundredthsPoint, type Points } from '@hokkyss/pptx-core';
 export interface TextRunConfig {
   baseline?: number;
   bold?: boolean;
+  /** Whether this run represents a soft line break (<a:br>) */
+  break?: boolean;
   color?: string; // Hex string e.g. '38BDF8'
   font?: string;
   fontSize?: Points;
@@ -12,7 +14,7 @@ export interface TextRunConfig {
   strikethrough?: 'dblStrike' | 'sngStrike' | boolean;
   subscript?: boolean;
   superscript?: boolean;
-  text: string;
+  text?: string;
   underline?: 'dash' | 'dbl' | 'dotted' | 'heavy' | 'sng' | 'wave' | boolean;
 }
 
@@ -115,6 +117,7 @@ export function buildTextRun(input: string | TextRunConfig, defaultOptions?: Tex
   }
 
   return {
+    break: input.break,
     properties: {
       baseline: input.baseline ?? defaultOptions?.baseline,
       bold: input.bold ?? defaultOptions?.bold,
@@ -128,7 +131,7 @@ export function buildTextRun(input: string | TextRunConfig, defaultOptions?: Tex
       superscript: input.superscript ?? defaultOptions?.superscript,
       underline: input.underline ?? defaultOptions?.underline,
     },
-    text: input.text,
+    text: input.text ?? '',
   };
 }
 
@@ -241,7 +244,11 @@ export function buildTextBody(
     } else {
       let currentRuns: PptxRun[] = [];
       for (const item of content as (string | TextRunConfig)[]) {
-        const text = typeof item === 'string' ? item : item.text;
+        if (typeof item === 'object' && item.break) {
+          currentRuns.push(buildTextRun(item, options));
+          continue;
+        }
+        const text = typeof item === 'string' ? item : (item.text ?? '');
         const lines = text.split(/\r?\n/);
         for (let i = 0; i < lines.length; i++) {
           if (i > 0) {

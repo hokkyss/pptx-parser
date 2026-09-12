@@ -1,5 +1,5 @@
 import type { Relationship } from '@hokkyss/pptx-core';
-import { serializeXml } from '../xml/xml-builder';
+import { el, serializeXml } from '../xml/xml-element';
 
 export type RelationshipEntry = { id: string; target: string; type: string } & Partial<Relationship>;
 
@@ -10,23 +10,20 @@ export type RelationshipEntry = { id: string; target: string; type: string } & P
  */
 export function serializeRelationships(relationships: RelationshipEntry[]): string {
   const relElements = relationships.map((rel) => {
-    const relNode: Record<string, unknown> = {
-      '@_Id': rel.id,
-      '@_Target': rel.target,
-      '@_Type': rel.type,
+    const attrs: Record<string, string | undefined> = {
+      Id: rel.id,
+      Target: rel.target,
+      Type: rel.type,
     };
     if (rel.targetMode) {
-      relNode['@_TargetMode'] = rel.targetMode;
+      attrs.TargetMode = rel.targetMode;
     }
-    return relNode;
+    return el('Relationship', attrs);
   });
 
-  const root = {
-    Relationships: {
-      '@_xmlns': 'http://schemas.openxmlformats.org/package/2006/relationships',
-      Relationship: relElements,
-    },
-  };
+  const root = el('Relationships', {
+    xmlns: 'http://schemas.openxmlformats.org/package/2006/relationships',
+  }, relElements);
 
   return serializeXml(root);
 }

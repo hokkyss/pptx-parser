@@ -10,6 +10,7 @@ import {
   serializeRunProperties,
 } from '../../lib/serializers/text-serializer';
 import { writePptx } from '../../lib/writer';
+import { renderXml } from '../../lib/xml/xml-element';
 
 describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
   it('should serialize external URL hyperlink with tooltip', () => {
@@ -19,23 +20,22 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
       url: 'https://example.com',
     });
 
-    expect(hlinkNode).toEqual({
-      '@_r:id': 'rId2',
-      '@_tooltip': 'Visit Website',
-    });
+    expect(hlinkNode).toBeDefined();
+    const xml = renderXml(hlinkNode);
+    expect(xml).toContain('r:id="rId2"');
+    expect(xml).toContain('tooltip="Visit Website"');
   });
 
   it('should serialize slide jump actions properly', () => {
     const nextNode = serializeHyperlink({ action: 'nextSlide' });
-    expect(nextNode).toEqual({
-      '@_action': 'ppaction://hlinkshowjump?jump=nextslide',
-    });
+    expect(nextNode).toBeDefined();
+    expect(renderXml(nextNode)).toContain('jump=nextslide');
 
     const slideJumpNode = serializeHyperlink({ rId: 'rId3', slideIndex: 4 });
-    expect(slideJumpNode).toEqual({
-      '@_action': 'ppaction://hlinksldjump',
-      '@_r:id': 'rId3',
-    });
+    expect(slideJumpNode).toBeDefined();
+    const sjXml = renderXml(slideJumpNode);
+    expect(sjXml).toContain('hlinksldjump');
+    expect(sjXml).toContain('r:id="rId3"');
   });
 
   it('should serialize hyperlink inside run properties', () => {
@@ -47,11 +47,12 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
       },
     });
 
-    expect(rPr['@_b']).toBe('1');
-    expect(rPr['a:hlinkClick']).toEqual({
-      '@_r:id': 'rId5',
-      '@_tooltip': 'Click Me',
-    });
+    expect(rPr).toBeDefined();
+    const xml = renderXml(rPr);
+    expect(xml).toContain('b="1"');
+    expect(xml).toContain('<a:hlinkClick');
+    expect(xml).toContain('r:id="rId5"');
+    expect(xml).toContain('tooltip="Click Me"');
   });
 
   it('should serialize hyperlink inside shape and picture cNvPr', () => {
@@ -71,12 +72,10 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
       zIndex: 0,
     });
 
-    const nvSpPr = shape['p:nvSpPr'] as Record<string, unknown>;
-    const cNvPr = nvSpPr['p:cNvPr'] as Record<string, unknown>;
-    expect(cNvPr['a:hlinkClick']).toEqual({
-      '@_r:id': 'rId10',
-      '@_tooltip': 'Shape Link',
-    });
+    const shapeXml = renderXml(shape);
+    expect(shapeXml).toContain('<a:hlinkClick');
+    expect(shapeXml).toContain('r:id="rId10"');
+    expect(shapeXml).toContain('tooltip="Shape Link"');
 
     const pic = serializePicture({
       elementType: 'picture',
@@ -93,11 +92,9 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
       zIndex: 0,
     });
 
-    const nvPicPr = pic['p:nvPicPr'] as Record<string, unknown>;
-    const picCNvPr = nvPicPr['p:cNvPr'] as Record<string, unknown>;
-    expect(picCNvPr['a:hlinkClick']).toEqual({
-      '@_action': 'ppaction://hlinkshowjump?jump=nextslide',
-    });
+    const picXml = renderXml(pic);
+    expect(picXml).toContain('<a:hlinkClick');
+    expect(picXml).toContain('jump=nextslide');
   });
 
   it('should register relationships in slide.xml.rels when writing presentation', async () => {
@@ -234,18 +231,30 @@ describe('Hyperlink Serializer (@hokkyss/pptx-writer)', () => {
 
 describe('Hyperlink Serializer action jumps', () => {
   it('serializes all predefined jump actions', () => {
-    expect(serializeHyperlink({ action: 'endShow' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=endshow');
-    expect(serializeHyperlink({ action: 'firstSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=firstslide');
-    expect(serializeHyperlink({ action: 'lastSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=lastslide');
-    expect(serializeHyperlink({ action: 'nextSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=nextslide');
-    expect(serializeHyperlink({ action: 'previousSlide' })?.['@_action']).toBe('ppaction://hlinkshowjump?jump=previousslide');
-    expect(serializeHyperlink({ action: 'ppaction://customAction' })?.['@_action']).toBe('ppaction://customAction');
+    const cases = [
+      ['endShow', 'endshow'],
+      ['firstSlide', 'firstslide'],
+      ['lastSlide', 'lastslide'],
+      ['nextSlide', 'nextslide'],
+      ['previousSlide', 'previousslide'],
+    ] as const;
+    for (const [action, jump] of cases) {
+      const node = serializeHyperlink({ action });
+      expect(node).toBeDefined();
+      expect(renderXml(node)).toContain(`jump=${jump}`);
+    }
+    // Custom ppaction
+    const customNode = serializeHyperlink({ action: 'ppaction://customAction' });
+    expect(customNode).toBeDefined();
+    expect(renderXml(customNode)).toContain('ppaction://customAction');
   });
 });
 
 describe('Hyperlink Serializer string target and bullet fallback', () => {
   it('serializes string hyperlink with relIdOverride and handles bullet fallback', () => {
-    expect(serializeHyperlink('https://example.com', 'rId9')?.['@_r:id']).toBe('rId9');
+    const node = serializeHyperlink('https://example.com', 'rId9');
+    expect(node).toBeDefined();
+    expect(renderXml(node)).toContain('r:id="rId9"');
     expect(serializeHyperlink('https://example.com')).toBeUndefined();
     // @ts-expect-error Testing unknown bullet type fallback
     expect(serializeBulletProperties({ type: 'unknown' })).toBeUndefined();

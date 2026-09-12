@@ -8,15 +8,7 @@ import {
   serializeShadow,
   serializeShape,
 } from '../../lib/serializers/shape-serializer';
-
-interface SerializedShapeSpPr {
-  'a:xfrm'?: {
-    'a:ext'?: {
-      '@_cx'?: number;
-      '@_cy'?: number;
-    };
-  };
-}
+import { renderXml } from '../../lib/xml/xml-element';
 
 describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
   it('serializes shape element with transforms, geometry, fills, and outline', () => {
@@ -56,26 +48,31 @@ describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
       },
     };
 
-    const xmlObject = serializeShape(shape);
-    expect(xmlObject).toBeDefined();
+    const xmlNode = serializeShape(shape);
+    expect(xmlNode).toBeDefined();
+    const xml = renderXml(xmlNode);
 
-    const nvSpPr = xmlObject['p:nvSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvSpPr['p:cNvPr']['@_id']).toBe('2');
-    expect(nvSpPr['p:cNvPr']['@_name']).toBe('Rectangle 1');
+    // nvSpPr / cNvPr
+    expect(xml).toContain('id="2"');
+    expect(xml).toContain('name="Rectangle 1"');
 
-    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
-    const xfrm = spPr['a:xfrm'] as Record<string, Record<string, unknown>>;
-    expect(xfrm['a:off']['@_x']).toBe(100000);
-    expect(xfrm['a:off']['@_y']).toBe(200000);
-    expect(xfrm['a:ext']['@_cx']).toBe(3000000);
-    expect(xfrm['a:ext']['@_cy']).toBe(1500000);
-    expect(xfrm['@_rot']).toBe(5400000);
+    // xfrm
+    expect(xml).toContain('x="100000"');
+    expect(xml).toContain('y="200000"');
+    expect(xml).toContain('cx="3000000"');
+    expect(xml).toContain('cy="1500000"');
+    expect(xml).toContain('rot="5400000"');
 
-    expect(spPr['a:prstGeom']['@_prst']).toBe('rect');
-    expect((spPr['a:solidFill']['a:srgbClr'] as Record<string, unknown>)['@_val']).toBe('007ACC');
-    expect(spPr['a:ln']['@_w']).toBe(12700);
-    expect(((spPr['a:ln']['a:solidFill'] as Record<string, unknown>)['a:srgbClr'] as Record<string, unknown>)['@_val']).toBe('000000');
-    expect(xmlObject['p:txBody']).toBeDefined();
+    // geometry
+    expect(xml).toContain('prst="rect"');
+    // fill
+    expect(xml).toContain('val="007ACC"');
+    // line
+    expect(xml).toContain('<a:ln');
+    expect(xml).toContain('w="12700"');
+    expect(xml).toContain('val="000000"');
+    // txBody
+    expect(xml).toContain('Box Content');
   });
 
   it('serializes connector element with customizable start and end arrows', () => {
@@ -97,28 +94,26 @@ describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
       zIndex: 1,
     };
 
-    const xmlObject = serializeConnector(connector);
-    expect(xmlObject).toBeDefined();
+    const xmlNode = serializeConnector(connector);
+    expect(xmlNode).toBeDefined();
+    const xml = renderXml(xmlNode);
 
-    const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvCxnSpPr['p:cNvPr']['@_id']).toBe('5');
-    expect(nvCxnSpPr['p:cNvPr']['@_name']).toBe('Flow Arrow 1');
+    expect(xml).toContain('id="5"');
+    expect(xml).toContain('name="Flow Arrow 1"');
+    expect(xml).toContain('prst="bentConnector2"');
+    expect(xml).toContain('w="25400"');
 
-    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
-    expect(spPr['a:prstGeom']['@_prst']).toBe('bentConnector2');
+    // headEnd
+    expect(xml).toContain('<a:headEnd');
+    expect(xml).toContain('type="triangle"');
+    expect(xml).toContain('w="lg"');
+    expect(xml).toContain('len="lg"');
 
-    const ln = spPr['a:ln'] as Record<string, Record<string, unknown>>;
-    expect(ln['@_w']).toBe(25400);
-
-    const headEnd = ln['a:headEnd'];
-    expect(headEnd['@_type']).toBe('triangle');
-    expect(headEnd['@_w']).toBe('lg');
-    expect(headEnd['@_len']).toBe('lg');
-
-    const tailEnd = ln['a:tailEnd'];
-    expect(tailEnd['@_type']).toBe('oval');
-    expect(tailEnd['@_w']).toBe('sm');
-    expect(tailEnd['@_len']).toBe('med');
+    // tailEnd
+    expect(xml).toContain('<a:tailEnd');
+    expect(xml).toContain('type="oval"');
+    expect(xml).toContain('w="sm"');
+    expect(xml).toContain('len="med"');
   });
 
   it('serializes connector with startConnection and endConnection shape attachments', () => {
@@ -136,20 +131,21 @@ describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
       zIndex: 2,
     };
 
-    const xmlObject = serializeConnector(connector);
-    expect(xmlObject).toBeDefined();
+    const xmlNode = serializeConnector(connector);
+    const xml = renderXml(xmlNode);
 
-    const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
-    const cNvCxnSpPr = nvCxnSpPr['p:cNvCxnSpPr'] as Record<string, Record<string, unknown>>;
-    expect(cNvCxnSpPr['a:cxnSpLocks']).toEqual({});
-    expect(cNvCxnSpPr['a:stCxn']).toEqual({
-      '@_id': 'card-1',
-      '@_idx': 3, // 'right' -> 3
-    });
-    expect(cNvCxnSpPr['a:endCxn']).toEqual({
-      '@_id': 'card-2',
-      '@_idx': 1, // 'left' -> 1
-    });
+    // stCxn — 'right' → idx 3
+    expect(xml).toContain('<a:stCxn');
+    expect(xml).toContain('id="card-1"');
+    expect(xml).toContain('idx="3"');
+
+    // endCxn — 'left' → idx 1
+    expect(xml).toContain('<a:endCxn');
+    expect(xml).toContain('id="card-2"');
+    expect(xml).toContain('idx="1"');
+
+    // cxnSpLocks
+    expect(xml).toContain('<a:cxnSpLocks/>');
   });
 
   it('serializes shape locks, placeholders, shadows, and text box attributes', () => {
@@ -186,17 +182,13 @@ describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
       hyperlink: { rId: 'rId5' },
     };
 
-    const xmlObject = serializeShape(shape);
-    const nvSpPr = xmlObject['p:nvSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvSpPr['p:cNvPr']['@_hidden']).toBe('1');
-    expect(nvSpPr['p:cNvPr']['a:hlinkClick']).toBeDefined();
-    expect(nvSpPr['p:cNvSpPr']['@_txBox']).toBe('1');
-    expect(nvSpPr['p:cNvSpPr']['a:spLocks']).toBeDefined();
-    expect((nvSpPr['p:nvPr']['p:ph'] as Record<string, unknown>)['@_type']).toBe('body');
-
-    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
-    expect(spPr['a:effectLst']).toBeDefined();
-    expect(xmlObject['p:txBody']).toBeDefined();
+    const xml = renderXml(serializeShape(shape));
+    expect(xml).toContain('hidden="1"');
+    expect(xml).toContain('<a:hlinkClick');
+    expect(xml).toContain('txBox="1"');
+    expect(xml).toContain('<a:spLocks');
+    expect(xml).toContain('type="body"');
+    expect(xml).toContain('<a:effectLst');
   });
 
   it('serializes geometry adjustments into preset geometry', () => {
@@ -215,12 +207,9 @@ describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
       },
     };
 
-    const xmlObject = serializeShape(shape);
-    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
-    expect(spPr['a:prstGeom']).toBeDefined();
-    const prstGeom = spPr['a:prstGeom'] as Record<string, Record<string, unknown>>;
-    expect(prstGeom['@_prst']).toBe('roundRect');
-    expect(prstGeom['a:avLst']).toBeDefined();
+    const xml = renderXml(serializeShape(shape));
+    expect(xml).toContain('prst="roundRect"');
+    expect(xml).toContain('<a:avLst>');
   });
 
   it('serializes connector element (<p:cxnSp>)', () => {
@@ -241,18 +230,15 @@ describe('Shape Serializer (@hokkyss/pptx-writer)', () => {
       hyperlink: { rId: 'rId8' },
     };
 
-    const xmlObject = serializeConnector(connector);
-    expect(xmlObject).toHaveProperty('p:nvCxnSpPr');
-    expect(xmlObject).toHaveProperty('p:spPr');
-
-    const nvCxnSpPr = xmlObject['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvCxnSpPr['p:cNvPr']['@_id']).toBe('10');
-    expect(nvCxnSpPr['p:cNvPr']['@_name']).toBe('Arrow Connector');
-    expect(nvCxnSpPr['p:cNvPr']['a:hlinkClick']).toBeDefined();
-
-    const spPr = xmlObject['p:spPr'] as Record<string, Record<string, unknown>>;
-    expect(spPr['a:ln']).toBeDefined();
-    expect(spPr['a:prstGeom']['@_prst']).toBe('straightConnector1');
+    const xmlNode = serializeConnector(connector);
+    const xml = renderXml(xmlNode);
+    expect(xml).toContain('<p:nvCxnSpPr>');
+    expect(xml).toContain('<p:spPr>');
+    expect(xml).toContain('id="10"');
+    expect(xml).toContain('name="Arrow Connector"');
+    expect(xml).toContain('<a:hlinkClick');
+    expect(xml).toContain('<a:ln');
+    expect(xml).toContain('prst="straightConnector1"');
   });
 });
 
@@ -269,9 +255,8 @@ describe('Shape and Connector edge cases', () => {
       rotation: emuDegree(0),
     };
 
-    const xmlConn = serializeConnector(hiddenConnector);
-    const nvCxnSpPr = xmlConn['p:nvCxnSpPr'] as Record<string, Record<string, unknown>>;
-    expect(nvCxnSpPr['p:cNvPr']['@_hidden']).toBe('1');
+    const connXml = renderXml(serializeConnector(hiddenConnector));
+    expect(connXml).toContain('hidden="1"');
 
     const shapeWithoutExt: PptxShapeElement = {
       elementType: 'shape',
@@ -288,19 +273,28 @@ describe('Shape and Connector edge cases', () => {
     // @ts-expect-error test shape without cx / cy dimensions
     delete shapeWithoutExt.position.cy;
 
-    const xmlShape = serializeShape(shapeWithoutExt);
-    const spPr = xmlShape['p:spPr'] as SerializedShapeSpPr;
-    expect(spPr['a:xfrm']?.['a:ext']?.['@_cx']).toBe(2000000);
-    expect(spPr['a:xfrm']?.['a:ext']?.['@_cy']).toBe(1000000);
+    const shapeXml = renderXml(serializeShape(shapeWithoutExt));
+    expect(shapeXml).toContain('cx="2000000"');
+    expect(shapeXml).toContain('cy="1000000"');
   });
 });
 
 describe('Shape Serializer helper direct exports', () => {
   it('covers serializeLine, serializeGeometry, and serializeShadow with empty inputs', () => {
     expect(serializeLine(undefined)).toBeUndefined();
-    expect(serializeLine({ dashStyle: 'dash' })?.['a:prstDash']).toEqual({ '@_val': 'dash' });
-    expect(serializeGeometry(undefined)).toEqual({ 'a:prstGeom': { '@_prst': 'rect', 'a:avLst': {} } });
-    expect(serializeGeometry({})).toEqual({ 'a:prstGeom': { '@_prst': 'rect', 'a:avLst': {} } });
+    const lineWithDash = serializeLine({ dashStyle: 'dash' });
+    expect(lineWithDash).toBeDefined();
+    expect(renderXml(lineWithDash)).toContain('val="dash"');
+    expect(renderXml(lineWithDash)).toContain('<a:prstDash');
+
+    const defaultGeom = serializeGeometry(undefined);
+    const defaultGeomXml = renderXml(defaultGeom);
+    expect(defaultGeomXml).toContain('prst="rect"');
+    expect(defaultGeomXml).toContain('<a:avLst/>');
+
+    const emptyGeom = serializeGeometry({});
+    expect(renderXml(emptyGeom)).toContain('prst="rect"');
+
     expect(serializeShadow(undefined)).toBeUndefined();
   });
 
@@ -310,11 +304,13 @@ describe('Shape Serializer helper direct exports', () => {
       fill: { solidColor: { type: 'srgb', value: '123456' }, type: 'solid' },
       width: emu(12700),
     });
-    expect(lineObj?.['@_w']).toBe(12700);
-    expect(lineObj?.['a:prstDash']).toEqual({ '@_val': 'dashDot' });
+    expect(lineObj).toBeDefined();
+    const lineXml = renderXml(lineObj);
+    expect(lineXml).toContain('w="12700"');
+    expect(lineXml).toContain('val="dashDot"');
 
     const geom1 = serializeGeometry({ adjustments: { adj: 50000 }, presetGeometry: 'rect' });
-    expect(geom1['a:prstGeom']).toBeDefined();
+    expect(renderXml(geom1)).toContain('prst="rect"');
 
     const shadowObj = serializeShadow({
       blurRadius: emu(50800),
@@ -370,8 +366,8 @@ describe('Shape Serializer helper direct exports', () => {
         type: 'shape',
         zIndex: 0,
       };
-      const xml = serializeShape(s);
-      expect((xml['p:spPr'] as Record<string, Record<string, string>>)['a:prstGeom']).toBeDefined();
+      const xml = renderXml(serializeShape(s));
+      expect(xml).toContain('<a:prstGeom');
     }
 
     // Placeholder shape with 0 size (inherits geometry from layout)
@@ -386,8 +382,9 @@ describe('Shape Serializer helper direct exports', () => {
       type: 'shape',
       zIndex: 0,
     };
-    const phXml = serializeShape(phShape);
-    expect((phXml['p:spPr'] as Record<string, unknown>)['a:xfrm']).toBeUndefined();
+    const phXml = renderXml(serializeShape(phShape));
+    // No xfrm when cx/cy are 0 and there's a placeholder
+    expect(phXml).not.toContain('<a:xfrm');
 
     // Connector with empty name/id, undefined position, and top/bottom connection points
     // @ts-expect-error Testing undefined position
@@ -402,12 +399,10 @@ describe('Shape Serializer helper direct exports', () => {
       type: 'connector',
       zIndex: 0,
     };
-    const connXml = serializeConnector(connMinimal);
-    const nv = connXml['p:nvCxnSpPr'] as Record<string, Record<string, string>>;
-    expect(nv['p:cNvPr']['@_id']).toBe('2');
-    expect(nv['p:cNvPr']['@_name']).toBe('Connector 2');
-    const xfrm = (connXml['p:spPr'] as Record<string, Record<string, Record<string, number>>>)['a:xfrm'];
-    expect(xfrm['a:off']['@_x']).toBe(0);
-    expect(xfrm['a:ext']['@_cx']).toBe(100000);
+    const connXml = renderXml(serializeConnector(connMinimal));
+    expect(connXml).toContain('id="2"');
+    expect(connXml).toContain('name="Connector 2"');
+    expect(connXml).toContain('x="0"');
+    expect(connXml).toContain('cx="100000"');
   });
 });

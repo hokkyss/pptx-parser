@@ -1,5 +1,5 @@
 import type { PptxElement, PptxSlide } from '@hokkyss/pptx-core';
-import { serializeXml } from '../xml/xml-builder';
+import { el, serializeXml, type XmlElement } from '../xml/xml-element';
 import { serializeAnimations } from './animation-serializer';
 import { serializeGroup } from './group-serializer';
 import { serializePicture } from './picture-serializer';
@@ -11,18 +11,18 @@ import { serializeTransition } from './transition-serializer';
 /**
  * Serializes slide background properties `<p:bg>`.
  */
-export function serializeSlideBackground(slide: PptxSlide): Record<string, unknown> | undefined {
+export function serializeSlideBackground(slide: PptxSlide): undefined | XmlElement {
   if (!slide.background?.fill) return undefined;
 
   const fillNode = serializeFill(slide.background.fill);
   if (!fillNode) return undefined;
 
-  return {
-    'p:bgPr': {
-      ...fillNode,
-      'a:effectLst': {},
-    },
-  };
+  return el('p:bg', [
+    el('p:bgPr', [
+      fillNode,
+      el('a:effectLst'),
+    ]),
+  ]);
 }
 
 /**
@@ -36,20 +36,20 @@ function isUnsignedInt(str?: string): boolean {
  * Normalizes element and all its children with valid numeric OpenXML drawing IDs.
  */
 function normalizeElementWithUniqueIds(
-  el: PptxElement,
+  element: PptxElement,
   getUniqueId: (preferredId?: string) => string,
 ): PptxElement {
-  const uniqueId = getUniqueId(el.id);
-  if (el.elementType === 'group') {
-    const updatedChildren = (el.children || []).map((child) => normalizeElementWithUniqueIds(child, getUniqueId));
+  const uniqueId = getUniqueId(element.id);
+  if (element.elementType === 'group') {
+    const updatedChildren = (element.children || []).map((child) => normalizeElementWithUniqueIds(child, getUniqueId));
     return {
-      ...el,
+      ...element,
       children: updatedChildren,
       id: uniqueId,
     };
   }
   return {
-    ...el,
+    ...element,
     id: uniqueId,
   };
 }
@@ -60,40 +60,40 @@ function normalizeElementWithUniqueIds(
 export function serializeChartGraphicFrame(
   elem: PptxElement,
   chartRelId: string,
-): Record<string, unknown> {
+): XmlElement {
   const x = Math.round(Number(elem.position?.x ?? 0));
   const y = Math.round(Number(elem.position?.y ?? 0));
   const cx = Math.round(Number(elem.position?.cx ?? 9144000));
   const cy = Math.round(Number(elem.position?.cy ?? 4572000));
 
-  return {
-    'p:nvGraphicFramePr': {
-      'p:cNvPr': {
-        '@_id': elem.id || '2',
-        '@_name': elem.name || `Chart ${elem.id || '2'}`,
-      },
-      'p:cNvGraphicFramePr': {},
-      'p:nvPr': {},
-    },
-    'p:xfrm': {
-      'a:off': { '@_x': String(x), '@_y': String(y) },
-      'a:ext': { '@_cx': String(cx), '@_cy': String(cy) },
-    },
-    'a:graphic': {
-      'a:graphicData': {
-        '@_uri': 'http://schemas.openxmlformats.org/drawingml/2006/chart',
-        'c:chart': {
-          '@_xmlns:c': 'http://schemas.openxmlformats.org/drawingml/2006/chart',
-          '@_xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-          '@_r:id': chartRelId,
-        },
-      },
-    },
-  };
+  return el('p:graphicFrame', [
+    el('p:nvGraphicFramePr', [
+      el('p:cNvPr', {
+        id: elem.id || '2',
+        name: elem.name || `Chart ${elem.id || '2'}`,
+      }),
+      el('p:cNvGraphicFramePr'),
+      el('p:nvPr'),
+    ]),
+    el('p:xfrm', [
+      el('a:off', { x, y }),
+      el('a:ext', { cx, cy }),
+    ]),
+    el('a:graphic', [
+      el('a:graphicData', { uri: 'http://schemas.openxmlformats.org/drawingml/2006/chart' }, [
+        el('c:chart', {
+          'xmlns:c': 'http://schemas.openxmlformats.org/drawingml/2006/chart',
+          'xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+          'r:id': chartRelId,
+        }),
+      ]),
+    ]),
+  ]);
 }
 
 /**
  * Serializes a slide AST node into complete OpenXML `<p:sld>` format.
+ * Preserves exact sequential visual z-order of child elements in `<p:spTree>`.
  */
 export function serializeSlide(
   slide: PptxSlide,
@@ -101,12 +101,6 @@ export function serializeSlide(
   chartRelIds?: string[],
 ): string {
   const elements = (slide.elements && slide.elements.length > 0) ? slide.elements : (slide.shapes || []);
-
-  const shapeList: Record<string, unknown>[] = [];
-  const graphicFrameList: Record<string, unknown>[] = [];
-  const picList: Record<string, unknown>[] = [];
-  const grpSpList: Record<string, unknown>[] = [];
-  const cxnSpList: Record<string, unknown>[] = [];
 
   const usedIds = new Set<string>(['1']); // 1 is reserved for the root container group
   const idMap = new Map<string, string>();
@@ -130,22 +124,23 @@ export function serializeSlide(
   };
 
   let chartIdx = 0;
+  const spTreeElements: XmlElement[] = [];
 
   for (const rawEl of elements) {
     const elWithId = normalizeElementWithUniqueIds(rawEl, getUniqueId);
 
     if (elWithId.elementType === 'shape') {
-      shapeList.push(serializeShape(elWithId));
+      spTreeElements.push(serializeShape(elWithId));
     } else if (elWithId.elementType === 'table') {
-      graphicFrameList.push(serializeTable(elWithId));
+      spTreeElements.push(serializeTable(elWithId));
     } else if (elWithId.elementType === 'chart') {
       const chartRelId = chartRelIds ? (chartRelIds[chartIdx++] || 'rId2') : 'rId2';
-      graphicFrameList.push(serializeChartGraphicFrame(elWithId, chartRelId));
+      spTreeElements.push(serializeChartGraphicFrame(elWithId, chartRelId));
     } else if (elWithId.elementType === 'picture') {
       const overrideEmbedId = pictureEmbedMap?.get(elWithId.picture.mediaId) ?? pictureEmbedMap?.get(elWithId.id);
-      picList.push(serializePicture(elWithId, overrideEmbedId));
+      spTreeElements.push(serializePicture(elWithId, overrideEmbedId));
     } else if (elWithId.elementType === 'group') {
-      grpSpList.push(serializeGroup(elWithId));
+      spTreeElements.push(serializeGroup(elWithId));
     } else if (elWithId.elementType === 'connector') {
       // Map attached shape IDs to their normalized numeric IDs
       const mappedConnector = {
@@ -163,70 +158,56 @@ export function serializeSlide(
             }
           : undefined,
       };
-      cxnSpList.push(serializeConnector(mappedConnector));
+      spTreeElements.push(serializeConnector(mappedConnector));
     }
   }
 
-  const spTree: Record<string, unknown> = {
-    'p:nvGrpSpPr': {
-      'p:cNvPr': { '@_id': '1', '@_name': '' },
-      'p:cNvGrpSpPr': {},
-      'p:nvPr': {},
-    },
-    'p:grpSpPr': {
-      'a:xfrm': {
-        'a:off': { '@_x': '0', '@_y': '0' },
-        'a:ext': { '@_cx': '0', '@_cy': '0' },
-        'a:chOff': { '@_x': '0', '@_y': '0' },
-        'a:chExt': { '@_cx': '0', '@_cy': '0' },
-      },
-    },
-  };
+  const spTree = el('p:spTree', [
+    el('p:nvGrpSpPr', [
+      el('p:cNvPr', { id: '1', name: '' }),
+      el('p:cNvGrpSpPr'),
+      el('p:nvPr'),
+    ]),
+    el('p:grpSpPr', [
+      el('a:xfrm', [
+        el('a:off', { x: 0, y: 0 }),
+        el('a:ext', { cx: 0, cy: 0 }),
+        el('a:chOff', { x: 0, y: 0 }),
+        el('a:chExt', { cx: 0, cy: 0 }),
+      ]),
+    ]),
+    ...spTreeElements,
+  ]);
 
-  if (shapeList.length > 0) {
-    spTree['p:sp'] = shapeList;
-  }
-  if (graphicFrameList.length > 0) {
-    spTree['p:graphicFrame'] = graphicFrameList;
-  }
-  if (picList.length > 0) {
-    spTree['p:pic'] = picList;
-  }
-  if (grpSpList.length > 0) {
-    spTree['p:grpSp'] = grpSpList;
-  }
-  if (cxnSpList.length > 0) {
-    spTree['p:cxnSp'] = cxnSpList;
-  }
-
-  const cSld: Record<string, unknown> = {};
+  const cSldChildren: XmlElement[] = [];
   const bg = serializeSlideBackground(slide);
   if (bg) {
-    cSld['p:bg'] = bg;
+    cSldChildren.push(bg);
   }
-  cSld['p:spTree'] = spTree;
+  cSldChildren.push(spTree);
 
-  const sldRoot: Record<string, unknown> = {
-    'p:sld': {
-      '@_xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-      '@_xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-      '@_xmlns:p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
-      'p:cSld': cSld,
-      'p:clrMapOvr': {
-        'a:masterClrMapping': {},
-      },
-    },
-  };
+  const cSld = el('p:cSld', cSldChildren);
+
+  const sldChildren: XmlElement[] = [
+    cSld,
+    el('p:clrMapOvr', [el('a:masterClrMapping')]),
+  ];
 
   const transitionNode = serializeTransition(slide.transition);
   if (transitionNode) {
-    (sldRoot['p:sld'] as Record<string, unknown>)['p:transition'] = transitionNode;
+    sldChildren.push(transitionNode);
   }
 
   const timingNode = serializeAnimations(slide.animations);
   if (timingNode) {
-    (sldRoot['p:sld'] as Record<string, unknown>)['p:timing'] = timingNode;
+    sldChildren.push(timingNode);
   }
+
+  const sldRoot = el('p:sld', {
+    'xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+    'xmlns:p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+    'xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+  }, sldChildren);
 
   return serializeXml(sldRoot);
 }

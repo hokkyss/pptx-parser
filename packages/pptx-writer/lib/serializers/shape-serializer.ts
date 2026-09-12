@@ -4,274 +4,245 @@ import type {
   PptxGeometry,
   PptxLine,
   PptxLineEnd,
+  PptxShadow,
   PptxShapeElement,
   PptxShapeLocks,
 } from '@hokkyss/pptx-core';
+import { el, type XmlElement } from '../xml/xml-element';
 import { serializeFill, serializeHyperlink, serializeTextBody } from './text-serializer';
 
 /**
  * Serializes shape locks `<a:spLocks>`.
  */
-export function serializeShapeLocks(locks?: PptxShapeLocks): Record<string, unknown> | undefined {
+export function serializeShapeLocks(locks?: PptxShapeLocks): undefined | XmlElement {
   if (!locks) return undefined;
 
-  const spLocks: Record<string, unknown> = {};
-  if (locks.noAdjustHandles) spLocks['@_noAdjustHandles'] = '1';
-  if (locks.noChangeAspect) spLocks['@_noChangeAspect'] = '1';
-  if (locks.noChangeShapeType) spLocks['@_noChangeShapeType'] = '1';
-  if (locks.noCrop) spLocks['@_noCrop'] = '1';
-  if (locks.noEditPoints) spLocks['@_noEditPoints'] = '1';
-  if (locks.noGrp) spLocks['@_noGrp'] = '1';
-  if (locks.noMove) spLocks['@_noMove'] = '1';
-  if (locks.noResize) spLocks['@_noResize'] = '1';
-  if (locks.noRot) spLocks['@_noRot'] = '1';
-  if (locks.noSelect) spLocks['@_noSelect'] = '1';
-  if (locks.noUngrp) spLocks['@_noUngrp'] = '1';
+  const attrs: Record<string, number | string | undefined> = {};
+  if (locks.noAdjustHandles) attrs.noAdjustHandles = '1';
+  if (locks.noChangeAspect) attrs.noChangeAspect = '1';
+  if (locks.noChangeShapeType) attrs.noChangeShapeType = '1';
+  if (locks.noCrop) attrs.noCrop = '1';
+  if (locks.noEditPoints) attrs.noEditPoints = '1';
+  if (locks.noGrp) attrs.noGrp = '1';
+  if (locks.noMove) attrs.noMove = '1';
+  if (locks.noResize) attrs.noResize = '1';
+  if (locks.noRot) attrs.noRot = '1';
+  if (locks.noSelect) attrs.noSelect = '1';
+  if (locks.noUngrp) attrs.noUngrp = '1';
 
-  return Object.keys(spLocks).length > 0 ? spLocks : undefined;
+  return Object.keys(attrs).length > 0 ? el('a:spLocks', attrs) : undefined;
 }
 
 /**
  * Serializes line end arrowhead properties `<a:headEnd>` or `<a:tailEnd>`.
  */
-export function serializeLineEnd(lineEnd?: PptxLineEnd): Record<string, unknown> | undefined {
+export function serializeLineEnd(lineEnd?: PptxLineEnd, tag: 'a:headEnd' | 'a:tailEnd' = 'a:headEnd'): undefined | XmlElement {
   if (!lineEnd) return undefined;
-  const node: Record<string, unknown> = {};
-  if (lineEnd.type !== undefined) node['@_type'] = lineEnd.type;
-  if (lineEnd.width !== undefined) node['@_w'] = lineEnd.width;
-  if (lineEnd.length !== undefined) node['@_len'] = lineEnd.length;
-  return Object.keys(node).length > 0 ? node : undefined;
+  const attrs: Record<string, string | undefined> = {};
+  if (lineEnd.type !== undefined) attrs.type = lineEnd.type;
+  if (lineEnd.width !== undefined) attrs.w = lineEnd.width;
+  if (lineEnd.length !== undefined) attrs.len = lineEnd.length;
+  return Object.keys(attrs).length > 0 ? el(tag, attrs) : undefined;
 }
 
 /**
  * Serializes line/outline properties `<a:ln>`.
  */
-export function serializeLine(line?: PptxLine): Record<string, unknown> | undefined {
+export function serializeLine(line?: PptxLine): undefined | XmlElement {
   if (!line) return undefined;
 
-  const ln: Record<string, unknown> = {};
+  const attrs: Record<string, number | undefined> = {};
   if (line.width !== undefined) {
-    ln['@_w'] = Math.round(Number(line.width));
-  }
-  if (line.fill) {
-    const fillNode = serializeFill(line.fill);
-    if (fillNode) {
-      Object.assign(ln, fillNode);
-    }
-  }
-  if (line.dashStyle) {
-    ln['a:prstDash'] = { '@_val': line.dashStyle };
-  }
-  if (line.headEnd) {
-    const head = serializeLineEnd(line.headEnd);
-    if (head) ln['a:headEnd'] = head;
-  }
-  if (line.tailEnd) {
-    const tail = serializeLineEnd(line.tailEnd);
-    if (tail) ln['a:tailEnd'] = tail;
+    attrs.w = Math.round(Number(line.width));
   }
 
-  return ln;
+  const children: (undefined | XmlElement)[] = [];
+
+  if (line.fill) {
+    const fillNode = serializeFill(line.fill);
+    if (fillNode) children.push(fillNode);
+  }
+  if (line.dashStyle) {
+    children.push(el('a:prstDash', { val: line.dashStyle }));
+  }
+  if (line.headEnd) {
+    const head = serializeLineEnd(line.headEnd, 'a:headEnd');
+    if (head) children.push(head);
+  }
+  if (line.tailEnd) {
+    const tail = serializeLineEnd(line.tailEnd, 'a:tailEnd');
+    if (tail) children.push(tail);
+  }
+
+  return el('a:ln', attrs, children.filter(Boolean));
 }
 
 /**
  * Serializes geometry `<a:prstGeom>` or `<a:custGeom>`.
  */
-export function serializeGeometry(geometry?: PptxGeometry): Record<string, unknown> {
-  if (!geometry) {
-    return { 'a:prstGeom': { '@_prst': 'rect', 'a:avLst': {} } };
+export function serializeGeometry(geometry?: PptxGeometry): XmlElement {
+  if (!geometry || !geometry.presetGeometry) {
+    return el('a:prstGeom', { prst: 'rect' }, [el('a:avLst')]);
   }
 
-  if (geometry.presetGeometry) {
-    const avLst: Record<string, unknown> = {};
-    if (geometry.adjustments) {
-      const gdList = Object.entries(geometry.adjustments).map(([name, val]) => ({
-        '@_fmla': `val ${val}`,
-        '@_name': name,
-      }));
-      avLst['a:gd'] = gdList;
+  const avLstChildren: XmlElement[] = [];
+  if (geometry.adjustments) {
+    for (const [name, val] of Object.entries(geometry.adjustments)) {
+      avLstChildren.push(el('a:gd', { fmla: `val ${val}`, name }));
     }
-
-    return {
-      'a:prstGeom': {
-        '@_prst': geometry.presetGeometry,
-        'a:avLst': avLst,
-      },
-    };
   }
 
-  return { 'a:prstGeom': { '@_prst': 'rect', 'a:avLst': {} } };
+  return el('a:prstGeom', { prst: geometry.presetGeometry }, [
+    el('a:avLst', avLstChildren),
+  ]);
 }
 
 /**
  * Serializes outer shadow effects `<a:effectLst><a:outerShdw>`.
  */
-export function serializeShadow(shadow?: import('@hokkyss/pptx-core').PptxShadow): Record<string, unknown> | undefined {
+export function serializeShadow(shadow?: PptxShadow): undefined | XmlElement {
   if (!shadow) return undefined;
 
-  const outerShdw: Record<string, unknown> = {};
-  if (shadow.blurRadius !== undefined) {
-    outerShdw['@_blurRad'] = Math.round(Number(shadow.blurRadius));
-  }
-  if (shadow.distance !== undefined) {
-    outerShdw['@_dist'] = Math.round(Number(shadow.distance));
-  }
-  if (shadow.direction !== undefined) {
-    outerShdw['@_dir'] = Math.round(Number(shadow.direction));
-  }
-  if (shadow.alignment) {
-    outerShdw['@_algn'] = shadow.alignment;
-  }
-  if (shadow.rotateWithShape !== undefined) {
-    outerShdw['@_rotWithShape'] = shadow.rotateWithShape ? '1' : '0';
-  }
+  const attrs: Record<string, number | string | undefined> = {};
+  if (shadow.blurRadius !== undefined) attrs.blurRad = Math.round(Number(shadow.blurRadius));
+  if (shadow.distance !== undefined) attrs.dist = Math.round(Number(shadow.distance));
+  if (shadow.direction !== undefined) attrs.dir = Math.round(Number(shadow.direction));
+  if (shadow.alignment) attrs.algn = shadow.alignment;
+  if (shadow.rotateWithShape !== undefined) attrs.rotWithShape = shadow.rotateWithShape ? '1' : '0';
 
-  const srgbClr: Record<string, unknown> = {
-    '@_val': (shadow.color || '000000').replace(/^#/, ''),
-  };
+  const clrChildren: XmlElement[] = [];
   if (shadow.opacity !== undefined && shadow.opacity < 1) {
-    srgbClr['a:alpha'] = {
-      '@_val': Math.round(shadow.opacity * 100000),
-    };
+    clrChildren.push(el('a:alpha', { val: Math.round(shadow.opacity * 100000) }));
   }
-  outerShdw['a:srgbClr'] = srgbClr;
+  const srgbClrNode = el('a:srgbClr', { val: (shadow.color || '000000').replace(/^#/, '') }, clrChildren);
+  const outerShdw = el('a:outerShdw', attrs, [srgbClrNode]);
 
-  return {
-    'a:effectLst': {
-      'a:outerShdw': outerShdw,
-    },
-  };
+  return el('a:effectLst', [outerShdw]);
 }
+
+const PRESET_GEOMETRY_MAP: Record<string, string> = {
+  box: 'rect',
+  circle: 'ellipse',
+  cylinder: 'can',
+  oval: 'ellipse',
+  square: 'rect',
+  star: 'star5',
+  wedgeRoundRect: 'wedgeRoundRectCallout',
+};
 
 /**
  * Serializes a shape element into OpenXML `<p:sp>` strictly following DrawingML schema sequence.
  */
-export function serializeShape(shape: PptxShapeElement): Record<string, unknown> {
-  const cNvPr: Record<string, unknown> = {
-    '@_id': shape.id || '2',
-    '@_name': shape.name || `Shape ${shape.id || '2'}`,
+export function serializeShape(shape: PptxShapeElement): XmlElement {
+  const cNvPrAttrs: Record<string, string> = {
+    id: shape.id || '2',
+    name: shape.name || `Shape ${shape.id || '2'}`,
   };
   if (shape.isVisible === false) {
-    cNvPr['@_hidden'] = '1';
+    cNvPrAttrs.hidden = '1';
   }
+  const cNvPrChildren: XmlElement[] = [];
   if (shape.hyperlink) {
     const hlinkNode = serializeHyperlink(shape.hyperlink);
     if (hlinkNode) {
-      cNvPr['a:hlinkClick'] = hlinkNode;
+      cNvPrChildren.push(hlinkNode);
     }
   }
+  const cNvPr = el('p:cNvPr', cNvPrAttrs, cNvPrChildren);
 
-  const cNvSpPr: Record<string, unknown> = {};
+  const cNvSpPrAttrs: Record<string, string> = {};
   if (shape.isTextBox) {
-    cNvSpPr['@_txBox'] = '1';
+    cNvSpPrAttrs.txBox = '1';
   }
+  const cNvSpPrChildren: XmlElement[] = [];
   if (shape.locks) {
     const locks = serializeShapeLocks(shape.locks);
-    if (locks) cNvSpPr['a:spLocks'] = locks;
+    if (locks) cNvSpPrChildren.push(locks);
   }
+  const cNvSpPr = el('p:cNvSpPr', cNvSpPrAttrs, cNvSpPrChildren);
 
-  const nvPr: Record<string, unknown> = {};
+  const nvPrChildren: XmlElement[] = [];
   if (shape.placeholder) {
-    const ph: Record<string, unknown> = {
-      '@_type': shape.placeholder.type,
+    const phAttrs: Record<string, number | string> = {
+      type: shape.placeholder.type,
     };
     if (shape.placeholder.idx !== undefined) {
-      ph['@_idx'] = shape.placeholder.idx;
+      phAttrs.idx = shape.placeholder.idx;
     }
-    nvPr['p:ph'] = ph;
+    nvPrChildren.push(el('p:ph', phAttrs));
   }
+  const nvPr = el('p:nvPr', nvPrChildren);
 
-  const nvSpPr = {
-    'p:cNvPr': cNvPr,
-    'p:cNvSpPr': cNvSpPr,
-    'p:nvPr': nvPr,
-  };
+  const nvSpPr = el('p:nvSpPr', [cNvPr, cNvSpPr, nvPr]);
 
-  const spPr: Record<string, unknown> = {};
+  const spPrChildren: XmlElement[] = [];
 
   const hasExplicitSize = shape.position && (Number(shape.position.cx) > 0 || Number(shape.position.cy) > 0);
   if (hasExplicitSize) {
-    const xfrm: Record<string, unknown> = {
-      'a:off': {
-        '@_x': Math.round(Number(shape.position?.x ?? 0)),
-        '@_y': Math.round(Number(shape.position?.y ?? 0)),
-      },
-      'a:ext': {
-        '@_cx': Math.round(Number(shape.position?.cx ?? 1000000)),
-        '@_cy': Math.round(Number(shape.position?.cy ?? 1000000)),
-      },
-    };
+    const xfrmAttrs: Record<string, number | undefined> = {};
     if (shape.rotation) {
-      xfrm['@_rot'] = Math.round(Number(shape.rotation));
+      xfrmAttrs.rot = Math.round(Number(shape.rotation));
     }
-    spPr['a:xfrm'] = xfrm;
+    const xfrm = el('a:xfrm', xfrmAttrs, [
+      el('a:off', {
+        x: Math.round(Number(shape.position?.x ?? 0)),
+        y: Math.round(Number(shape.position?.y ?? 0)),
+      }),
+      el('a:ext', {
+        cx: Math.round(Number(shape.position?.cx ?? 1000000)),
+        cy: Math.round(Number(shape.position?.cy ?? 1000000)),
+      }),
+    ]);
+    spPrChildren.push(xfrm);
   } else if (!shape.placeholder) {
-    spPr['a:xfrm'] = {
-      'a:off': { '@_x': Math.round(Number(shape.position?.x ?? 0)), '@_y': Math.round(Number(shape.position?.y ?? 0)) },
-      'a:ext': { '@_cx': 2000000, '@_cy': 1000000 },
-    };
-    spPr['a:prstGeom'] = { '@_prst': 'rect', 'a:avLst': {} };
+    const xfrm = el('a:xfrm', [
+      el('a:off', { x: Math.round(Number(shape.position?.x ?? 0)), y: Math.round(Number(shape.position?.y ?? 0)) }),
+      el('a:ext', { cx: 2000000, cy: 1000000 }),
+    ]);
+    spPrChildren.push(xfrm);
   }
-
-  const PRESET_GEOMETRY_MAP: Record<string, string> = {
-    box: 'rect',
-    circle: 'ellipse',
-    cylinder: 'can',
-    oval: 'ellipse',
-    square: 'rect',
-    star: 'star5',
-    wedgeRoundRect: 'wedgeRoundRectCallout',
-  };
 
   // Geometry
   if (shape.geometry) {
-    const geomNode = serializeGeometry(shape.geometry);
-    Object.assign(spPr, geomNode);
+    spPrChildren.push(serializeGeometry(shape.geometry));
   } else if (!hasExplicitSize && shape.placeholder) {
     // Inherits geometry from layout
   } else {
     const rawType = shape.shapeType || 'rect';
     const mappedType = PRESET_GEOMETRY_MAP[rawType] || rawType;
-    spPr['a:prstGeom'] = { '@_prst': mappedType, 'a:avLst': {} };
+    spPrChildren.push(el('a:prstGeom', { prst: mappedType }, [el('a:avLst')]));
   }
 
   // Fill
   if (shape.fill) {
     const fillNode = serializeFill(shape.fill);
-    if (fillNode) Object.assign(spPr, fillNode);
+    if (fillNode) spPrChildren.push(fillNode);
   }
 
   // Line
   if (shape.line) {
     const lnNode = serializeLine(shape.line);
-    if (lnNode) spPr['a:ln'] = lnNode;
+    if (lnNode) spPrChildren.push(lnNode);
   }
 
   // Effects (Shadows)
   if (shape.shadow) {
     const effectNode = serializeShadow(shape.shadow);
-    if (effectNode) Object.assign(spPr, effectNode);
+    if (effectNode) spPrChildren.push(effectNode);
   }
 
-  const sp: Record<string, unknown> = {
-    'p:nvSpPr': nvSpPr,
-    'p:spPr': spPr,
-  };
+  const spPr = el('p:spPr', spPrChildren);
 
   // Text Body (Strictly required for p:sp in PresentationML)
-  if (shape.textBody) {
-    sp['p:txBody'] = serializeTextBody(shape.textBody);
-  } else {
-    sp['p:txBody'] = {
-      'a:bodyPr': {},
-      'a:lstStyle': {},
-      'a:p': {
-        'a:endParaRPr': {},
-      },
-    };
-  }
+  const txBody = shape.textBody
+    ? serializeTextBody(shape.textBody, 'p:txBody')
+    : el('p:txBody', [
+        el('a:bodyPr'),
+        el('a:lstStyle'),
+        el('a:p', [el('a:endParaRPr')]),
+      ]);
 
-  return sp;
+  return el('p:sp', [nvSpPr, spPr, txBody]);
 }
 
 const POSITION_TO_INDEX_MAP: Record<PptxConnectionPosition, number> = {
@@ -284,67 +255,66 @@ const POSITION_TO_INDEX_MAP: Record<PptxConnectionPosition, number> = {
 /**
  * Serializes a connector element into OpenXML `<p:cxnSp>`.
  */
-export function serializeConnector(connector: PptxConnectorElement): Record<string, unknown> {
-  const cNvPr: Record<string, unknown> = {
-    '@_id': connector.id || '2',
-    '@_name': connector.name || `Connector ${connector.id || '2'}`,
+export function serializeConnector(connector: PptxConnectorElement): XmlElement {
+  const cNvPrAttrs: Record<string, string> = {
+    id: connector.id || '2',
+    name: connector.name || `Connector ${connector.id || '2'}`,
   };
   if (connector.isVisible === false) {
-    cNvPr['@_hidden'] = '1';
+    cNvPrAttrs.hidden = '1';
   }
+  const cNvPrChildren: XmlElement[] = [];
   if (connector.hyperlink) {
     const hlinkNode = serializeHyperlink(connector.hyperlink);
     if (hlinkNode) {
-      cNvPr['a:hlinkClick'] = hlinkNode;
+      cNvPrChildren.push(hlinkNode);
     }
   }
+  const cNvPr = el('p:cNvPr', cNvPrAttrs, cNvPrChildren);
 
-  const cNvCxnSpPr: Record<string, unknown> = {
-    'a:cxnSpLocks': {},
-  };
+  const cNvCxnSpPrChildren: XmlElement[] = [el('a:cxnSpLocks')];
   if (connector.startConnection) {
-    cNvCxnSpPr['a:stCxn'] = {
-      '@_id': connector.startConnection.shapeId,
-      '@_idx': POSITION_TO_INDEX_MAP[connector.startConnection.position] ?? 0,
-    };
+    cNvCxnSpPrChildren.push(
+      el('a:stCxn', {
+        id: connector.startConnection.shapeId,
+        idx: POSITION_TO_INDEX_MAP[connector.startConnection.position] ?? 0,
+      }),
+    );
   }
   if (connector.endConnection) {
-    cNvCxnSpPr['a:endCxn'] = {
-      '@_id': connector.endConnection.shapeId,
-      '@_idx': POSITION_TO_INDEX_MAP[connector.endConnection.position] ?? 0,
-    };
+    cNvCxnSpPrChildren.push(
+      el('a:endCxn', {
+        id: connector.endConnection.shapeId,
+        idx: POSITION_TO_INDEX_MAP[connector.endConnection.position] ?? 0,
+      }),
+    );
   }
+  const cNvCxnSpPr = el('p:cNvCxnSpPr', cNvCxnSpPrChildren);
+  const nvCxnSpPr = el('p:nvCxnSpPr', [cNvPr, cNvCxnSpPr, el('p:nvPr')]);
 
-  const nvCxnSpPr = {
-    'p:cNvPr': cNvPr,
-    'p:cNvCxnSpPr': cNvCxnSpPr,
-    'p:nvPr': {},
-  };
+  const xfrm = el('a:xfrm', [
+    el('a:off', {
+      x: Math.round(Number(connector.position?.x ?? 0)),
+      y: Math.round(Number(connector.position?.y ?? 0)),
+    }),
+    el('a:ext', {
+      cx: Math.round(Number(connector.position?.cx ?? 100000)),
+      cy: Math.round(Number(connector.position?.cy ?? 0)),
+    }),
+  ]);
 
-  const spPr: Record<string, unknown> = {
-    'a:xfrm': {
-      'a:off': {
-        '@_x': Math.round(Number(connector.position?.x ?? 0)),
-        '@_y': Math.round(Number(connector.position?.y ?? 0)),
-      },
-      'a:ext': {
-        '@_cx': Math.round(Number(connector.position?.cx ?? 100000)),
-        '@_cy': Math.round(Number(connector.position?.cy ?? 0)),
-      },
-    },
-    'a:prstGeom': {
-      '@_prst': connector.shapeType || 'line',
-      'a:avLst': {},
-    },
-  };
+  const geom = el('a:prstGeom', {
+    prst: connector.shapeType || 'line',
+  }, [el('a:avLst')]);
+
+  const spPrChildren: XmlElement[] = [xfrm, geom];
 
   if (connector.line) {
     const ln = serializeLine(connector.line);
-    if (ln) spPr['a:ln'] = ln;
+    if (ln) spPrChildren.push(ln);
   }
 
-  return {
-    'p:nvCxnSpPr': nvCxnSpPr,
-    'p:spPr': spPr,
-  };
+  const spPr = el('p:spPr', spPrChildren);
+
+  return el('p:cxnSp', [nvCxnSpPr, spPr]);
 }

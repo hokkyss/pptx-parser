@@ -5,6 +5,7 @@ import {
   PptxParagraph,
   PptxParagraphProperties,
   PptxRun,
+  PptxRunProperties,
   PptxTextBody,
   PptxTextBodyProperties,
 } from '../types/ast';
@@ -189,7 +190,7 @@ export function parseRun(
 export function parseRunProperties(
   rPr: Record<string, unknown>,
   relationshipResolver?: RelationshipResolver,
-): PptxRun['properties'] {
+): PptxRunProperties {
   const fontSize = rPr['@_sz'] !== undefined ? hundredthsPoint(Number(rPr['@_sz'])) : undefined;
   const bold = rPr['@_b'] === '1' || rPr['@_b'] === true;
   const italic = rPr['@_i'] === '1' || rPr['@_i'] === true;

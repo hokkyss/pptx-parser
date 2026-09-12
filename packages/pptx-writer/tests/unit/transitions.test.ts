@@ -1,5 +1,6 @@
 import type { PptxTransitionType } from '@hokkyss/pptx-core';
 import { describe, expect, it } from 'vitest';
+import { renderXml } from '../../lib/xml/xml-element';
 import { serializeTransition } from '../../lib/serializers/transition-serializer';
 
 describe('Slide Transition Serializer (@hokkyss/pptx-writer)', () => {
@@ -11,99 +12,100 @@ describe('Slide Transition Serializer (@hokkyss/pptx-writer)', () => {
   it('serializes fade transition with default settings', () => {
     const node = serializeTransition({ type: 'fade' });
     expect(node).toBeDefined();
-    expect(node?.['p:fade']).toEqual({});
+    expect(node?.tag).toBe('p:transition');
+    expect(renderXml(node)).toBe('<p:transition><p:fade/></p:transition>');
   });
 
   it('serializes fade through black transition', () => {
     const node = serializeTransition({ type: 'fade', throughBlack: true });
-    expect(node?.['p:fade']).toEqual({ '@_thruBlk': '1' });
+    expect(renderXml(node)).toBe('<p:transition><p:fade thruBlk="1"/></p:transition>');
   });
 
   it('serializes blinds transition with horz and vert direction', () => {
     const horz = serializeTransition({ type: 'blinds', direction: 'horz' });
-    expect(horz?.['p:blinds']).toEqual({ '@_dir': 'horz' });
+    expect(renderXml(horz)).toBe('<p:transition><p:blinds dir="horz"/></p:transition>');
     const vert = serializeTransition({ type: 'blinds', direction: 'vert' });
-    expect(vert?.['p:blinds']).toEqual({ '@_dir': 'vert' });
+    expect(renderXml(vert)).toBe('<p:transition><p:blinds dir="vert"/></p:transition>');
   });
 
   it('serializes checker and comb transitions with direction', () => {
     const checker = serializeTransition({ type: 'checker', direction: 'vert' });
-    expect(checker?.['p:checker']).toEqual({ '@_dir': 'vert' });
+    expect(renderXml(checker)).toBe('<p:transition><p:checker dir="vert"/></p:transition>');
     const comb = serializeTransition({ type: 'comb', direction: 'horz' });
-    expect(comb?.['p:comb']).toEqual({ '@_dir': 'horz' });
+    expect(renderXml(comb)).toBe('<p:transition><p:comb dir="horz"/></p:transition>');
   });
 
   it('serializes cover and pull transitions with direction', () => {
     const cover = serializeTransition({ type: 'cover', direction: 'down' });
-    expect(cover?.['p:cover']).toEqual({ '@_dir': 'd' });
+    expect(renderXml(cover)).toBe('<p:transition><p:cover dir="d"/></p:transition>');
     const pull = serializeTransition({ type: 'pull', direction: 'left' });
-    expect(pull?.['p:pull']).toEqual({ '@_dir': 'l' });
+    expect(renderXml(pull)).toBe('<p:transition><p:pull dir="l"/></p:transition>');
   });
 
   it('serializes wipe transition with direction and speed', () => {
     const node = serializeTransition({
-      type: 'wipe',
       direction: 'right',
       speed: 'fast',
+      type: 'wipe',
     });
-    expect(node?.['@_spd']).toBe('fast');
-    expect(node?.['p:wipe']).toEqual({ '@_dir': 'r' });
+    expect(node?.attrs?.spd).toBe('fast');
+    expect(renderXml(node)).toBe('<p:transition spd="fast"><p:wipe dir="r"/></p:transition>');
   });
 
   it('serializes push transition with direction and auto-advance delay', () => {
     const node = serializeTransition({
-      type: 'push',
-      direction: 'up',
       advanceAfterMs: 4500,
       advanceOnClick: false,
+      direction: 'up',
       duration: 1000,
+      type: 'push',
     });
-    expect(node?.['@_advTm']).toBe(4500);
-    expect(node?.['@_advClick']).toBe('0');
-    expect(node?.['@_dur']).toBe(1000);
-    expect(node?.['p:push']).toEqual({ '@_dir': 'u' });
+    expect(node?.attrs?.advTm).toBe(4500);
+    expect(node?.attrs?.advClick).toBe('0');
+    expect(node?.attrs?.dur).toBe(1000);
+    expect(renderXml(node)).toBe('<p:transition spd="med" dur="1000" advClick="0" advTm="4500"><p:push dir="u"/></p:transition>');
   });
 
   it('serializes randomBar transition', () => {
-    const rb = serializeTransition({ type: 'randomBar', direction: 'horz' });
-    expect(rb?.['p:randomBar']).toEqual({ '@_dir': 'horz' });
+    const rb = serializeTransition({ direction: 'horz', type: 'randomBar' });
+    expect(renderXml(rb)).toBe('<p:transition><p:randomBar dir="horz"/></p:transition>');
   });
 
   it('serializes split transition with orientation and in/out direction', () => {
-    const splitIn = serializeTransition({ type: 'split', direction: 'in' });
-    expect(splitIn?.['p:split']).toEqual({ '@_dir': 'in' });
-    const splitHorz = serializeTransition({ type: 'split', direction: 'horz' });
-    expect(splitHorz?.['p:split']).toEqual({ '@_orient': 'horz' });
+    const splitIn = serializeTransition({ direction: 'in', type: 'split' });
+    expect(renderXml(splitIn)).toBe('<p:transition><p:split dir="in"/></p:transition>');
+    const splitHorz = serializeTransition({ direction: 'horz', type: 'split' });
+    expect(renderXml(splitHorz)).toBe('<p:transition><p:split orient="horz"/></p:transition>');
   });
 
   it('serializes wheel transition with spoke count', () => {
     const node = serializeTransition({
-      type: 'wheel',
-      spokes: 4,
       durationMs: 2500,
+      spokes: 4,
+      type: 'wheel',
     });
-    expect(node?.['@_spd']).toBe('slow');
-    expect(node?.['p:wheel']).toEqual({ '@_spokes': '4' });
+    expect(node?.attrs?.spd).toBe('slow');
+    expect(renderXml(node)).toBe('<p:transition spd="slow"><p:wheel spokes="4"/></p:transition>');
   });
 
   it('serializes zoom transition with in/out direction', () => {
-    const zoomIn = serializeTransition({ type: 'zoom', direction: 'in' });
-    expect(zoomIn?.['p:zoom']).toEqual({ '@_dir': 'in' });
-    const zoomOut = serializeTransition({ type: 'zoom', direction: 'out' });
-    expect(zoomOut?.['p:zoom']).toEqual({ '@_dir': 'out' });
+    const zoomIn = serializeTransition({ direction: 'in', type: 'zoom' });
+    expect(renderXml(zoomIn)).toBe('<p:transition><p:zoom dir="in"/></p:transition>');
+    const zoomOut = serializeTransition({ direction: 'out', type: 'zoom' });
+    expect(renderXml(zoomOut)).toBe('<p:transition><p:zoom dir="out"/></p:transition>');
   });
 
   it('serializes custom or unknown transition type via fallback', () => {
     const custom = serializeTransition({ type: 'newsflash' as PptxTransitionType });
-    expect(custom?.['p:newsflash']).toEqual({});
+    expect(renderXml(custom)).toBe('<p:transition><p:newsflash/></p:transition>');
   });
 
   it('maps durationMs and speed strings correctly', () => {
-    expect(serializeTransition({ type: 'cut', speed: 'medium' })?.['@_spd']).toBe('med');
-    expect(serializeTransition({ type: 'cut', speed: 'fast' })?.['@_spd']).toBe('fast');
-    expect(serializeTransition({ type: 'cut', durationMs: 400 })?.['@_spd']).toBe('fast');
-    expect(serializeTransition({ durationMs: 1200, type: 'cut' })?.['@_spd']).toBe('med');
-    expect(serializeTransition({ durationMs: 3000, type: 'cut' })?.['@_spd']).toBe('slow');
+    expect(serializeTransition({ speed: 'medium', type: 'cut' })?.attrs?.spd).toBe('med');
+    expect(serializeTransition({ speed: 'fast', type: 'cut' })?.attrs?.spd).toBe('fast');
+    expect(serializeTransition({ durationMs: 400, type: 'cut' })?.attrs?.spd).toBe('fast');
+    expect(serializeTransition({ durationMs: 1200, type: 'cut' })?.attrs?.spd).toBe('med');
+    expect(serializeTransition({ durationMs: 3000, type: 'cut' })?.attrs?.spd).toBe('slow');
   });
 
   it('covers transition directions and speeds', () => {
@@ -115,23 +117,23 @@ describe('Slide Transition Serializer (@hokkyss/pptx-writer)', () => {
     // Empty transition object (default to fade)
     // @ts-expect-error Testing empty transition object
     const defaultTrans = serializeTransition({});
-    expect(defaultTrans?.['p:fade']).toBeDefined();
+    expect(renderXml(defaultTrans)).toBe('<p:transition><p:fade/></p:transition>');
 
     // advanceOnClick true
     const advClickTrue = serializeTransition({ advanceOnClick: true, type: 'fade' });
-    expect(advClickTrue?.['@_advClick']).toBe('1');
+    expect(advClickTrue?.attrs?.advClick).toBe('1');
 
     // Custom direction and comb/randomBar vert
     const customDir = serializeTransition({ direction: 'customDiagonal', type: 'cover' });
-    expect(customDir?.['p:cover']).toEqual({ '@_dir': 'customDiagonal' });
+    expect(renderXml(customDir)).toBe('<p:transition><p:cover dir="customDiagonal"/></p:transition>');
 
     const combVert = serializeTransition({ direction: 'vert', type: 'comb' });
-    expect(combVert?.['p:comb']).toEqual({ '@_dir': 'vert' });
+    expect(renderXml(combVert)).toBe('<p:transition><p:comb dir="vert"/></p:transition>');
 
     const rbVert = serializeTransition({ direction: 'vert', type: 'randomBar' });
-    expect(rbVert?.['p:randomBar']).toEqual({ '@_dir': 'vert' });
+    expect(renderXml(rbVert)).toBe('<p:transition><p:randomBar dir="vert"/></p:transition>');
 
     const splitVert = serializeTransition({ direction: 'vert', type: 'split' });
-    expect(splitVert?.['p:split']).toEqual({ '@_orient': 'vert' });
+    expect(renderXml(splitVert)).toBe('<p:transition><p:split orient="vert"/></p:transition>');
   });
 });

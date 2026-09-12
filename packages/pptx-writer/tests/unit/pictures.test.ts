@@ -2,37 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { PptxPictureElement } from '@hokkyss/pptx-core';
 import { emu, emuDegree, thousandthsPercent } from '@hokkyss/pptx-core';
 import { serializePicture } from '../../lib/serializers/picture-serializer';
-
-interface PicNvPicPr {
-  'p:cNvPr'?: {
-    '@_id'?: string;
-    '@_name'?: string;
-  };
-}
-
-interface PicBlipFill {
-  'a:blip'?: {
-    '@_r:embed'?: string;
-    'a:alphaModFix'?: {
-      '@_amt'?: number;
-    };
-  };
-  'a:srcRect'?: {
-    '@_l'?: number;
-  };
-}
-
-interface PicSpPr {
-  'a:xfrm'?: {
-    '@_rot'?: number;
-  };
-}
-
-interface SerializedPicNode {
-  'p:blipFill'?: PicBlipFill;
-  'p:nvPicPr'?: PicNvPicPr;
-  'p:spPr'?: PicSpPr;
-}
+import { renderXml } from '../../lib/xml/xml-element';
 
 describe('Picture Serializer', () => {
   it('serializes picture element with blip embed, crop, alpha, and transforms', () => {
@@ -62,16 +32,20 @@ describe('Picture Serializer', () => {
       zIndex: 2,
     };
 
-    const xmlObject = serializePicture(pic) as SerializedPicNode;
-    expect(xmlObject).toBeDefined();
+    const xmlNode = serializePicture(pic);
+    expect(xmlNode).toBeDefined();
+    const xml = renderXml(xmlNode);
 
-    const nvPicPr = xmlObject['p:nvPicPr'];
-    expect(nvPicPr?.['p:cNvPr']?.['@_id']).toBe('4');
-
-    const blipFill = xmlObject['p:blipFill'];
-    expect(blipFill?.['a:blip']?.['@_r:embed']).toBe('rId2');
-    expect(blipFill?.['a:blip']?.['a:alphaModFix']?.['@_amt']).toBe(90000);
-    expect(blipFill?.['a:srcRect']?.['@_l']).toBe(10000);
+    // cNvPr id
+    expect(xml).toContain('id="4"');
+    // blipFill embed
+    expect(xml).toContain('r:embed="rId2"');
+    // alpha
+    expect(xml).toContain('<a:alphaModFix');
+    expect(xml).toContain('amt="90000"');
+    // crop — left=10000
+    expect(xml).toContain('<a:srcRect');
+    expect(xml).toContain('l="10000"');
   });
 });
 
@@ -88,9 +62,8 @@ describe('Picture Serializer rotation', () => {
       type: 'picture',
       zIndex: 0,
     };
-    const xml = serializePicture(pic) as SerializedPicNode;
-    const spPr = xml['p:spPr'];
-    expect(spPr?.['a:xfrm']?.['@_rot']).toBe(5400000);
+    const xml = renderXml(serializePicture(pic));
+    expect(xml).toContain('rot="5400000"');
   });
 
   it('covers blipEmbedId fallback, undefined positions and name fallbacks', () => {
@@ -106,11 +79,11 @@ describe('Picture Serializer rotation', () => {
       type: 'picture',
       zIndex: 0,
     };
-    const obj = serializePicture(picMinimal) as SerializedPicNode;
-    const blipFill = obj['p:blipFill'];
-    expect(blipFill?.['a:blip']?.['@_r:embed']).toBe('rId8');
-    const nvPicPr = obj['p:nvPicPr'];
-    expect(nvPicPr?.['p:cNvPr']?.['@_id']).toBe('4');
+    const xml = renderXml(serializePicture(picMinimal));
+    // blipEmbedId fallback used when mediaId is empty
+    expect(xml).toContain('r:embed="rId8"');
+    // id fallback
+    expect(xml).toContain('id="4"');
 
     // Override embedId, hyperlink, partial crops, undefined position
     // @ts-expect-error Testing undefined position
@@ -133,10 +106,8 @@ describe('Picture Serializer rotation', () => {
       type: 'picture',
       zIndex: 0,
     };
-    const overridden = serializePicture(picWithOverride, 'rIdOverride');
-    const overBlip = (overridden['p:blipFill'] as Record<string, Record<string, string>>)['a:blip'];
-    expect(overBlip['@_r:embed']).toBe('rIdOverride');
-    const cNvPr = (overridden['p:nvPicPr'] as Record<string, Record<string, unknown>>)['p:cNvPr'];
-    expect(cNvPr['a:hlinkClick']).toBeDefined();
+    const overriddenXml = renderXml(serializePicture(picWithOverride, 'rIdOverride'));
+    expect(overriddenXml).toContain('r:embed="rIdOverride"');
+    expect(overriddenXml).toContain('<a:hlinkClick');
   });
 });

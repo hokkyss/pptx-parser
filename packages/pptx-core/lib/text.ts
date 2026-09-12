@@ -57,37 +57,42 @@ export interface PptxHyperlink {
   url?: string;
 }
 
-/** Represents a run of text with uniform formatting */
+/** Strongly-typed text run formatting properties. OpenXML: `<a:rPr>` */
+export interface PptxRunProperties {
+  /** Baseline shift in thousandths of a percent (e.g. 30000 for +30% superscript, -25000 for -25% subscript). OpenXML: `<a:rPr @_baseline>` */
+  baseline?: number;
+  /** Bold. OpenXML: `<a:rPr @_b>` */
+  bold?: boolean;
+  /** Text color. OpenXML: `<a:rPr><a:solidFill><a:srgbClr @_val>` */
+  color?: string;
+  /** Font family name. OpenXML: `<a:rPr><a:latin @_typeface>` */
+  fontFamily?: string;
+  /** Font size in Hundredths of a Point. OpenXML: `<a:rPr @_sz>` */
+  fontSize?: HundredthsPoint;
+  /** Hyperlink URL or rich hyperlink configuration. OpenXML: `<a:rPr><a:hlinkClick>` */
+  hyperlink?: PptxHyperlink | string;
+  /** Italic. OpenXML: `<a:rPr @_i>` */
+  italic?: boolean;
+  /** Language. OpenXML: `<a:rPr @_lang>` */
+  language?: string;
+  /** Strikethrough. OpenXML: `<a:rPr @_strike>` */
+  strikethrough?: 'dblStrike' | 'sngStrike' | boolean;
+  /** Subscript convenience helper. OpenXML: `<a:rPr @_baseline="-25000">` */
+  subscript?: boolean;
+  /** Superscript convenience helper. OpenXML: `<a:rPr @_baseline="30000">` */
+  superscript?: boolean;
+  /** Underline. OpenXML: `<a:rPr @_u>` */
+  underline?: 'dash' | 'dbl' | 'dotted' | 'heavy' | 'sng' | 'wave' | boolean;
+}
+
+/** Represents a run of text with uniform formatting or a soft line break (<a:br>) */
 export interface PptxRun {
+  /** Indicates whether this run represents a soft line break (<a:br>). */
+  break?: boolean;
   /** Text properties. OpenXML: `<a:rPr>` */
-  properties: {
-    /** Baseline shift in thousandths of a percent (e.g. 30000 for +30% superscript, -25000 for -25% subscript). OpenXML: `<a:rPr @_baseline>` */
-    baseline?: number;
-    /** Bold. OpenXML: `<a:rPr @_b>` */
-    bold?: boolean;
-    /** Text color. OpenXML: `<a:rPr><a:solidFill><a:srgbClr @_val>` */
-    color?: string;
-    /** Font family name. OpenXML: `<a:rPr><a:latin @_typeface>` */
-    fontFamily?: string;
-    /** Font size in Hundredths of a Point. OpenXML: `<a:rPr @_sz>` */
-    fontSize?: HundredthsPoint;
-    /** Hyperlink URL or rich hyperlink configuration. OpenXML: `<a:rPr><a:hlinkClick>` */
-    hyperlink?: PptxHyperlink | string;
-    /** Italic. OpenXML: `<a:rPr @_i>` */
-    italic?: boolean;
-    /** Language. OpenXML: `<a:rPr @_lang>` */
-    language?: string;
-    /** Strikethrough. OpenXML: `<a:rPr @_strike>` */
-    strikethrough?: 'dblStrike' | 'sngStrike' | boolean;
-    /** Subscript convenience helper. OpenXML: `<a:rPr @_baseline="-25000">` */
-    subscript?: boolean;
-    /** Superscript convenience helper. OpenXML: `<a:rPr @_baseline="30000">` */
-    superscript?: boolean;
-    /** Underline. OpenXML: `<a:rPr @_u>` */
-    underline?: 'dash' | 'dbl' | 'dotted' | 'heavy' | 'sng' | 'wave' | boolean;
-  };
+  properties?: PptxRunProperties;
   /** Text content. OpenXML: `<a:t>` */
-  text: string;
+  text?: string;
 }
 
 /** Represents a single paragraph of text */

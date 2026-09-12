@@ -1,5 +1,5 @@
 import type { PptxDocument } from '@hokkyss/pptx-core';
-import { serializeXml } from '../xml/xml-builder';
+import { el, serializeXml, type XmlElement } from '../xml/xml-element';
 
 export interface PresentationSerializerOptions {
   handoutMasterRelId?: string;
@@ -17,59 +17,60 @@ export function serializePresentation(
   options: PresentationSerializerOptions,
 ): string {
   const masterIds = options.masterRelIds || ['rId1'];
-  const sldMasterIdList = masterIds.map((relId, idx) => ({
-    '@_id': 2147483648 + idx,
-    '@_r:id': relId,
-  }));
+  const sldMasterIdNodes = masterIds.map((relId, idx) =>
+    el('p:sldMasterId', {
+      id: 2147483648 + idx,
+      'r:id': relId,
+    }),
+  );
 
-  const sldIdList = options.slideRelIds.map((relId, idx) => ({
-    '@_id': 256 + idx,
-    '@_r:id': relId,
-  }));
+  const sldIdNodes = options.slideRelIds.map((relId, idx) =>
+    el('p:sldId', {
+      id: 256 + idx,
+      'r:id': relId,
+    }),
+  );
 
   const slideWidth = document.metadata?.slideWidth ?? 12192000;
   const slideHeight = document.metadata?.slideHeight ?? 6858000;
 
-  const presObj: Record<string, unknown> = {
-    '@_xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-    '@_xmlns:p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
-    '@_xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-    ...(document.metadata?.firstSlideNumber !== undefined
-      ? { '@_firstSlideNum': document.metadata.firstSlideNumber }
-      : {}),
-    'p:sldMasterIdLst': {
-      'p:sldMasterId': sldMasterIdList,
-    },
+  const presAttrs: Record<string, number | string | undefined> = {
+    'xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+    'xmlns:p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+    'xmlns:r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
   };
+  if (document.metadata?.firstSlideNumber !== undefined) {
+    presAttrs.firstSlideNum = document.metadata.firstSlideNumber;
+  }
+
+  const presChildren: XmlElement[] = [
+    el('p:sldMasterIdLst', sldMasterIdNodes),
+  ];
 
   if (options.notesMasterRelId) {
-    presObj['p:notesMasterIdLst'] = {
-      'p:notesMasterId': { '@_r:id': options.notesMasterRelId },
-    };
+    presChildren.push(
+      el('p:notesMasterIdLst', [
+        el('p:notesMasterId', { 'r:id': options.notesMasterRelId }),
+      ]),
+    );
   }
 
   if (options.handoutMasterRelId) {
-    presObj['p:handoutMasterIdLst'] = {
-      'p:handoutMasterId': { '@_r:id': options.handoutMasterRelId },
-    };
+    presChildren.push(
+      el('p:handoutMasterIdLst', [
+        el('p:handoutMasterId', { 'r:id': options.handoutMasterRelId }),
+      ]),
+    );
   }
 
-  presObj['p:sldIdLst'] = {
-    'p:sldId': sldIdList,
-  };
-  presObj['p:sldSz'] = {
-    '@_cx': slideWidth,
-    '@_cy': slideHeight,
-  };
-  presObj['p:notesSz'] = {
-    '@_cx': 6858000,
-    '@_cy': 9144000,
-  };
-  presObj['p:defaultTextStyle'] = {};
+  presChildren.push(
+    el('p:sldIdLst', sldIdNodes),
+    el('p:sldSz', { cx: slideWidth, cy: slideHeight }),
+    el('p:notesSz', { cx: 6858000, cy: 9144000 }),
+    el('p:defaultTextStyle'),
+  );
 
-  const root = {
-    'p:presentation': presObj,
-  };
+  const root = el('p:presentation', presAttrs, presChildren);
 
   return serializeXml(root);
 }
