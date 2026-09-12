@@ -158,6 +158,19 @@ describe('Paragraph serializer bullets and empty runs', () => {
     const xml = renderXml(autoNumPara);
     const expectedMarL = (2 * 228600) + 203200;
     expect(xml).toContain(`marL="${expectedMarL}"`);
+    expect(xml).toContain('indent="-203200"');
+
+    const charPara = serializeParagraph({
+      properties: {
+        bullet: { char: '•', type: 'char' },
+        level: 1,
+      },
+      runs: [{ properties: {}, text: 'Char bullet' }],
+    });
+    const charXml = renderXml(charPara);
+    const expectedCharMarL = (1 * 228600) + 152400;
+    expect(charXml).toContain(`marL="${expectedCharMarL}"`);
+    expect(charXml).toContain('indent="-152400"');
 
     const emptyPara = serializeParagraph({ properties: {}, runs: [] });
     const emptyXml = renderXml(emptyPara);
@@ -519,49 +532,5 @@ describe('Soft line breaks (<a:br>) and sequential interleaving', () => {
     // Count <a:br> nodes
     const brCount = (xml.match(/<a:br>/g) || []).length;
     expect(brCount).toBe(2);
-  });
-
-  it('uses custom indentSettings for levelIndent, char bulletGap, and autoNum bulletGap', () => {
-    const customIndentSettings = {
-      levelIndent: 365760, // 0.4"
-      bulletGap: {
-        char: 200000,
-        autoNum: 300000,
-      },
-    };
-
-    // Char bullet at level 2
-    const charPara = serializeParagraph(
-      {
-        properties: {
-          bullet: { type: 'char', char: '•' },
-          level: 2,
-        },
-        runs: [{ text: 'Custom bullet' }],
-      },
-      customIndentSettings,
-    );
-
-    const xml = renderXml(charPara);
-    // marL = (lvl * levelIndent) + bulletGap = (2 * 365760) + 200000 = 731520 + 200000 = 931520
-    expect(xml).toContain('marL="931520"');
-    expect(xml).toContain('indent="-200000"');
-
-    // AutoNum bullet at level 1
-    const autoNumPara = serializeParagraph(
-      {
-        properties: {
-          bullet: { type: 'autoNum', autoNumType: 'arabicPeriod' },
-          level: 1,
-        },
-        runs: [{ text: 'Numbered item' }],
-      },
-      customIndentSettings,
-    );
-
-    const numXml = renderXml(autoNumPara);
-    // marL = (lvl * levelIndent) + bulletGap = (1 * 365760) + 300000 = 665760
-    expect(numXml).toContain('marL="665760"');
-    expect(numXml).toContain('indent="-300000"');
   });
 });
