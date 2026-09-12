@@ -336,7 +336,7 @@ export function serializeRunProperties(props?: PptxRun['properties']): undefined
 
 /**
  * Serializes paragraph `<a:p>`.
- * Follows strict schema sequence: a:pPr -> interleaved (a:r | a:br) -> a:endParaRPr (if empty).
+ * Follows schema order: a:pPr -> a:r / a:br (with a:rPr then a:t) -> a:endParaRPr
  */
 export function serializeParagraph(paragraph: PptxParagraph): XmlElement {
   const pPrAttrs: Record<string, number | string | undefined> = {};
@@ -369,7 +369,7 @@ export function serializeParagraph(paragraph: PptxParagraph): XmlElement {
     if (props.bullet.type !== 'none' && pPrAttrs.marL === undefined && pPrAttrs.indent === undefined) {
       const lvl = props.level ?? 0;
       const isNumbering = props.bullet.type === 'autoNum';
-      // Numbered lists ("1.") use ~16pt (203200 EMU); single char bullets ("•") use ~12pt (152400 EMU)
+      // Numbered lists ("1.") default to ~16pt (203200 EMU); single char bullets ("•") default to ~12pt (152400 EMU)
       const bulletGap = isNumbering ? 203200 : 152400;
       const levelIndent = 228600; // 0.25 in per nested indentation level
       pPrAttrs.marL = (lvl * levelIndent) + bulletGap;
@@ -436,7 +436,7 @@ export function serializeParagraph(paragraph: PptxParagraph): XmlElement {
 export function serializeTextBody(textBody: PptxTextBody, tag: string = 'p:txBody'): XmlElement {
   const bodyPrNode = serializeBodyProperties(textBody.bodyProperties);
   const paragraphs = (textBody.paragraphs && textBody.paragraphs.length > 0)
-    ? textBody.paragraphs.map(serializeParagraph)
+    ? textBody.paragraphs.map((p) => serializeParagraph(p))
     : [el('a:p', [el('a:pPr'), el('a:endParaRPr')])];
 
   return el(tag, [

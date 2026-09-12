@@ -158,6 +158,19 @@ describe('Paragraph serializer bullets and empty runs', () => {
     const xml = renderXml(autoNumPara);
     const expectedMarL = (2 * 228600) + 203200;
     expect(xml).toContain(`marL="${expectedMarL}"`);
+    expect(xml).toContain('indent="-203200"');
+
+    const charPara = serializeParagraph({
+      properties: {
+        bullet: { char: '•', type: 'char' },
+        level: 1,
+      },
+      runs: [{ properties: {}, text: 'Char bullet' }],
+    });
+    const charXml = renderXml(charPara);
+    const expectedCharMarL = (1 * 228600) + 152400;
+    expect(charXml).toContain(`marL="${expectedCharMarL}"`);
+    expect(charXml).toContain('indent="-152400"');
 
     const emptyPara = serializeParagraph({ properties: {}, runs: [] });
     const emptyXml = renderXml(emptyPara);

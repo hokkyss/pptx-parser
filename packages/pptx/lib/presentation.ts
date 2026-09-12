@@ -1,4 +1,9 @@
-import type { PptxColorScheme, PptxDocument, PptxMetadata, PptxSlide } from '@hokkyss/pptx-core';
+import type {
+  PptxColorScheme,
+  PptxDocument,
+  PptxMetadata,
+  PptxSlide,
+} from '@hokkyss/pptx-core';
 import type { ThemeColorInput, ThemeFontInput } from '@hokkyss/pptx-core';
 import {
   emu,

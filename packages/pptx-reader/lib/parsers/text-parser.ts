@@ -39,7 +39,7 @@ export function parseParagraph(
 
   const algnRaw = (pPr['@_algn'] as string) || '';
   const alignment = alignMap[algnRaw];
-  const level = pPr['@_lvl'] !== undefined ? Number(pPr['@_lvl']) : undefined;
+  const level = pPr['@_lvl'] !== undefined ? Number(pPr['@_lvl']) : 0;
 
   const leftMargin = pPr['@_marL'] !== undefined ? emu(Number(pPr['@_marL'])) : undefined;
   const rightMargin = pPr['@_marR'] !== undefined ? emu(Number(pPr['@_marR'])) : undefined;

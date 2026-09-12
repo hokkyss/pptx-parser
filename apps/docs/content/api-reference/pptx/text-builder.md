@@ -25,7 +25,9 @@ Defines an inline span of text with uniform styling:
 ```typescript
 export interface TextRunConfig {
   /** The text string content */
-  text: string;
+  text?: string;
+  /** When true, emits a soft line break (<a:br>) without creating a new paragraph or bullet */
+  break?: boolean;
   /** Font family name */
   font?: string;
   /** Font size in points */

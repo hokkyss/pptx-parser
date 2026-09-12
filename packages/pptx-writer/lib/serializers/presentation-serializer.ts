@@ -9,6 +9,47 @@ export interface PresentationSerializerOptions {
 }
 
 /**
+ * Builds the default text style element with level 1 through 9 paragraph properties.
+ * @returns XmlElement for defaultTextStyle.
+ */
+function buildDefaultTextStyle(): XmlElement {
+  const children: XmlElement[] = [
+    el('a:defPPr', [
+      el('a:defRPr', { lang: 'en-US' }),
+    ]),
+  ];
+
+  for (let i = 1; i <= 9; i++) {
+    const marL = (i - 1) * 457200;
+    children.push(
+      el(`a:lvl${i}pPr`, {
+        algn: 'l',
+        defTabSz: 914400,
+        eaLnBrk: 1,
+        hangingPunct: 1,
+        latinLnBrk: 0,
+        marL,
+        rtl: 0,
+      }, [
+        el('a:defRPr', {
+          kern: 1200,
+          sz: 1800,
+        }, [
+          el('a:solidFill', [
+            el('a:schemeClr', { val: 'tx1' }),
+          ]),
+          el('a:latin', { typeface: '+mn-lt' }),
+          el('a:ea', { typeface: '+mn-ea' }),
+          el('a:cs', { typeface: '+mn-cs' }),
+        ]),
+      ]),
+    );
+  }
+
+  return el('p:defaultTextStyle', children);
+}
+
+/**
  * Serializes `ppt/presentation.xml` adhering strictly to ECMA-376 sequence.
  * Sequence: p:sldMasterIdLst -> p:notesMasterIdLst -> p:handoutMasterIdLst -> p:sldIdLst -> p:sldSz -> p:notesSz -> p:defaultTextStyle
  */
@@ -67,7 +108,7 @@ export function serializePresentation(
     el('p:sldIdLst', sldIdNodes),
     el('p:sldSz', { cx: slideWidth, cy: slideHeight }),
     el('p:notesSz', { cx: 6858000, cy: 9144000 }),
-    el('p:defaultTextStyle'),
+    buildDefaultTextStyle(),
   );
 
   const root = el('p:presentation', presAttrs, presChildren);
