@@ -5,11 +5,18 @@
 "@hokkyss/pptx-writer": minor
 ---
 
-Add native support for soft line breaks, hierarchical block indentation, 9-level default text styles, and clean Master Layout inheritance:
-- Support `{ break: true }` in text runs to serialize native OpenXML `<a:br/>` tags within paragraphs without creating a new bullet point (equivalent to `Shift + Enter` in desktop PowerPoint).
-- Support non-bulleted hierarchical indentation (`{ level: N, bullet: false }`) by serializing `<a:buNone/>` at indent levels $>0$, with clean parser recognition in `@hokkyss/pptx-reader`.
-- Emit complete 9-level `<p:defaultTextStyle>` in `ppt/presentation.xml` with standard default tab sizes (`defTabSz="914400"`) and incremental margins for full Desktop PowerPoint Tab and Shift+Tab parity.
-- Rely on Slide Master and Presentation Default text styles for clean bullet margin and hanging indent cascade across slides without forcing redundant slide-level XML overrides.
-- Add JSDoc links and specification references across OpenXML constants (ECMA-376 Sections 20.1.10.19 and 21.1.2.2.7).
-- Remove hardcoded arbitrary serializer ID fallbacks in favor of centralized slide-level ID normalization.
+fix(bullets): support multilevel bullets, block indentation, soft line breaks, and default text styles
 
+- **`@hokkyss/pptx`**:
+  - Support `{ break: true }` in text runs to serialize native OpenXML `<a:br/>` tags within a paragraph without creating a new bullet point (equivalent to `Shift + Enter` in desktop PowerPoint).
+  - Support non-bulleted hierarchical indentation (`{ level: N, bullet: false }`) by serializing `<a:buNone/>` at indent levels $>0$.
+  - Added comprehensive unit tests for multilevel bullets, soft line breaks, and layout placeholder inheritance.
+- **`@hokkyss/pptx-writer`**:
+  - Emits complete 9-level `<p:defaultTextStyle>` (`a:lvl1pPr` through `a:lvl9pPr`) in `ppt/presentation.xml` with standard default tab sizes (`defTabSz="914400"`) and incremental margins for complete Desktop PowerPoint Tab and Shift+Tab parity.
+  - Added 9-level indent hierarchy across default slide master `txStyles` and default slide layout placeholders.
+  - Standardized default bullet margins and hanging indents (`bulletGap = isNumbering ? 203200 : 152400` and `levelIndent = 228600`).
+  - Removed hardcoded arbitrary serializer ID fallbacks in favor of centralized slide-level ID normalization.
+  - Added dedicated test suite (`line-break.test.ts`) covering soft breaks and sequential run interleaving.
+- **`@hokkyss/pptx-reader`**:
+  - Updated paragraph parser to recognize `<a:buNone/>` tags (`buNone !== undefined`), accurately reading non-bulleted hierarchical indentation.
+  - Added unit test coverage for bullet-suppressed indented paragraphs.
