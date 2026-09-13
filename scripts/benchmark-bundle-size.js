@@ -95,10 +95,10 @@ export async function runTreeShakingBenchmarks() {
   const tmpDir = resolve(process.cwd(), '.tmp-bundle-bench');
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
 
-  const corePath = resolve(process.cwd(), 'packages/pptx-core/lib/index.ts');
-  const readerPath = resolve(process.cwd(), 'packages/pptx-reader/lib/index.ts');
-  const writerPath = resolve(process.cwd(), 'packages/pptx-writer/lib/index.ts');
-  const sdkPath = resolve(process.cwd(), 'packages/pptx/lib/index.ts');
+  const corePath = resolve(process.cwd(), 'packages/pptx-core/lib/index.ts').replace(/\\/g, '/');
+  const readerPath = resolve(process.cwd(), 'packages/pptx-reader/lib/index.ts').replace(/\\/g, '/');
+  const writerPath = resolve(process.cwd(), 'packages/pptx-writer/lib/index.ts').replace(/\\/g, '/');
+  const sdkPath = resolve(process.cwd(), 'packages/pptx/lib/index.ts').replace(/\\/g, '/');
 
   const scenarios = [
     { name: 'Core Units & Types Only', code: `export { inches, points, emu, hundredthsPoint, emuDegree } from "${corePath}";` },
