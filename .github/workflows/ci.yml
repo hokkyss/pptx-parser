@@ -77,18 +77,5 @@ jobs:
       - name: Generate PR Markdown Report
         run: node scripts/generate-pr-comment.js
 
-      - name: Save PR Number Metadata
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          mkdir -p benchmarks
-          echo "$PR_NUMBER" > benchmarks/pr-number.txt
-
-      - name: Upload PR Benchmark Artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: pr-benchmark-telemetry
-          path: |
-            benchmarks/pr-comment.md
-            benchmarks/pr-number.txt
-          retention-days: 1
+      - name: Publish Telemetry to GitHub Job Summary
+        run: cat benchmarks/pr-comment.md >> "$GITHUB_STEP_SUMMARY"
