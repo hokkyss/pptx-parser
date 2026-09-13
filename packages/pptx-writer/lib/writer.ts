@@ -28,19 +28,38 @@ export interface WritePptxOptions {
   mode?: 'lenient' | 'strict';
 }
 
+const B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const B64_LOOKUP = new Uint8Array(256);
+for (let i = 0; i < B64_CHARS.length; i++) {
+  B64_LOOKUP[B64_CHARS.charCodeAt(i)] = i;
+}
+
 /**
- * Decodes a base64 string to a Uint8Array byte buffer.
+ * Decodes a base64 string to a Uint8Array byte buffer using pure ECMAScript
+ * without relying on Node.js `Buffer` or browser DOM `atob`.
  * @param base64 - Base64 encoded string.
  * @returns Uint8Array byte array.
  */
 export function decodeBase64ToBytes(base64: string): Uint8Array {
-  if (typeof Buffer !== 'undefined') {
-    return new Uint8Array(Buffer.from(base64, 'base64'));
-  }
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+  const clean = base64.replace(/[\s=]/g, '');
+  const n = clean.length;
+  const byteLength = (n * 3) >> 2;
+  const bytes = new Uint8Array(byteLength);
+
+  let p = 0;
+  for (let i = 0; i < n; i += 4) {
+    const b0 = B64_LOOKUP[clean.charCodeAt(i)];
+    const b1 = B64_LOOKUP[clean.charCodeAt(i + 1)];
+    const b2 = i + 2 < n ? B64_LOOKUP[clean.charCodeAt(i + 2)] : 0;
+    const b3 = i + 3 < n ? B64_LOOKUP[clean.charCodeAt(i + 3)] : 0;
+
+    bytes[p++] = (b0 << 2) | (b1 >> 4);
+    if (i + 2 < n) {
+      bytes[p++] = ((b1 & 15) << 4) | (b2 >> 2);
+    }
+    if (i + 3 < n) {
+      bytes[p++] = ((b2 & 3) << 6) | b3;
+    }
   }
   return bytes;
 }
