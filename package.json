@@ -8,7 +8,8 @@
   "scripts": {
     "build": "pnpm --filter @hokkyss/pptx... build",
     "test": "pnpm --filter @hokkyss/pptx... test",
-    "lint": "pnpm -r --if-present lint",
+    "lint": "pnpm --filter @hokkyss/pptx... --if-present lint",
+    "lint:all": "pnpm -r --if-present lint",
     "boil": "node libs/cli/bin/index.js",
     "demo": "node scripts/showcase-demo.js",
     "demo:showcase": "node scripts/showcase-demo.js",
