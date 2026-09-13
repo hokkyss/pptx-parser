@@ -3,6 +3,6 @@
   "compilerOptions": {
     "types": ["vite/client", "vitest"]
   },
-  "include": ["vite.config.ts", "lib", "types", "scripts", "tests"],
+  "include": ["vite.config.ts", "vitest.config.ts", "lib", "types", "scripts", "tests"],
   "exclude": ["dist"]
 }

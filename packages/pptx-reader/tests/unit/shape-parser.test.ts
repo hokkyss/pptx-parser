@@ -1,4 +1,4 @@
-import type { PptxElement } from '@hokkyss/pptx-core';
+import type { PptxAudioElement, PptxElement, PptxVideoElement } from '@hokkyss/pptx-core';
 import { describe, expect, it } from 'vitest';
 import { parseShapes } from '../../lib/parsers/shape-parser';
 import { createRelationshipResolver } from '../../lib/resolvers/relationship-resolver';
@@ -341,5 +341,69 @@ describe('Shape Parser connector arrowheads and attachment parsing', () => {
       'Connector Over Shape',
       'Topmost Table',
     ]);
+  });
+
+  it('parses embedded audio and video picture elements with custom posters', () => {
+    const mediaXml = `<?xml version="1.0"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <p:cSld>
+    <p:spTree>
+      <p:pic>
+        <p:nvPicPr>
+          <p:cNvPr id="50" name="Audio Shape"/>
+          <p:cNvPicPr/>
+          <p:nvPr>
+            <a:audioFile r:link="rIdAudio"/>
+          </p:nvPr>
+        </p:nvPicPr>
+        <p:blipFill>
+          <a:blip r:embed="rIdPosterAudio"/>
+        </p:blipFill>
+        <p:spPr>
+          <a:xfrm><a:off x="100" y="200"/><a:ext cx="914400" cy="914400"/></a:xfrm>
+        </p:spPr>
+      </p:pic>
+      <p:pic>
+        <p:nvPicPr>
+          <p:cNvPr id="51" name="Video Shape"/>
+          <p:cNvPicPr/>
+          <p:nvPr>
+            <a:videoFile r:link="rIdVideo"/>
+          </p:nvPr>
+        </p:nvPicPr>
+        <p:blipFill>
+          <a:blip r:embed="rIdPosterVideo"/>
+        </p:blipFill>
+        <p:spPr>
+          <a:xfrm><a:off x="500" y="600"/><a:ext cx="3657600" cy="2743200"/></a:xfrm>
+        </p:spPr>
+      </p:pic>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+
+    const relsXml = `<?xml version="1.0"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rIdAudio" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/audio" Target="../media/track.mp3"/>
+  <Relationship Id="rIdPosterAudio" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/audio_cover.png"/>
+  <Relationship Id="rIdVideo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/video" Target="../media/demo.mp4"/>
+  <Relationship Id="rIdPosterVideo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/video_cover.jpg"/>
+</Relationships>`;
+
+    const resolver = createRelationshipResolver(relsXml, 'ppt/slides/slide1.xml');
+    const mediaShapes = parseShapes(mediaXml, resolver);
+
+    expect(mediaShapes).toHaveLength(2);
+    const audioShape = mediaShapes[0] as PptxAudioElement;
+    expect(audioShape.elementType).toBe('audio');
+    expect(audioShape.audio.mediaId).toBe('ppt/media/track.mp3');
+    expect(audioShape.audio.mimeType).toBe('audio/mpeg');
+    expect(audioShape.audio.posterImageId).toBe('ppt/media/audio_cover.png');
+
+    const videoShape = mediaShapes[1] as PptxVideoElement;
+    expect(videoShape.elementType).toBe('video');
+    expect(videoShape.video.mediaId).toBe('ppt/media/demo.mp4');
+    expect(videoShape.video.mimeType).toBe('video/mp4');
+    expect(videoShape.video.posterImageId).toBe('ppt/media/video_cover.jpg');
   });
 });
