@@ -2147,9 +2147,9 @@ async function runShowcase() {
       desc: 'Empirical throughput & bundle size matrix',
       fill: 'FFFBEB',
       line: 'F59E0B',
-      slideIdx: 16,
+      slideIdx: 17,
       textColor: 'B45309',
-      title: '⚡ Slide 16: Engine Benchmark Matrix',
+      title: '⚡ Slide 17: Engine Benchmark Matrix',
       y: 5.8,
     },
   ];
@@ -2357,10 +2357,10 @@ async function runShowcase() {
       stops: ['10B981', '059669'],
     },
     h: inches(0.45),
-    hyperlink: { slideIndex: 16, tooltip: 'Advance to Live Benchmarks (Slide 16)' },
+    hyperlink: { slideIndex: 16, tooltip: 'Advance to Multimedia (Slide 16)' },
     line: { color: '34D399', width: inches(0.015) },
     shadow: { blur: inches(0.12), color: '10B981', opacity: 0.3 },
-    text: 'Benchmarks ➔',
+    text: 'Multimedia ➔',
     textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10) },
     w: inches(2.0),
     x: inches(10.4),
@@ -2533,14 +2533,271 @@ async function runShowcase() {
   addDisclaimer(slide15, true);
 
   // ==================================================================
-  // SLIDE 16: Live Benchmark Matrix (Performance & Bundle Size)
+  // SLIDE 16: Native Audio & Video Media Embedding Engine
   // ==================================================================
-  console.log('⚡ Generating Slide 16: Live Benchmark Matrix (Performance & Bundle Size)...');
+  console.log('🎬 Generating Slide 16: Native Audio & Video Media Embedding Engine...');
   const slide16 = pres.addSlide();
-  slide16.setTransition('zoom', { direction: 'in', speed: 'med' });
-  slide16.setBackground('0F172A');
+  slide16.setTransition('fade', { durationMs: 400 });
+  slide16.setBackground('F8FAFC');
 
-  slide16.addText('Engine Performance & Bundle Size Matrix', {
+  slide16.addText('Native Audio & Video Media Embedding Engine', {
+    bold: true,
+    color: '0F172A',
+    font: '+mj-lt',
+    fontSize: points(24),
+    h: inches(0.6),
+    w: inches(11.73),
+    x: inches(0.8),
+    y: inches(0.8),
+  });
+
+  slide16.addText('OpenXML DrawingML <p:pic> multimedia integration with automatic relationship linking, playback triggers & timing', {
+    color: '64748B',
+    fontSize: points(14),
+    h: inches(0.4),
+    w: inches(11.73),
+    x: inches(0.8),
+    y: inches(1.4),
+  });
+
+  // Top Nav Buttons
+  slide16.addShape('roundRect', {
+    fill: '0284C7',
+    h: inches(0.45),
+    hyperlink: { slideIndex: 14, tooltip: 'Return to Hyperlinks Hub (Slide 14)' },
+    line: { color: '38BDF8', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '0284C7', opacity: 0.3 },
+    text: '⬅ Back to Nav Hub',
+    textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10) },
+    w: inches(2.2),
+    x: inches(8.0),
+    y: inches(0.8),
+  });
+
+  slide16.addShape('roundRect', {
+    fill: {
+      angle: degrees(90),
+      stops: ['10B981', '059669'],
+    },
+    h: inches(0.45),
+    hyperlink: { slideIndex: 17, tooltip: 'Advance to Live Benchmarks (Slide 17)' },
+    line: { color: '34D399', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '10B981', opacity: 0.3 },
+    text: 'Benchmarks ➔',
+    textOptions: { align: 'center', bold: true, color: 'FFFFFF', fontSize: points(10) },
+    w: inches(2.0),
+    x: inches(10.4),
+    y: inches(0.8),
+  });
+
+  // Left Card: Audio Embedding
+  slide16.addShape('roundRect', {
+    fill: 'FFFFFF',
+    h: inches(4.9),
+    line: { color: 'E2E8F0', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.08 },
+    w: inches(5.7),
+    x: inches(0.8),
+    y: inches(2.0),
+  });
+
+  slide16.addText('🔊 Embedded Audio & Narration Tracks', {
+    bold: true,
+    color: '0F172A',
+    fontSize: points(13),
+    h: inches(0.35),
+    w: inches(5.3),
+    x: inches(1.0),
+    y: inches(2.2),
+  });
+
+  slide16.addText('Native speaker icon rendered automatically with interactive click-to-play & automatic slide load triggers:', {
+    color: '64748B',
+    fontSize: points(10.5),
+    h: inches(0.45),
+    w: inches(5.3),
+    x: inches(1.0),
+    y: inches(2.55),
+  });
+
+  // Audio Component Visual Box
+  slide16.addShape('roundRect', {
+    fill: 'F1F5F9',
+    h: inches(1.5),
+    line: { color: 'CBD5E1', width: inches(0.015) },
+    w: inches(5.3),
+    x: inches(1.0),
+    y: inches(3.05),
+  });
+
+  // Embed actual audio track on slide
+  const sampleAudioBytes = readFileSync(resolve(process.cwd(), 'assets/sample-audio.mp3'));
+  const customAudioThumbBytes = readFileSync(resolve(process.cwd(), 'assets/custom-audio-thumbnail.png'));
+  slide16.addAudio(sampleAudioBytes, {
+    fileName: 'sample-audio.mp3',
+    h: inches(1.0),
+    loop: true,
+    mimeType: 'audio/mpeg',
+    name: 'Showcase Audio Track',
+    poster: {
+      data: customAudioThumbBytes,
+      fileName: 'custom-audio-thumbnail.png',
+      mimeType: 'image/png',
+    },
+    showWhenStopped: true,
+    trigger: 'onClick',
+    volume: 0.8,
+    w: inches(1.0),
+    x: inches(1.2),
+    y: inches(3.3),
+  });
+
+  slide16.addText([
+    { bold: true, color: '0F172A', fontSize: points(11), text: 'Interactive Audio Clip (Click custom cover in slideshow)\n' },
+    { color: '0284C7', fontSize: points(9.5), text: '• Source: assets/sample-audio.mp3\n' },
+    { color: '64748B', fontSize: points(9.5), text: '• Poster: custom-audio-thumbnail.png (Album art)\n' },
+    { color: '64748B', fontSize: points(9.5), text: '• Trigger: onClick | Loop: true | Vol: 80%' },
+  ], {
+    h: inches(1.2),
+    w: inches(3.9),
+    x: inches(2.3),
+    y: inches(3.2),
+  });
+
+  // Code Snippet Box (Audio)
+  slide16.addShape('roundRect', {
+    fill: '0F172A',
+    h: inches(1.9),
+    w: inches(5.3),
+    x: inches(1.0),
+    y: inches(4.75),
+  });
+
+  slide16.addText([
+    { bold: true, color: '38BDF8', fontSize: points(9), text: '// Embed audio with custom album artwork poster\n' },
+    { color: 'E2E8F0', fontSize: points(8.5), text: 'slide.addAudio(audioBuffer, {\n  fileName: \'sample-audio.mp3\',\n  mimeType: \'audio/mpeg\',\n  poster: { data: albumArtBytes, mimeType: \'image/png\' },\n  trigger: \'onClick\', // or \'automatic\'\n  loop: true,\n  volume: 0.8\n});' },
+  ], {
+    h: inches(1.8),
+    w: inches(5.1),
+    x: inches(1.1),
+    y: inches(4.8),
+  });
+
+  // Right Card: Video Embedding
+  slide16.addShape('roundRect', {
+    fill: 'FFFFFF',
+    h: inches(4.9),
+    line: { color: 'E2E8F0', width: inches(0.015) },
+    shadow: { blur: inches(0.12), color: '0F172A', opacity: 0.08 },
+    w: inches(5.7),
+    x: inches(6.8),
+    y: inches(2.0),
+  });
+
+  slide16.addText('🎬 High-Fidelity Video & Motion Graphics', {
+    bold: true,
+    color: '0F172A',
+    fontSize: points(13),
+    h: inches(0.35),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(2.2),
+  });
+
+  slide16.addText('Embed cross-platform MP4/MOV/AVI video containers with custom poster thumbnails, looping, and mute:', {
+    color: '64748B',
+    fontSize: points(10.5),
+    h: inches(0.45),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(2.55),
+  });
+
+  // Video Component Visual Box
+  slide16.addShape('roundRect', {
+    fill: '0F172A',
+    h: inches(1.5),
+    line: { color: '334155', width: inches(0.015) },
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(3.05),
+  });
+
+  // Embed actual video container on slide
+  const sampleVideoBytes = readFileSync(resolve(process.cwd(), 'assets/sample-video.mp4'));
+  const customVideoThumbBytes = readFileSync(resolve(process.cwd(), 'assets/custom-video-thumbnail.png'));
+  slide16.addVideo(sampleVideoBytes, {
+    fileName: 'sample-video.mp4',
+    h: inches(1.3),
+    loop: true,
+    mimeType: 'video/mp4',
+    muted: true,
+    name: 'Showcase Video Track',
+    poster: {
+      data: customVideoThumbBytes,
+      fileName: 'custom-video-thumbnail.png',
+      mimeType: 'image/png',
+    },
+    trigger: 'automatic',
+    w: inches(1.8),
+    x: inches(7.15),
+    y: inches(3.15),
+  });
+
+  slide16.addText([
+    { bold: true, color: 'FFFFFF', fontSize: points(11), text: 'Embedded Video Player Container\n' },
+    { color: '38BDF8', fontSize: points(9.5), text: '• Source: assets/sample-video.mp4 (H.264)\n' },
+    { color: '94A3B8', fontSize: points(9.5), text: '• Poster: custom-video-thumbnail.png (Cinematic 4K)\n' },
+    { color: '94A3B8', fontSize: points(9.5), text: '• Trigger: automatic | Muted: true' },
+  ], {
+    h: inches(1.2),
+    w: inches(3.1),
+    x: inches(9.1),
+    y: inches(3.2),
+  });
+
+  // Code Snippet Box (Video)
+  slide16.addShape('roundRect', {
+    fill: '0F172A',
+    h: inches(1.9),
+    w: inches(5.3),
+    x: inches(7.0),
+    y: inches(4.75),
+  });
+
+  slide16.addText([
+    { bold: true, color: '38BDF8', fontSize: points(9), text: '// Embed video with custom poster thumbnail & controls\n' },
+    { color: 'E2E8F0', fontSize: points(8.5), text: 'slide.addVideo(videoBuffer, {\n  fileName: \'product_demo.mp4\',\n  mimeType: \'video/mp4\',\n  poster: { data: posterBytes, mimeType: \'image/png\' },\n  x: inches(2), y: inches(1.5),\n  w: inches(6), h: inches(4.5),\n  muted: true, loop: true\n});' },
+  ], {
+    h: inches(1.8),
+    w: inches(5.1),
+    x: inches(7.1),
+    y: inches(4.8),
+  });
+
+  slide16.setNotes([
+    {
+      runs: [
+        { text: 'Multimedia Embedding Keynote: ', bold: true },
+        { text: 'Full OpenXML Audio & Video Integration', underline: true },
+      ],
+    },
+    { bullet: true, level: 0, text: 'Native PowerPoint speaker/film strip icons rendered with zero client-side dependencies.' },
+    { bullet: true, level: 0, text: 'Full relationship management with dual r:link (media) and r:embed (p14:media) entries.' },
+    { bullet: true, level: 0, text: 'Complete round-trip preservation when parsed and resaved with @hokkyss/pptx-reader.' },
+  ]);
+
+  addDisclaimer(slide16, false);
+
+  // ==================================================================
+  // SLIDE 17: Live Benchmark Matrix (Performance & Bundle Size)
+  // ==================================================================
+  console.log('⚡ Generating Slide 17: Live Benchmark Matrix (Performance & Bundle Size)...');
+  const slide17 = pres.addSlide();
+  slide17.setTransition('zoom', { direction: 'in', speed: 'med' });
+  slide17.setBackground('0F172A');
+
+  slide17.addText('Engine Performance & Bundle Size Matrix', {
     bold: true,
     color: 'FFFFFF',
     font: '+mj-lt',
@@ -2551,7 +2808,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide16.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
+  slide17.addText('Empirical microsecond throughput benchmarks and ultra-lean tree-shakeable bundle budgets', {
     color: '94A3B8',
     fontSize: points(14),
     h: inches(0.4),
@@ -2561,7 +2818,7 @@ async function runShowcase() {
   });
 
   // Table Card (Left)
-  slide16.addShape('roundRect', {
+  slide17.addShape('roundRect', {
     fill: '1E293B',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
@@ -2571,7 +2828,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide16.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
+  slide17.addText('⚡ Throughput & Latency Benchmarks (Vitest)', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -2581,7 +2838,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide16.addTable(
+  slide17.addTable(
     (tbl) => {
       // Header Row
       tbl.addRow({
@@ -2626,7 +2883,7 @@ async function runShowcase() {
   );
 
   // Bundle Size Card (Right)
-  slide16.addShape('roundRect', {
+  slide17.addShape('roundRect', {
     fill: '1E293B',
     h: inches(4.9),
     line: { color: '334155', width: inches(0.015) },
@@ -2636,7 +2893,7 @@ async function runShowcase() {
     y: inches(2.0),
   });
 
-  slide16.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
+  slide17.addText('📦 Monorepo Gzip & Brotli Footprint (Bundlephobia-Aligned)', {
     bold: true,
     color: 'FFFFFF',
     fontSize: points(13),
@@ -2646,7 +2903,7 @@ async function runShowcase() {
     y: inches(2.2),
   });
 
-  slide16.addChart({
+  slide17.addChart({
     axisColor: '94A3B8',
     categories: ['@pptx-core', '@pptx-reader', '@pptx-writer', 'Full SDK'],
     chartType: 'column',
@@ -2671,7 +2928,7 @@ async function runShowcase() {
     y: inches(2.65),
   });
 
-  slide16.addShape('roundRect', {
+  slide17.addShape('roundRect', {
     fill: '0284C7',
     h: inches(0.45),
     hyperlink: { slideIndex: 14, tooltip: 'Return to Hyperlinks Hub (Slide 14)' },
@@ -2684,7 +2941,7 @@ async function runShowcase() {
     y: inches(0.8),
   });
 
-  slide16.setNotes([
+  slide17.setNotes([
     {
       runs: [
         { text: 'Empirical Benchmark Keynote: ', bold: true },
@@ -2696,7 +2953,7 @@ async function runShowcase() {
     { bullet: true, level: 0, text: 'Total bundle size under 49 KB gzipped with full PresentationML & DrawingML engines.' },
   ]);
 
-  addDisclaimer(slide16, true);
+  addDisclaimer(slide17, true);
 
   // 3. Export Presentation to Buffer and Save to Disk
   const outputFile = resolve(process.cwd(), 'hokkyss_showcase_deck.pptx');

@@ -1,6 +1,6 @@
 import type { PptxElement, PptxSlide } from '@hokkyss/pptx-core';
 import { el, serializeXml, type XmlElement } from '../xml/xml-element';
-import { serializeAnimations } from './animation-serializer';
+import { buildSlideTiming, type MediaTimingEntry, serializeAudio, serializeVideo } from './audio-video-serializer';
 import { serializeGroup } from './group-serializer';
 import { serializePicture } from './picture-serializer';
 import { serializeConnector, serializeShape } from './shape-serializer';
@@ -99,6 +99,7 @@ export function serializeSlide(
   slide: PptxSlide,
   pictureEmbedMap?: Map<string, string>,
   chartRelIds?: string[],
+  audioVideoRelMap?: Map<string, { embedRelId: string; imageRelId?: string; linkRelId: string }>,
 ): string {
   const elements = (slide.elements && slide.elements.length > 0) ? slide.elements : (slide.shapes || []);
 
@@ -125,6 +126,7 @@ export function serializeSlide(
 
   let chartIdx = 0;
   const spTreeElements: XmlElement[] = [];
+  const mediaTimingList: MediaTimingEntry[] = [];
 
   for (const rawEl of elements) {
     const elWithId = normalizeElementWithUniqueIds(rawEl, getUniqueId);
@@ -139,6 +141,29 @@ export function serializeSlide(
     } else if (elWithId.elementType === 'picture') {
       const overrideEmbedId = pictureEmbedMap?.get(elWithId.picture.mediaId) ?? pictureEmbedMap?.get(elWithId.id);
       spTreeElements.push(serializePicture(elWithId, overrideEmbedId));
+    } else if (elWithId.elementType === 'audio') {
+      const rels = audioVideoRelMap?.get(elWithId.audio.mediaId);
+      const linkRelId = rels?.linkRelId ?? 'rId2';
+      const embedRelId = rels?.embedRelId ?? 'rId3';
+      const imageRelId = rels?.imageRelId;
+      spTreeElements.push(serializeAudio(elWithId, linkRelId, embedRelId, imageRelId));
+      mediaTimingList.push({
+        id: elWithId.id,
+        mediaType: 'audio',
+        playback: elWithId.audio.playback,
+      });
+    } else if (elWithId.elementType === 'video') {
+      const rels = audioVideoRelMap?.get(elWithId.video.mediaId);
+      const linkRelId = rels?.linkRelId ?? 'rId2';
+      const embedRelId = rels?.embedRelId ?? 'rId3';
+      const imageRelId = rels?.imageRelId;
+      spTreeElements.push(serializeVideo(elWithId, linkRelId, embedRelId, imageRelId));
+      mediaTimingList.push({
+        id: elWithId.id,
+        mediaType: 'video',
+        muted: elWithId.video.muted,
+        playback: elWithId.video.playback,
+      });
     } else if (elWithId.elementType === 'group') {
       spTreeElements.push(serializeGroup(elWithId));
     } else if (elWithId.elementType === 'connector') {
@@ -198,7 +223,7 @@ export function serializeSlide(
     sldChildren.push(transitionNode);
   }
 
-  const timingNode = serializeAnimations(slide.animations);
+  const timingNode = buildSlideTiming(slide.animations, mediaTimingList);
   if (timingNode) {
     sldChildren.push(timingNode);
   }

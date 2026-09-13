@@ -5,17 +5,23 @@ export {
 } from './presentation';
 
 export type {
+  PptxAudioElement,
   PptxHyperlink,
   PptxHyperlinkAction,
+  PptxMediaPlayback,
+  PptxPosterOption,
+  PptxVideoElement,
   ThemeColorInput,
   ThemeFontInput,
 } from '@hokkyss/pptx-core';
 
 export {
+  type AddAudioOptions,
   type AddConnectorOptions,
   type AddGroupOptions,
   type AddImageOptions,
   type AddTextOptions,
+  type AddVideoOptions,
   type ConnectionPosition,
   type ConnectorEndpoint,
   GroupBuilder,
